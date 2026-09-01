@@ -9,7 +9,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           {/* rotas publicas */}
-          <Route path="/login" element={<Home/>} />
+          <Route path="/" element={<Home/>} />
 
 
           
