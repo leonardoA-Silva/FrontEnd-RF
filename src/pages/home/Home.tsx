@@ -1,5 +1,6 @@
-import { Repeat2, MapPin, BarChart3 } from "lucide-react";
-import { Link } from "@mui/material";
+import { MapPin, BarChart3 } from "lucide-react";
+import Header from "../../components/Header";
+import Footer from "../../components/Footer";
 
 const stats = [
   { value: "2.500+", label: "Toneladas desviadas de aterros" },
@@ -20,112 +21,54 @@ const technologies = [
   },
 ];
 
-// Estilos centralizados aqui dentro do próprio Home.tsx (sem arquivo .css).
-// Cada chave tem um nome semântico e guarda as classes Tailwind correspondentes.
-const styles = {
-  pagina: "min-h-screen bg-[#FAF9F5] text-[#1B4B3A]",
-
-  cabecalho: "border-b border-[#E7E4DA] bg-white",
-  cabecalhoConteudo:
-    "mx-auto flex max-w-7xl items-center justify-between px-6 py-4 sm:px-10",
-  marca: "flex items-center gap-3",
-  marcaIcone:
-    "flex h-11 w-11 items-center justify-center rounded-full bg-emerald-500 text-white",
-  marcaIconeSvg: "h-6 w-6",
-  marcaTextos: "leading-tight",
-  marcaTitulo: "text-lg font-bold text-[#1B4B3A]",
-  marcaSubtitulo: "text-sm font-bold tracking-wide text-orange-500",
-  menuNavegacao: "flex items-center gap-3",
-  botaoEntrar:
-    "rounded-lg border border-[#D9D5C8] px-5 py-2.5 text-sm font-semibold text-[#1B4B3A] transition hover:bg-[#F3F1EA]",
-  botaoCadastrar:
-    "rounded-lg bg-emerald-500 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-600",
-
-  secaoPrincipal: "mx-auto max-w-7xl px-6 py-16 sm:px-10 sm:py-20",
-  principalGrade: "grid items-center gap-12 lg:grid-cols-2",
-  principalTexto: "",
-  etiquetaDestaque:
-    "inline-block rounded-full border border-emerald-500 px-4 py-1.5 text-xs font-semibold tracking-wide text-emerald-600",
-  tituloPrincipal:
-    "mt-6 text-5xl font-extrabold leading-[1.08] tracking-tight text-[#1B4B3A] sm:text-6xl",
-  descricaoPrincipal:
-    "mt-6 max-w-xl text-lg leading-relaxed text-[#4B5A55]",
-  grupoBotoesPrincipal: "mt-8 flex flex-wrap gap-4",
-  botaoPublicar:
-    "rounded-lg bg-emerald-500 px-7 py-3.5 text-base font-semibold text-white shadow-sm transition hover:bg-emerald-600",
-  botaoExplorar:
-    "rounded-lg border-2 border-emerald-500 px-7 py-3.5 text-base font-semibold text-emerald-600 transition hover:bg-emerald-50",
-  imagemDestaqueContainer: "overflow-hidden rounded-2xl shadow-lg",
-  imagemDestaque: "h-full w-full object-cover",
-
-  faixaEstatisticas: "bg-[#0F3D2E]",
-  faixaEstatisticasConteudo:
-    "mx-auto flex max-w-7xl flex-col gap-8 px-6 py-10 sm:flex-row sm:items-center sm:justify-center sm:gap-16 sm:px-10",
-  estatisticaItem: "flex items-center gap-4",
-  estatisticaDivisor: "hidden h-10 w-px bg-emerald-800 sm:block",
-  estatisticaTexto: "flex items-baseline gap-3",
-  estatisticaValor: "text-3xl font-extrabold text-emerald-400 sm:text-4xl",
-  estatisticaLegenda: "max-w-[10rem] text-sm leading-snug text-emerald-50",
-
-  secaoConteudo: "mx-auto max-w-7xl px-6 py-16 sm:px-10",
-  conteudoGrade: "grid gap-12 lg:grid-cols-[1.4fr_1fr]",
-  tituloSecao: "text-2xl font-bold text-[#1B4B3A]",
-  gradeTecnologias: "mt-6 grid gap-4 sm:grid-cols-3",
-  cartaoTecnologia: "rounded-xl border border-[#E7E4DA] bg-white p-5",
-  iconeTecnologia: "h-5 w-5 text-emerald-500",
-  tituloTecnologia: "mt-3 text-sm font-bold text-[#1B4B3A]",
-  descricaoTecnologia: "mt-1 text-sm text-[#6B7670]",
-
-  depoimentoCaixa:
-    "mt-6 rounded-xl border border-orange-300 bg-amber-50 p-6",
-  depoimentoTexto: "text-[15px] leading-relaxed text-[#3F4A45]",
-  depoimentoAutor: "mt-4 text-sm font-bold text-[#1B4B3A]",
-
-  rodape: "bg-[#0F3D2E] text-emerald-50",
-  rodapeConteudo:
-    "mx-auto flex max-w-7xl flex-col gap-8 px-6 py-10 sm:flex-row sm:items-start sm:justify-between sm:px-10",
-  rodapeMarca: "max-w-xs",
-  rodapeMarcaTitulo: "text-base font-bold text-white",
-  rodapeMarcaTexto: "mt-2 text-sm leading-relaxed text-emerald-200",
-  rodapeLinks: "flex gap-8 text-sm text-emerald-100",
-  rodapeLink: "hover:text-white",
-  rodapeDireitos: "text-sm text-emerald-300",
-};
-
 export default function Home() {
+  // Estilos centralizados aqui dentro da função (sem arquivo .css).
+  // Cada chave tem um nome semântico e guarda as classes Tailwind correspondentes.
+  const styles = {
+    pagina: "min-h-screen bg-[#FAF9F5] text-[#1B4B3A]",
+
+    secaoPrincipal: "mx-auto max-w-7xl px-6 py-16 sm:px-10 sm:py-20",
+    principalGrade: "grid items-center gap-12 lg:grid-cols-2",
+    principalTexto: "",
+    etiquetaDestaque:
+      "inline-block rounded-full border border-emerald-500 px-4 py-1.5 text-xs font-semibold tracking-wide text-emerald-600",
+    tituloPrincipal:
+      "mt-6 text-5xl font-extrabold leading-[1.08] tracking-tight text-[#1B4B3A] sm:text-6xl",
+    descricaoPrincipal: "mt-6 max-w-xl text-lg leading-relaxed text-[#4B5A55]",
+    grupoBotoesPrincipal: "mt-8 flex flex-wrap gap-4",
+    botaoPublicar:
+      "rounded-lg bg-emerald-500 px-7 py-3.5 text-base font-semibold text-white shadow-sm transition hover:bg-emerald-600",
+    botaoExplorar:
+      "rounded-lg border-2 border-emerald-500 px-7 py-3.5 text-base font-semibold text-emerald-600 transition hover:bg-emerald-50",
+    imagemDestaqueContainer: "overflow-hidden rounded-2xl shadow-lg",
+    imagemDestaque: "h-full w-full object-cover",
+
+    faixaEstatisticas: "bg-[#0F3D2E]",
+    faixaEstatisticasConteudo:
+      "mx-auto flex max-w-7xl flex-col gap-8 px-6 py-10 sm:flex-row sm:items-center sm:justify-center sm:gap-16 sm:px-10",
+    estatisticaItem: "flex items-center gap-4",
+    estatisticaDivisor: "hidden h-10 w-px bg-emerald-800 sm:block",
+    estatisticaTexto: "flex items-baseline gap-3",
+    estatisticaValor: "text-3xl font-extrabold text-emerald-400 sm:text-4xl",
+    estatisticaLegenda: "max-w-[10rem] text-sm leading-snug text-emerald-50",
+
+    secaoConteudo: "mx-auto max-w-7xl px-6 py-16 sm:px-10",
+    conteudoGrade: "grid gap-12 lg:grid-cols-[1.4fr_1fr]",
+    tituloSecao: "text-2xl font-bold text-[#1B4B3A]",
+    gradeTecnologias: "mt-6 grid gap-4 sm:grid-cols-3",
+    cartaoTecnologia: "rounded-xl border border-[#E7E4DA] bg-white p-5",
+    iconeTecnologia: "h-5 w-5 text-emerald-500",
+    tituloTecnologia: "mt-3 text-sm font-bold text-[#1B4B3A]",
+    descricaoTecnologia: "mt-1 text-sm text-[#6B7670]",
+
+    depoimentoCaixa: "mt-6 rounded-xl border border-orange-300 bg-amber-50 p-6",
+    depoimentoTexto: "text-[15px] leading-relaxed text-[#3F4A45]",
+    depoimentoAutor: "mt-4 text-sm font-bold text-[#1B4B3A]",
+  };
+
   return (
     <div className={styles.pagina}>
-      {/* Header */}
-      <header className={styles.cabecalho}>
-        <div className={styles.cabecalhoConteudo}>
-          <div className={styles.marca}>
-            <span className={styles.marcaIcone}>
-              <Repeat2 className={styles.marcaIconeSvg} strokeWidth={2.4} />
-            </span>
-            <div className={styles.marcaTextos}>
-              <p className={styles.marcaTitulo}>Reaproveita</p>
-              <p className={styles.marcaSubtitulo}>FRANCA</p>
-            </div>
-          </div>
-
-          <nav className={styles.menuNavegacao}>
-            <Link
-              className={styles.botaoEntrar}
-              style={{ textDecoration: "none", color: "black" }}
-              href="Login"
-            >
-              Entrar
-            </Link>
-            <Link
-              className={styles.botaoCadastrar}
-              style={{ textDecoration: "none", color: "white" }}
-              href="../register/Register.tsx"
-            >
-              Cadastrar
-            </Link>
-          </nav>
-        </div>
-      </header>
+      <Header />
 
       {/* Hero */}
       <section className={styles.secaoPrincipal}>
@@ -141,8 +84,8 @@ export default function Home() {
 
             <p className={styles.descricaoPrincipal}>
               Conectamos as grandes indústrias calçadistas de Franca a
-              artesãos, cooperativas e microempresas locais. Dê um novo
-              destino a retalhos de couro, tecidos, borrachas e muito mais.
+              artesãos, cooperativas e microempresas locais. Dê um novo destino
+              a retalhos de couro, tecidos, borrachas e muito mais.
             </p>
 
             <div className={styles.grupoBotoesPrincipal}>
@@ -212,34 +155,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className={styles.rodape}>
-        <div className={styles.rodapeConteudo}>
-          <div className={styles.rodapeMarca}>
-            <p className={styles.rodapeMarcaTitulo}>Reaproveita Franca</p>
-            <p className={styles.rodapeMarcaTexto}>
-              Conectando a indústria calçadista de Franca à economia circular
-              e ao artesanato local.
-            </p>
-          </div>
-
-          <nav className={styles.rodapeLinks}>
-            <a href="#" className={styles.rodapeLink}>
-              Políticas de Privacidade
-            </a>
-            <a href="#" className={styles.rodapeLink}>
-              Termos de Uso
-            </a>
-            <a href="#" className={styles.rodapeLink}>
-              Suporte
-            </a>
-          </nav>
-
-          <p className={styles.rodapeDireitos}>
-            © 2026 Reaproveita Franca. Todos os direitos reservados.
-          </p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }
