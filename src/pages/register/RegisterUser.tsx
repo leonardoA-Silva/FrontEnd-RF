@@ -9,16 +9,14 @@ export default function RegisterUser() {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
-    nomeOuRazao: "Ateliê Reutiliza Franca",
-    cpfOuCnpj: "123.456.789-00",
-    tipoEntidade: "Artesão Autônomo",
-    localizacao: "Estação, Franca - SP",
+    nomeOuRazao: "",
+    cpfOuCnpj: "",
+    tipoEntidade: "",
+    localizacao: "",
   });
 
   const [materiaisInteresse, setMateriaisInteresse] = useState<string[]>([
-    "Couro",
-    "Tecido",
-    "EVA",
+
   ]);
 
   const listaMateriais = [
@@ -118,8 +116,42 @@ export default function RegisterUser() {
             boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
           }}
         >
+          {/* Indicador de etapa e progresso */}
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+            <Typography
+              sx={{
+                fontSize: "12px",
+                fontWeight: "bold",
+                letterSpacing: "1px",
+                color: "#059669",
+                textTransform: "uppercase",
+              }}
+            >
+              PASSO 2 DE 3: PERFIL DO COMPRADOR
+            </Typography>
+            <Box
+              sx={{
+                height: "6px",
+                width: "100%",
+                bgcolor: "#E5E7EB",
+                borderRadius: "999px",
+                overflow: "hidden",
+              }}
+            >
+              <Box
+                sx={{
+                  height: "100%",
+                  width: "66.6%",
+                  bgcolor: "#10B981",
+                  borderRadius: "999px",
+                  transition: "width 0.3s ease",
+                }}
+              />
+            </Box>
+          </Box>
+
           {/* Título e descrição */}
-          <Box>
+          <Box sx={{ mt: 3.5 }}>
             <Typography
               variant="h5"
               sx={{

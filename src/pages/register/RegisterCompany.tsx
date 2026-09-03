@@ -9,18 +9,16 @@ export default function RegisterCompany() {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
-    razaoSocial: "Calçados Franca Conectada Ltda",
-    cnpj: "12.345.678/0001-90",
-    setorIndustrial: "Calçadista (Componentes)",
-    endereco: "Av. Dr. Hélio Palermo, 4200 - Jd. Paulista",
-    responsavel: "Roberto de Oliveira",
-    telefone: "(16) 98844-3232",
+    razaoSocial: "",
+    cnpj: "",
+    setorIndustrial: "",
+    endereco: "",
+    responsavel: "",
+    telefone: "",
   });
 
   const [materiaisSelecionados, setMateriaisSelecionados] = useState<string[]>([
-    "Couro",
-    "Tecido",
-    "EVA",
+
   ]);
 
   const listaMateriais = [
