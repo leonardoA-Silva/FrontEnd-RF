@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Box, Typography, Button } from "@mui/material";
 import { ArrowRight } from "lucide-react";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
@@ -7,41 +8,6 @@ import Footer from "../../components/Footer";
 export default function RegisterType() {
   const navigate = useNavigate();
   const [tipoConta, setTipoConta] = useState<"empresa" | "pessoal">("empresa");
-
-  // Estilos centralizados aqui dentro da função, seguindo o padrão da Home.
-  const styles = {
-    pagina: "min-h-screen flex flex-col justify-between bg-[#FAF9F5] text-[#1B4B3A]",
-    conteudoCentral: "flex-1 flex items-center justify-center px-4 py-12 sm:px-6 lg:px-8",
-    cartao: "w-full max-w-[720px] rounded-3xl border border-[#E7E4DA] bg-white p-8 shadow-sm sm:p-12",
-
-    cabecalhoEtapa: "flex flex-col gap-3",
-    topoEtapa: "flex items-center justify-between",
-    textoEtapa: "text-xs font-bold tracking-wider text-emerald-600 uppercase",
-    textoProximo: "text-xs text-[#9CA3AF]",
-    trilhaProgresso: "h-1.5 w-full overflow-hidden rounded-full bg-[#E5E7EB]",
-    barraProgresso: "h-full w-1/3 rounded-full bg-emerald-500 transition-all duration-300",
-
-    titulosContainer: "mt-7",
-    tituloFormulario: "text-2xl font-bold tracking-tight text-[#1B4B3A] sm:text-3xl",
-    subtituloFormulario: "mt-1.5 text-sm leading-relaxed text-[#6B7670]",
-
-    gradeTipos: "mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2",
-    cartaoTipo: (selecionado: boolean) =>
-      `group relative flex flex-col overflow-hidden rounded-2xl border-4 transition-all duration-200 cursor-pointer ${
-        selecionado
-          ? "border-emerald-500 shadow-md ring-2 ring-emerald-500/20 scale-[1.01]"
-          : "border-transparent opacity-80 hover:opacity-100 hover:border-emerald-200 hover:scale-[1.01]"
-      }`,
-    imagemContainer: "h-44 w-full overflow-hidden bg-gray-100",
-    imagem: "h-full w-full object-cover transition-transform duration-300 group-hover:scale-105",
-    rotuloTipo: "bg-[#0F3D2E] py-3.5 text-center text-lg font-bold text-white tracking-wide",
-
-    rodapeBotoes: "mt-10 flex items-center justify-between pt-2",
-    botaoCancelar:
-      "rounded-lg border border-[#D9D5C8] bg-white px-6 py-2.5 text-sm font-semibold text-[#1B4B3A] transition hover:bg-[#F3F1EA] cursor-pointer",
-    botaoSalvar:
-      "flex items-center gap-2 rounded-lg bg-emerald-500 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-600 cursor-pointer",
-  };
 
   const handleSalvarEContinuar = () => {
     if (tipoConta === "empresa") {
@@ -56,94 +22,263 @@ export default function RegisterType() {
   };
 
   return (
-    <div className={styles.pagina}>
+    <Box
+      sx={{
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
+        bgcolor: "#FAF9F5",
+        color: "#1B4B3A",
+      }}
+    >
       <Header />
 
-      <main className={styles.conteudoCentral}>
-        <div className={styles.cartao}>
+      <Box
+        component="main"
+        sx={{
+          flex: 1,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          px: { xs: 2, sm: 3, md: 4 },
+          py: { xs: 4, sm: 6 },
+        }}
+      >
+        {/* Card Central */}
+        <Box
+          sx={{
+            width: "100%",
+            maxWidth: 720,
+            borderRadius: "24px",
+            border: "1px solid #E7E4DA",
+            bgcolor: "white",
+            p: { xs: 3, sm: 5 },
+            boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+          }}
+        >
           {/* Indicador de etapa e progresso */}
-          <div className={styles.cabecalhoEtapa}>
-            <div className={styles.topoEtapa}>
-              <span className={styles.textoEtapa}>PASSO 1 DE 3: PERFIL</span>
-              <span className={styles.textoProximo}>Próximo: Materiais Frequentes</span>
-            </div>
-            <div className={styles.trilhaProgresso}>
-              <div className={styles.barraProgresso} />
-            </div>
-          </div>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+            >
+              <Typography
+                sx={{
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  letterSpacing: "1px",
+                  color: "#059669",
+                  textTransform: "uppercase",
+                }}
+              >
+                PASSO 1 DE 3: PERFIL
+              </Typography>
+              <Typography sx={{ fontSize: "12px", color: "#9CA3AF" }}>
+                Próximo: Materiais Frequentes
+              </Typography>
+            </Box>
+
+            <Box
+              sx={{
+                height: "6px",
+                width: "100%",
+                bgcolor: "#E5E7EB",
+                borderRadius: "999px",
+                overflow: "hidden",
+              }}
+            >
+              <Box
+                sx={{
+                  height: "100%",
+                  width: "33.3%",
+                  bgcolor: "#10B981",
+                  borderRadius: "999px",
+                  transition: "width 0.3s ease",
+                }}
+              />
+            </Box>
+          </Box>
 
           {/* Título e descrição */}
-          <div className={styles.titulosContainer}>
-            <h1 className={styles.tituloFormulario}>
+          <Box sx={{ mt: 3.5 }}>
+            <Typography
+              variant="h5"
+              sx={{
+                fontWeight: "bold",
+                color: "#1B4B3A",
+                fontSize: { xs: "1.5rem", sm: "1.75rem" },
+              }}
+            >
               Escolha seu tipo de conta para cadastrar-se
-            </h1>
-            <p className={styles.subtituloFormulario}>
+            </Typography>
+            <Typography variant="body2" sx={{ color: "#6B7670", mt: 0.8 }}>
               Registre sua fábrica ou uma conta pessoal para publicar resíduos regularmente.
-            </p>
-          </div>
+            </Typography>
+          </Box>
 
           {/* Cards de seleção do tipo de conta */}
-          <div className={styles.gradeTipos}>
-            {/* Opção: Empresa */}
-            <div
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+              gap: 3,
+              mt: 4,
+            }}
+          >
+            {/* Opção Empresa */}
+            <Box
               onClick={() => setTipoConta("empresa")}
-              className={styles.cartaoTipo(tipoConta === "empresa")}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => e.key === "Enter" && setTipoConta("empresa")}
+              sx={{
+                borderRadius: "16px",
+                overflow: "hidden",
+                border: "4px solid",
+                borderColor: tipoConta === "empresa" ? "#10B981" : "transparent",
+                cursor: "pointer",
+                transition: "all 0.2s ease",
+                transform: tipoConta === "empresa" ? "scale(1.01)" : "scale(1)",
+                boxShadow:
+                  tipoConta === "empresa"
+                    ? "0 6px 16px rgba(16, 185, 129, 0.2)"
+                    : "none",
+                "&:hover": {
+                  opacity: 1,
+                  borderColor: tipoConta === "empresa" ? "#10B981" : "#A7F3D0",
+                },
+              }}
             >
-              <div className={styles.imagemContainer}>
-                <img
-                  src="https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=600&q=80"
-                  alt="Aperto de mãos empresarial"
-                  className={styles.imagem}
-                />
-              </div>
-              <div className={styles.rotuloTipo}>Empresa</div>
-            </div>
+              <Box
+                component="img"
+                src="https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=600&q=80"
+                alt="Aperto de mãos empresarial"
+                sx={{
+                  height: 176,
+                  width: "100%",
+                  objectFit: "cover",
+                  display: "block",
+                }}
+              />
+              <Box
+                sx={{
+                  bgcolor: "#0F3D2E",
+                  py: 1.8,
+                  textAlign: "center",
+                  color: "white",
+                  fontWeight: "bold",
+                  fontSize: "1.1rem",
+                }}
+              >
+                Empresa
+              </Box>
+            </Box>
 
-            {/* Opção: Pessoal */}
-            <div
+            {/* Opção Pessoal */}
+            <Box
               onClick={() => setTipoConta("pessoal")}
-              className={styles.cartaoTipo(tipoConta === "pessoal")}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => e.key === "Enter" && setTipoConta("pessoal")}
+              sx={{
+                borderRadius: "16px",
+                overflow: "hidden",
+                border: "4px solid",
+                borderColor: tipoConta === "pessoal" ? "#10B981" : "transparent",
+                cursor: "pointer",
+                transition: "all 0.2s ease",
+                transform: tipoConta === "pessoal" ? "scale(1.01)" : "scale(1)",
+                boxShadow:
+                  tipoConta === "pessoal"
+                    ? "0 6px 16px rgba(16, 185, 129, 0.2)"
+                    : "none",
+                "&:hover": {
+                  opacity: 1,
+                  borderColor: tipoConta === "pessoal" ? "#10B981" : "#A7F3D0",
+                },
+              }}
             >
-              <div className={styles.imagemContainer}>
-                <img
-                  src="https://images.unsplash.com/photo-1556157382-97eda2d62296?auto=format&fit=crop&w=600&q=80"
-                  alt="Profissional autônomo trabalhando"
-                  className={styles.imagem}
-                />
-              </div>
-              <div className={styles.rotuloTipo}>Pessoal</div>
-            </div>
-          </div>
+              <Box
+                component="img"
+                src="https://images.unsplash.com/photo-1556157382-97eda2d62296?auto=format&fit=crop&w=600&q=80"
+                alt="Profissional autônomo trabalhando"
+                sx={{
+                  height: 176,
+                  width: "100%",
+                  objectFit: "cover",
+                  display: "block",
+                }}
+              />
+              <Box
+                sx={{
+                  bgcolor: "#0F3D2E",
+                  py: 1.8,
+                  textAlign: "center",
+                  color: "white",
+                  fontWeight: "bold",
+                  fontSize: "1.1rem",
+                }}
+              >
+                Pessoal
+              </Box>
+            </Box>
+          </Box>
 
           {/* Ações do Rodapé */}
-          <div className={styles.rodapeBotoes}>
-            <button
-              type="button"
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              mt: 5,
+            }}
+          >
+            <Button
               onClick={handleCancelar}
-              className={styles.botaoCancelar}
+              variant="outlined"
+              sx={{
+                textTransform: "none",
+                borderRadius: "8px",
+                borderColor: "#D9D5C8",
+                color: "#1B4B3A",
+                px: 3.5,
+                py: 1.2,
+                fontWeight: 600,
+                fontSize: "0.875rem",
+                "&:hover": {
+                  bgcolor: "#F3F1EA",
+                  borderColor: "#D9D5C8",
+                },
+              }}
             >
               Cancelar
-            </button>
+            </Button>
 
-            <button
-              type="button"
+            <Button
               onClick={handleSalvarEContinuar}
-              className={styles.botaoSalvar}
+              variant="contained"
+              endIcon={<ArrowRight size={18} />}
+              sx={{
+                textTransform: "none",
+                borderRadius: "8px",
+                bgcolor: "#10B981",
+                color: "white",
+                px: 3.5,
+                py: 1.2,
+                fontWeight: 600,
+                fontSize: "0.875rem",
+                boxShadow: "none",
+                "&:hover": {
+                  bgcolor: "#059669",
+                  boxShadow: "none",
+                },
+              }}
             >
               Salvar e Continuar
-              <ArrowRight className="h-4 w-4" strokeWidth={2.5} />
-            </button>
-          </div>
-        </div>
-      </main>
+            </Button>
+          </Box>
+        </Box>
+      </Box>
 
       <Footer />
-    </div>
+    </Box>
   );
 }

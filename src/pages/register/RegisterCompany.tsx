@@ -1,54 +1,27 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Box, Typography, Button } from "@mui/material";
 import { Check, ArrowRight } from "lucide-react";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 
 export default function RegisterCompany() {
   const navigate = useNavigate();
-  // Estilos centralizados aqui dentro da função (sem arquivo .css), seguindo o padrão da Home.
-  // Cada chave tem um nome semântico e guarda as classes Tailwind correspondentes.
-  const styles = {
-    pagina: "min-h-screen flex flex-col justify-between bg-[#FAF9F5] text-[#1B4B3A]",
-    conteudoCentral: "flex-1 flex items-center justify-center px-4 py-12 sm:px-6 lg:px-8",
-    cartao: "w-full max-w-[700px] rounded-3xl border border-[#E7E4DA] bg-white p-8 shadow-sm sm:p-12",
 
-    cabecalhoEtapa: "flex flex-col gap-3",
-    textoEtapa: "text-xs font-bold tracking-wider text-emerald-600 uppercase",
-    trilhaProgresso: "h-1.5 w-full overflow-hidden rounded-full bg-[#E5E7EB]",
-    barraProgresso: "h-full w-2/3 rounded-full bg-emerald-500 transition-all duration-300",
+  const [formData, setFormData] = useState({
+    razaoSocial: "Calçados Franca Conectada Ltda",
+    cnpj: "12.345.678/0001-90",
+    setorIndustrial: "Calçadista (Componentes)",
+    endereco: "Av. Dr. Hélio Palermo, 4200 - Jd. Paulista",
+    responsavel: "Roberto de Oliveira",
+    telefone: "(16) 98844-3232",
+  });
 
-    titulosContainer: "mt-7",
-    tituloFormulario: "text-2xl font-bold tracking-tight text-[#1B4B3A] sm:text-3xl",
-    subtituloFormulario: "mt-1.5 text-sm leading-relaxed text-[#6B7670]",
-
-    formulario: "mt-8 flex flex-col gap-5",
-    campoGrupo: "flex flex-col gap-1.5",
-    campoGrade2: "grid grid-cols-1 gap-5 sm:grid-cols-2",
-    rotulo: "text-sm font-semibold text-[#2C3E35]",
-    campoInput:
-      "w-full rounded-lg border border-[#D9D5C8] bg-white px-4 py-2.5 text-sm text-[#1B4B3A] placeholder-[#9CA3AF] transition focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500",
-
-    secaoMateriais: "mt-2 flex flex-col gap-2.5",
-    rotuloMateriais: "text-sm font-semibold text-[#2C3E35]",
-    gradeMateriais: "flex flex-wrap gap-2.5",
-    botaoMaterial: (selecionado: boolean) =>
-      `flex items-center gap-2 rounded-lg border px-3.5 py-2 text-sm font-medium transition cursor-pointer select-none ${
-        selecionado
-          ? "border-emerald-500 bg-emerald-50/50 text-emerald-700"
-          : "border-[#D9D5C8] bg-white text-[#6B7670] hover:bg-[#F9F8F5]"
-      }`,
-    caixaSelecao: (selecionado: boolean) =>
-      `flex h-4 w-4 items-center justify-center rounded transition ${
-        selecionado ? "bg-emerald-500 text-white" : "border border-[#B8B4A8] bg-white"
-      }`,
-
-    rodapeBotoes: "mt-8 flex items-center justify-between",
-    botaoCancelar:
-      "rounded-lg border border-[#D9D5C8] bg-white px-6 py-2.5 text-sm font-semibold text-[#1B4B3A] transition hover:bg-[#F3F1EA] cursor-pointer",
-    botaoSalvar:
-      "flex items-center gap-2 rounded-lg bg-emerald-500 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-600 cursor-pointer",
-  };
+  const [materiaisSelecionados, setMateriaisSelecionados] = useState<string[]>([
+    "Couro",
+    "Tecido",
+    "EVA",
+  ]);
 
   const listaMateriais = [
     "Couro",
@@ -58,19 +31,6 @@ export default function RegisterCompany() {
     "Espuma",
     "Pallets",
   ];
-
-  const [formData, setFormData] = useState({
-    razaoSocial: "",
-    cnpj: "",
-    setorIndustrial: "",
-    endereco: "",
-    responsavel: "",
-    telefone: "",
-  });
-
-  const [materiaisSelecionados, setMateriaisSelecionados] = useState<string[]>([
-
-  ]);
 
   const toggleMaterial = (material: string) => {
     setMateriaisSelecionados((anteriores) =>
@@ -97,175 +57,359 @@ export default function RegisterCompany() {
     navigate("/cadastro");
   };
 
+  // Estilos compartilhados no padrão MUI sx
+  const inputStyle = {
+    width: "100%",
+    borderRadius: "8px",
+    border: "1px solid #D9D5C8",
+    bgcolor: "white",
+    px: 2,
+    py: 1.3,
+    fontSize: "0.875rem",
+    color: "#1B4B3A",
+    outline: "none",
+    boxSizing: "border-box" as const,
+    transition: "all 0.2s ease",
+    "&::placeholder": { color: "#9CA3AF" },
+    "&:focus": {
+      borderColor: "#10B981",
+      boxShadow: "0 0 0 1px #10B981",
+    },
+  };
+
+  const labelStyle = {
+    fontSize: "0.875rem",
+    fontWeight: 600,
+    color: "#2C3E35",
+    mb: 0.75,
+    display: "block",
+  };
+
   return (
-    <div className={styles.pagina}>
+    <Box
+      sx={{
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
+        bgcolor: "#FAF9F5",
+        color: "#1B4B3A",
+      }}
+    >
       <Header />
 
-      <main className={styles.conteudoCentral}>
-        <div className={styles.cartao}>
+      <Box
+        component="main"
+        sx={{
+          flex: 1,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          px: { xs: 2, sm: 3, md: 4 },
+          py: { xs: 4, sm: 6 },
+        }}
+      >
+        <Box
+          sx={{
+            width: "100%",
+            maxWidth: 700,
+            borderRadius: "24px",
+            border: "1px solid #E7E4DA",
+            bgcolor: "white",
+            p: { xs: 3, sm: 5 },
+            boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+          }}
+        >
           {/* Indicador de etapa e progresso */}
-          <div className={styles.cabecalhoEtapa}>
-            <span className={styles.textoEtapa}>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+            <Typography
+              sx={{
+                fontSize: "12px",
+                fontWeight: "bold",
+                letterSpacing: "1px",
+                color: "#059669",
+                textTransform: "uppercase",
+              }}
+            >
               PASSO 2 DE 3: PERFIL DA EMPRESA
-            </span>
-            <div className={styles.trilhaProgresso}>
-              <div className={styles.barraProgresso} />
-            </div>
-          </div>
+            </Typography>
+            <Box
+              sx={{
+                height: "6px",
+                width: "100%",
+                bgcolor: "#E5E7EB",
+                borderRadius: "999px",
+                overflow: "hidden",
+              }}
+            >
+              <Box
+                sx={{
+                  height: "100%",
+                  width: "66.6%",
+                  bgcolor: "#10B981",
+                  borderRadius: "999px",
+                  transition: "width 0.3s ease",
+                }}
+              />
+            </Box>
+          </Box>
 
           {/* Título e descrição */}
-          <div className={styles.titulosContainer}>
-            <h1 className={styles.tituloFormulario}>
+          <Box sx={{ mt: 3.5 }}>
+            <Typography
+              variant="h5"
+              sx={{
+                fontWeight: "bold",
+                color: "#1B4B3A",
+                fontSize: { xs: "1.5rem", sm: "1.75rem" },
+              }}
+            >
               Cadastro de Empresa Geradora
-            </h1>
-            <p className={styles.subtituloFormulario}>
+            </Typography>
+            <Typography variant="body2" sx={{ color: "#6B7670", mt: 0.8 }}>
               Registre sua fábrica ou curtume para publicar resíduos regularmente.
-            </p>
-          </div>
+            </Typography>
+          </Box>
 
           {/* Formulário de cadastro */}
-          <form onSubmit={handleSubmit} className={styles.formulario}>
+          <Box
+            component="form"
+            onSubmit={handleSubmit}
+            sx={{ mt: 4, display: "flex", flexDirection: "column", gap: 2.5 }}
+          >
             {/* Razão Social */}
-            <div className={styles.campoGrupo}>
-              <label htmlFor="razaoSocial" className={styles.rotulo}>
+            <Box>
+              <Typography component="label" htmlFor="razaoSocial" sx={labelStyle}>
                 Razão Social
-              </label>
-              <input
+              </Typography>
+              <Box
+                component="input"
                 id="razaoSocial"
                 name="razaoSocial"
                 type="text"
                 value={formData.razaoSocial}
                 onChange={handleChange}
                 placeholder="Ex: Calçados Franca Conectada Ltda"
-                className={styles.campoInput}
+                sx={inputStyle}
               />
-            </div>
+            </Box>
 
             {/* CNPJ e Setor Industrial */}
-            <div className={styles.campoGrade2}>
-              <div className={styles.campoGrupo}>
-                <label htmlFor="cnpj" className={styles.rotulo}>
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+                gap: 2.5,
+              }}
+            >
+              <Box>
+                <Typography component="label" htmlFor="cnpj" sx={labelStyle}>
                   CNPJ
-                </label>
-                <input
+                </Typography>
+                <Box
+                  component="input"
                   id="cnpj"
                   name="cnpj"
                   type="text"
                   value={formData.cnpj}
                   onChange={handleChange}
                   placeholder="00.000.000/0000-00"
-                  className={styles.campoInput}
+                  sx={inputStyle}
                 />
-              </div>
+              </Box>
 
-              <div className={styles.campoGrupo}>
-                <label htmlFor="setorIndustrial" className={styles.rotulo}>
+              <Box>
+                <Typography component="label" htmlFor="setorIndustrial" sx={labelStyle}>
                   Setor Industrial
-                </label>
-                <input
+                </Typography>
+                <Box
+                  component="input"
                   id="setorIndustrial"
                   name="setorIndustrial"
                   type="text"
                   value={formData.setorIndustrial}
                   onChange={handleChange}
                   placeholder="Ex: Calçadista (Componentes)"
-                  className={styles.campoInput}
+                  sx={inputStyle}
                 />
-              </div>
-            </div>
+              </Box>
+            </Box>
 
             {/* Endereço da Unidade */}
-            <div className={styles.campoGrupo}>
-              <label htmlFor="endereco" className={styles.rotulo}>
+            <Box>
+              <Typography component="label" htmlFor="endereco" sx={labelStyle}>
                 Endereço da Unidade (Franca/SP)
-              </label>
-              <input
+              </Typography>
+              <Box
+                component="input"
                 id="endereco"
                 name="endereco"
                 type="text"
                 value={formData.endereco}
                 onChange={handleChange}
                 placeholder="Ex: Av. Dr. Hélio Palermo, 4200 - Jd. Paulista"
-                className={styles.campoInput}
+                sx={inputStyle}
               />
-            </div>
+            </Box>
 
             {/* Responsável e Telefone / WhatsApp */}
-            <div className={styles.campoGrade2}>
-              <div className={styles.campoGrupo}>
-                <label htmlFor="responsavel" className={styles.rotulo}>
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+                gap: 2.5,
+              }}
+            >
+              <Box>
+                <Typography component="label" htmlFor="responsavel" sx={labelStyle}>
                   Responsável
-                </label>
-                <input
+                </Typography>
+                <Box
+                  component="input"
                   id="responsavel"
                   name="responsavel"
                   type="text"
                   value={formData.responsavel}
                   onChange={handleChange}
                   placeholder="Nome do responsável"
-                  className={styles.campoInput}
+                  sx={inputStyle}
                 />
-              </div>
+              </Box>
 
-              <div className={styles.campoGrupo}>
-                <label htmlFor="telefone" className={styles.rotulo}>
+              <Box>
+                <Typography component="label" htmlFor="telefone" sx={labelStyle}>
                   Telefone / WhatsApp
-                </label>
-                <input
+                </Typography>
+                <Box
+                  component="input"
                   id="telefone"
                   name="telefone"
                   type="text"
                   value={formData.telefone}
                   onChange={handleChange}
                   placeholder="(00) 00000-0000"
-                  className={styles.campoInput}
+                  sx={inputStyle}
                 />
-              </div>
-            </div>
+              </Box>
+            </Box>
 
             {/* Materiais Disponíveis */}
-            <div className={styles.secaoMateriais}>
-              <span className={styles.rotuloMateriais}>Materiais disponíveis</span>
-              <div className={styles.gradeMateriais}>
+            <Box sx={{ mt: 1 }}>
+              <Typography sx={labelStyle}>Materiais disponíveis</Typography>
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1.5, mt: 1 }}>
                 {listaMateriais.map((material) => {
                   const selecionado = materiaisSelecionados.includes(material);
                   return (
-                    <button
+                    <Box
                       key={material}
-                      type="button"
                       onClick={() => toggleMaterial(material)}
-                      className={styles.botaoMaterial(selecionado)}
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1,
+                        borderRadius: "8px",
+                        border: "1px solid",
+                        borderColor: selecionado ? "#10B981" : "#D9D5C8",
+                        bgcolor: selecionado ? "rgba(16, 185, 129, 0.08)" : "white",
+                        color: selecionado ? "#047857" : "#6B7670",
+                        px: 1.8,
+                        py: 0.9,
+                        fontSize: "0.875rem",
+                        fontWeight: 500,
+                        cursor: "pointer",
+                        userSelect: "none",
+                        transition: "all 0.2s ease",
+                        "&:hover": {
+                          bgcolor: selecionado
+                            ? "rgba(16, 185, 129, 0.14)"
+                            : "#F9F8F5",
+                        },
+                      }}
                     >
-                      <span className={styles.caixaSelecao(selecionado)}>
-                        {selecionado && <Check className="h-3 w-3" strokeWidth={3} />}
-                      </span>
-                      <span>{material}</span>
-                    </button>
+                      <Box
+                        sx={{
+                          width: 16,
+                          height: 16,
+                          borderRadius: "4px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          bgcolor: selecionado ? "#10B981" : "white",
+                          border: selecionado ? "none" : "1px solid #B8B4A8",
+                          color: "white",
+                        }}
+                      >
+                        {selecionado && <Check size={12} strokeWidth={3} />}
+                      </Box>
+                      <Typography sx={{ fontSize: "0.875rem", fontWeight: 500 }}>
+                        {material}
+                      </Typography>
+                    </Box>
                   );
                 })}
-              </div>
-            </div>
+              </Box>
+            </Box>
 
             {/* Ações do Formulário */}
-            <div className={styles.rodapeBotoes}>
-              <button
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                mt: 4,
+                pt: 1,
+              }}
+            >
+              <Button
                 type="button"
                 onClick={handleCancel}
-                className={styles.botaoCancelar}
+                variant="outlined"
+                sx={{
+                  textTransform: "none",
+                  borderRadius: "8px",
+                  borderColor: "#D9D5C8",
+                  color: "#1B4B3A",
+                  px: 3.5,
+                  py: 1.2,
+                  fontWeight: 600,
+                  fontSize: "0.875rem",
+                  "&:hover": {
+                    bgcolor: "#F3F1EA",
+                    borderColor: "#D9D5C8",
+                  },
+                }}
               >
                 Cancelar
-              </button>
+              </Button>
 
-              <button type="submit" className={styles.botaoSalvar}>
+              <Button
+                type="submit"
+                variant="contained"
+                endIcon={<ArrowRight size={18} />}
+                sx={{
+                  textTransform: "none",
+                  borderRadius: "8px",
+                  bgcolor: "#10B981",
+                  color: "white",
+                  px: 3.5,
+                  py: 1.2,
+                  fontWeight: 600,
+                  fontSize: "0.875rem",
+                  boxShadow: "none",
+                  "&:hover": {
+                    bgcolor: "#059669",
+                    boxShadow: "none",
+                  },
+                }}
+              >
                 Salvar e Continuar
-                <ArrowRight className="h-4 w-4" strokeWidth={2.5} />
-              </button>
-            </div>
-          </form>
-        </div>
-      </main>
+              </Button>
+            </Box>
+          </Box>
+        </Box>
+      </Box>
 
       <Footer />
-    </div>
+    </Box>
   );
 }

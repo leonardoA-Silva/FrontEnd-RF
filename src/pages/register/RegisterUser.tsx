@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Box, Typography, Button } from "@mui/material";
 import { Check } from "lucide-react";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
@@ -7,43 +8,18 @@ import Footer from "../../components/Footer";
 export default function RegisterUser() {
   const navigate = useNavigate();
 
-  // Estilos centralizados aqui dentro da função, seguindo o padrão da Home.
-  const styles = {
-    pagina: "min-h-screen flex flex-col justify-between bg-[#FAF9F5] text-[#1B4B3A]",
-    conteudoCentral: "flex-1 flex items-center justify-center px-4 py-12 sm:px-6 lg:px-8",
-    cartao: "w-full max-w-[700px] rounded-3xl border border-[#E7E4DA] bg-white p-8 shadow-sm sm:p-12",
+  const [formData, setFormData] = useState({
+    nomeOuRazao: "Ateliê Reutiliza Franca",
+    cpfOuCnpj: "123.456.789-00",
+    tipoEntidade: "Artesão Autônomo",
+    localizacao: "Estação, Franca - SP",
+  });
 
-    titulosContainer: "",
-    tituloFormulario: "text-2xl font-bold tracking-tight text-[#1B4B3A] sm:text-3xl",
-    subtituloFormulario: "mt-1.5 text-sm leading-relaxed text-[#6B7670]",
-
-    formulario: "mt-8 flex flex-col gap-5",
-    campoGrupo: "flex flex-col gap-1.5",
-    campoGrade2: "grid grid-cols-1 gap-5 sm:grid-cols-2",
-    rotulo: "text-sm font-semibold text-[#2C3E35]",
-    campoInput:
-      "w-full rounded-lg border border-[#D9D5C8] bg-white px-4 py-2.5 text-sm text-[#1B4B3A] placeholder-[#9CA3AF] transition focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500",
-
-    secaoMateriais: "mt-2 flex flex-col gap-2.5",
-    rotuloMateriais: "text-sm font-semibold text-[#2C3E35]",
-    gradeMateriais: "flex flex-wrap gap-2.5",
-    botaoMaterial: (selecionado: boolean) =>
-      `flex items-center gap-2 rounded-lg border px-3.5 py-2 text-sm font-medium transition cursor-pointer select-none ${
-        selecionado
-          ? "border-emerald-500 bg-emerald-50/50 text-emerald-700"
-          : "border-[#D9D5C8] bg-white text-[#6B7670] hover:bg-[#F9F8F5]"
-      }`,
-    caixaSelecao: (selecionado: boolean) =>
-      `flex h-4 w-4 items-center justify-center rounded transition ${
-        selecionado ? "bg-emerald-500 text-white" : "border border-[#B8B4A8] bg-white"
-      }`,
-
-    rodapeBotoes: "mt-8 flex items-center justify-between",
-    botaoVoltar:
-      "rounded-lg border border-[#D9D5C8] bg-white px-6 py-2.5 text-sm font-semibold text-[#1B4B3A] transition hover:bg-[#F3F1EA] cursor-pointer",
-    botaoFinalizar:
-      "rounded-lg bg-emerald-500 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-600 cursor-pointer",
-  };
+  const [materiaisInteresse, setMateriaisInteresse] = useState<string[]>([
+    "Couro",
+    "Tecido",
+    "EVA",
+  ]);
 
   const listaMateriais = [
     "Couro",
@@ -53,17 +29,6 @@ export default function RegisterUser() {
     "Espuma",
     "Pallets",
   ];
-
-  const [formData, setFormData] = useState({
-    nomeOuRazao: "",
-    cpfOuCnpj: "",
-    tipoEntidade: "",
-    localizacao: "",
-  });
-
-  const [materiaisInteresse, setMateriaisInteresse] = useState<string[]>([
-
-  ]);
 
   const toggleMaterial = (material: string) => {
     setMateriaisInteresse((anteriores) =>
@@ -90,131 +55,283 @@ export default function RegisterUser() {
     navigate("/cadastro");
   };
 
+  // Estilos compartilhados no padrão MUI sx
+  const inputStyle = {
+    width: "100%",
+    borderRadius: "8px",
+    border: "1px solid #D9D5C8",
+    bgcolor: "white",
+    px: 2,
+    py: 1.3,
+    fontSize: "0.875rem",
+    color: "#1B4B3A",
+    outline: "none",
+    boxSizing: "border-box" as const,
+    transition: "all 0.2s ease",
+    "&::placeholder": { color: "#9CA3AF" },
+    "&:focus": {
+      borderColor: "#10B981",
+      boxShadow: "0 0 0 1px #10B981",
+    },
+  };
+
+  const labelStyle = {
+    fontSize: "0.875rem",
+    fontWeight: 600,
+    color: "#2C3E35",
+    mb: 0.75,
+    display: "block",
+  };
+
   return (
-    <div className={styles.pagina}>
+    <Box
+      sx={{
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
+        bgcolor: "#FAF9F5",
+        color: "#1B4B3A",
+      }}
+    >
       <Header />
 
-      <main className={styles.conteudoCentral}>
-        <div className={styles.cartao}>
+      <Box
+        component="main"
+        sx={{
+          flex: 1,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          px: { xs: 2, sm: 3, md: 4 },
+          py: { xs: 4, sm: 6 },
+        }}
+      >
+        <Box
+          sx={{
+            width: "100%",
+            maxWidth: 700,
+            borderRadius: "24px",
+            border: "1px solid #E7E4DA",
+            bgcolor: "white",
+            p: { xs: 3, sm: 5 },
+            boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+          }}
+        >
           {/* Título e descrição */}
-          <div className={styles.titulosContainer}>
-            <h1 className={styles.tituloFormulario}>
+          <Box>
+            <Typography
+              variant="h5"
+              sx={{
+                fontWeight: "bold",
+                color: "#1B4B3A",
+                fontSize: { xs: "1.5rem", sm: "1.75rem" },
+              }}
+            >
               Cadastro de Comprador / Artesão
-            </h1>
-            <p className={styles.subtituloFormulario}>
+            </Typography>
+            <Typography variant="body2" sx={{ color: "#6B7670", mt: 0.8 }}>
               Artesãos, cooperativas, instituições de caridade e empresas criativas.
-            </p>
-          </div>
+            </Typography>
+          </Box>
 
           {/* Formulário de cadastro */}
-          <form onSubmit={handleSubmit} className={styles.formulario}>
+          <Box
+            component="form"
+            onSubmit={handleSubmit}
+            sx={{ mt: 4, display: "flex", flexDirection: "column", gap: 2.5 }}
+          >
             {/* Nome Completo ou Razão Social */}
-            <div className={styles.campoGrupo}>
-              <label htmlFor="nomeOuRazao" className={styles.rotulo}>
+            <Box>
+              <Typography component="label" htmlFor="nomeOuRazao" sx={labelStyle}>
                 Nome Completo ou Razão Social
-              </label>
-              <input
+              </Typography>
+              <Box
+                component="input"
                 id="nomeOuRazao"
                 name="nomeOuRazao"
                 type="text"
                 value={formData.nomeOuRazao}
                 onChange={handleChange}
                 placeholder="Ex: Ateliê Reutiliza Franca"
-                className={styles.campoInput}
+                sx={inputStyle}
               />
-            </div>
+            </Box>
 
             {/* CPF ou CNPJ e Tipo de Entidade */}
-            <div className={styles.campoGrade2}>
-              <div className={styles.campoGrupo}>
-                <label htmlFor="cpfOuCnpj" className={styles.rotulo}>
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+                gap: 2.5,
+              }}
+            >
+              <Box>
+                <Typography component="label" htmlFor="cpfOuCnpj" sx={labelStyle}>
                   CPF ou CNPJ
-                </label>
-                <input
+                </Typography>
+                <Box
+                  component="input"
                   id="cpfOuCnpj"
                   name="cpfOuCnpj"
                   type="text"
                   value={formData.cpfOuCnpj}
                   onChange={handleChange}
                   placeholder="000.000.000-00 ou 00.000.000/0000-00"
-                  className={styles.campoInput}
+                  sx={inputStyle}
                 />
-              </div>
+              </Box>
 
-              <div className={styles.campoGrupo}>
-                <label htmlFor="tipoEntidade" className={styles.rotulo}>
+              <Box>
+                <Typography component="label" htmlFor="tipoEntidade" sx={labelStyle}>
                   Tipo de Entidade
-                </label>
-                <input
+                </Typography>
+                <Box
+                  component="input"
                   id="tipoEntidade"
                   name="tipoEntidade"
                   type="text"
                   value={formData.tipoEntidade}
                   onChange={handleChange}
                   placeholder="Ex: Artesão Autônomo"
-                  className={styles.campoInput}
+                  sx={inputStyle}
                 />
-              </div>
-            </div>
+              </Box>
+            </Box>
 
             {/* Localização para cálculo de logística */}
-            <div className={styles.campoGrupo}>
-              <label htmlFor="localizacao" className={styles.rotulo}>
+            <Box>
+              <Typography component="label" htmlFor="localizacao" sx={labelStyle}>
                 Localização para cálculo de logística
-              </label>
-              <input
+              </Typography>
+              <Box
+                component="input"
                 id="localizacao"
                 name="localizacao"
                 type="text"
                 value={formData.localizacao}
                 onChange={handleChange}
                 placeholder="Bairro, Franca - SP"
-                className={styles.campoInput}
+                sx={inputStyle}
               />
-            </div>
+            </Box>
 
             {/* Materiais de Interesse */}
-            <div className={styles.secaoMateriais}>
-              <span className={styles.rotuloMateriais}>Materiais de Interesse</span>
-              <div className={styles.gradeMateriais}>
+            <Box sx={{ mt: 1 }}>
+              <Typography sx={labelStyle}>Materiais de Interesse</Typography>
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1.5, mt: 1 }}>
                 {listaMateriais.map((material) => {
                   const selecionado = materiaisInteresse.includes(material);
                   return (
-                    <button
+                    <Box
                       key={material}
-                      type="button"
                       onClick={() => toggleMaterial(material)}
-                      className={styles.botaoMaterial(selecionado)}
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1,
+                        borderRadius: "8px",
+                        border: "1px solid",
+                        borderColor: selecionado ? "#10B981" : "#D9D5C8",
+                        bgcolor: selecionado ? "rgba(16, 185, 129, 0.08)" : "white",
+                        color: selecionado ? "#047857" : "#6B7670",
+                        px: 1.8,
+                        py: 0.9,
+                        fontSize: "0.875rem",
+                        fontWeight: 500,
+                        cursor: "pointer",
+                        userSelect: "none",
+                        transition: "all 0.2s ease",
+                        "&:hover": {
+                          bgcolor: selecionado
+                            ? "rgba(16, 185, 129, 0.14)"
+                            : "#F9F8F5",
+                        },
+                      }}
                     >
-                      <span className={styles.caixaSelecao(selecionado)}>
-                        {selecionado && <Check className="h-3 w-3" strokeWidth={3} />}
-                      </span>
-                      <span>{material}</span>
-                    </button>
+                      <Box
+                        sx={{
+                          width: 16,
+                          height: 16,
+                          borderRadius: "4px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          bgcolor: selecionado ? "#10B981" : "white",
+                          border: selecionado ? "none" : "1px solid #B8B4A8",
+                          color: "white",
+                        }}
+                      >
+                        {selecionado && <Check size={12} strokeWidth={3} />}
+                      </Box>
+                      <Typography sx={{ fontSize: "0.875rem", fontWeight: 500 }}>
+                        {material}
+                      </Typography>
+                    </Box>
                   );
                 })}
-              </div>
-            </div>
+              </Box>
+            </Box>
 
             {/* Ações do Formulário */}
-            <div className={styles.rodapeBotoes}>
-              <button
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                mt: 4,
+                pt: 1,
+              }}
+            >
+              <Button
                 type="button"
                 onClick={handleVoltar}
-                className={styles.botaoVoltar}
+                variant="outlined"
+                sx={{
+                  textTransform: "none",
+                  borderRadius: "8px",
+                  borderColor: "#D9D5C8",
+                  color: "#1B4B3A",
+                  px: 3.5,
+                  py: 1.2,
+                  fontWeight: 600,
+                  fontSize: "0.875rem",
+                  "&:hover": {
+                    bgcolor: "#F3F1EA",
+                    borderColor: "#D9D5C8",
+                  },
+                }}
               >
                 Voltar
-              </button>
+              </Button>
 
-              <button type="submit" className={styles.botaoFinalizar}>
+              <Button
+                type="submit"
+                variant="contained"
+                sx={{
+                  textTransform: "none",
+                  borderRadius: "8px",
+                  bgcolor: "#10B981",
+                  color: "white",
+                  px: 3.5,
+                  py: 1.2,
+                  fontWeight: 600,
+                  fontSize: "0.875rem",
+                  boxShadow: "none",
+                  "&:hover": {
+                    bgcolor: "#059669",
+                    boxShadow: "none",
+                  },
+                }}
+              >
                 Finalizar Cadastro
-              </button>
-            </div>
-          </form>
-        </div>
-      </main>
+              </Button>
+            </Box>
+          </Box>
+        </Box>
+      </Box>
 
       <Footer />
-    </div>
+    </Box>
   );
 }
