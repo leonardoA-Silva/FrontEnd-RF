@@ -9,10 +9,12 @@ type TipoUsuario = "empresa" | "comprador";
 
 export default function Login() {
     const [tipoUsuario, setTipoUsuario] = useState<TipoUsuario>("empresa");
-    const [email, setEmail] = useState("");
+    const [documento, setDocumento] = useState("");
     const [senha, setSenha] = useState("");
     const [lembrarDeMim, setLembrarDeMim] = useState(false);
     const [mostrarSenha, setMostrarSenha] = useState(false);
+
+    const ehEmpresa = tipoUsuario === "empresa";
 
     const styles = {
         pagina: "min-h-screen bg-[#FAF9F5] text-[#1B4B3A] flex flex-col",
@@ -69,10 +71,45 @@ export default function Login() {
         linkCadastro: "font-bold text-emerald-600 transition hover:text-emerald-700",
     };
 
+    function apenasDigitos(valor: string) {
+        return valor.replace(/\D/g, "");
+    }
+
+    function formatarCPF(valor: string) {
+        const digitos = apenasDigitos(valor).slice(0, 11);
+        return digitos
+            .replace(/(\d{3})(\d)/, "$1.$2")
+            .replace(/(\d{3})(\d)/, "$1.$2")
+            .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+    }
+
+    function formatarCNPJ(valor: string) {
+        const digitos = apenasDigitos(valor).slice(0, 14);
+        return digitos
+            .replace(/(\d{2})(\d)/, "$1.$2")
+            .replace(/(\d{3})(\d)/, "$1.$2")
+            .replace(/(\d{3})(\d)/, "$1/$2")
+            .replace(/(\d{4})(\d{1,2})$/, "$1-$2");
+    }
+
+    function handleDocumentoChange(valor: string) {
+        setDocumento(ehEmpresa ? formatarCNPJ(valor) : formatarCPF(valor));
+    }
+
+    function handleTrocaTipo(tipo: TipoUsuario) {
+        setTipoUsuario(tipo);
+        setDocumento("");
+    }
+
     function handleSubmit(e: FormEvent) {
         e.preventDefault();
-        // TODO: integrar com o backend (tipoUsuario, email, senha, lembrarDeMim)
-        console.log({ tipoUsuario, email, senha, lembrarDeMim });
+        const digitos = apenasDigitos(documento);
+        // TODO: integrar com o backend (tipoUsuario, documento, senha, lembrarDeMim)
+        if (ehEmpresa) {
+            console.log({ tipoUsuario, cnpj: digitos, senha, lembrarDeMim });
+        } else {
+            console.log({ tipoUsuario, cpf: digitos, senha, lembrarDeMim });
+        }
     }
 
     return (
@@ -100,7 +137,7 @@ export default function Login() {
                             type="button"
                             role="tab"
                             aria-selected={tipoUsuario === "empresa"}
-                            onClick={() => setTipoUsuario("empresa")}
+                            onClick={() => handleTrocaTipo("empresa")}
                             className={
                                 tipoUsuario === "empresa"
                                     ? styles.abaAtiva
@@ -113,7 +150,7 @@ export default function Login() {
                             type="button"
                             role="tab"
                             aria-selected={tipoUsuario === "comprador"}
-                            onClick={() => setTipoUsuario("comprador")}
+                            onClick={() => handleTrocaTipo("comprador")}
                             className={
                                 tipoUsuario === "comprador"
                                     ? styles.abaAtiva
@@ -126,21 +163,24 @@ export default function Login() {
 
                     <form className={styles.formulario} onSubmit={handleSubmit}>
                         <div className={styles.campoGrupo}>
-                            <label htmlFor="email" className={styles.rotulo}>
-                                {tipoUsuario === "empresa" ? "E-mail corporativo" : "E-mail pessoal"}
+                            <label htmlFor="documento" className={styles.rotulo}>
+                                {ehEmpresa ? "CNPJ da empresa" : "CPF"}
                             </label>
                             <input
-                                id="email"
-                                type="email"
-                                autoComplete="email"
+                                id="documento"
+                                type="text"
+                                inputMode="numeric"
+                                autoComplete={ehEmpresa ? "off" : "off"}
                                 required
+                                minLength={ehEmpresa ? 18 : 14}
+                                maxLength={ehEmpresa ? 18 : 14}
                                 placeholder={
-                                    tipoUsuario === "empresa"
-                                        ? "exemplo@empresa.com.br"
-                                        : "exemplo@email.com"
+                                    ehEmpresa
+                                        ? "00.000.000/0000-00"
+                                        : "000.000.000-00"
                                 }
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
+                                value={documento}
+                                onChange={(e) => handleDocumentoChange(e.target.value)}
                                 className={styles.input}
                             />
                         </div>
