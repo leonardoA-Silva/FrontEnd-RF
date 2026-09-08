@@ -1,18 +1,23 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Repeat2, Eye, EyeOff } from "lucide-react";
+import axios from "axios";
+import api from "../../axios/Axios";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 
 type TipoUsuario = "empresa" | "comprador";
 
 export default function Login() {
+    const navigate = useNavigate();
     const [tipoUsuario, setTipoUsuario] = useState<TipoUsuario>("empresa");
-    const [documento, setDocumento] = useState("");
+    const [email, setEmail] = useState("");
     const [senha, setSenha] = useState("");
     const [lembrarDeMim, setLembrarDeMim] = useState(false);
     const [mostrarSenha, setMostrarSenha] = useState(false);
+    const [carregando, setCarregando] = useState(false);
+    const [erro, setErro] = useState("");
 
     const ehEmpresa = tipoUsuario === "empresa";
 
@@ -43,7 +48,7 @@ export default function Login() {
         campoGrupo: "flex flex-col gap-2",
         rotulo: "text-[15px] font-medium text-[#2F3D38]",
         input:
-            "w-full rounded-xl border border-[#D9D5C8] bg-white px-4 py-3.5 text-[15px] text-[#1B4B3A] placeholder:text-[#A8B0AB] outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100",
+            "w-full rounded-xl border border-[#D9D5C8] bg-white px-4 py-3.5 text-[15px] text-[#1B4B3A] placeholder:text-[#A8B0AB] outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 disabled:opacity-60",
         inputSenhaWrapper: "relative",
         inputSenha: "pr-12",
         botaoOlho:
@@ -56,7 +61,10 @@ export default function Login() {
         linkEsqueceu: "font-semibold text-emerald-600 transition hover:text-emerald-700",
 
         botaoEntrar:
-            "mt-1 w-full rounded-xl bg-emerald-500 px-6 py-4 text-base font-bold text-white transition hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2",
+            "mt-1 w-full rounded-xl bg-emerald-500 px-6 py-4 text-base font-bold text-white transition hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-70",
+
+        erroBox:
+            "rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700",
 
         divisor: "flex items-center gap-4 text-xs text-[#A8B0AB]",
         divisorLinha: "h-px flex-1 bg-[#E7E4DA]",
@@ -71,44 +79,86 @@ export default function Login() {
         linkCadastro: "font-bold text-emerald-600 transition hover:text-emerald-700",
     };
 
-    function apenasDigitos(valor: string) {
-        return valor.replace(/\D/g, "");
-    }
-
-    function formatarCPF(valor: string) {
-        const digitos = apenasDigitos(valor).slice(0, 11);
-        return digitos
-            .replace(/(\d{3})(\d)/, "$1.$2")
-            .replace(/(\d{3})(\d)/, "$1.$2")
-            .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
-    }
-
-    function formatarCNPJ(valor: string) {
-        const digitos = apenasDigitos(valor).slice(0, 14);
-        return digitos
-            .replace(/(\d{2})(\d)/, "$1.$2")
-            .replace(/(\d{3})(\d)/, "$1.$2")
-            .replace(/(\d{3})(\d)/, "$1/$2")
-            .replace(/(\d{4})(\d{1,2})$/, "$1-$2");
-    }
-
-    function handleDocumentoChange(valor: string) {
-        setDocumento(ehEmpresa ? formatarCNPJ(valor) : formatarCPF(valor));
-    }
-
     function handleTrocaTipo(tipo: TipoUsuario) {
         setTipoUsuario(tipo);
-        setDocumento("");
+        setErro("");
     }
 
-    function handleSubmit(e: FormEvent) {
+    async function handleSubmit(e: FormEvent) {
         e.preventDefault();
-        const digitos = apenasDigitos(documento);
-        // TODO: integrar com o backend (tipoUsuario, documento, senha, lembrarDeMim)
-        if (ehEmpresa) {
-            console.log({ tipoUsuario, cnpj: digitos, senha, lembrarDeMim });
-        } else {
-            console.log({ tipoUsuario, cpf: digitos, senha, lembrarDeMim });
+        setErro("");
+
+        if (!email.trim() || !senha) {
+            setErro("Informe e-mail e senha para continuar.");
+            return;
+        }
+
+        setCarregando(true);
+        try {
+            const payload = {
+                email: email.trim(),
+                senha,
+                // alias para backends que esperam "password" em vez de "senha"
+                password: senha,
+            };
+            console.log("[login] POST /user/login", { email: payload.email });
+            // POST http://10.89.240.27:5000/api/reaproveitafranca/user/login
+            const { data } = await api.post("/user/login", payload);
+
+            // A API pode retornar o token com nomes diferentes — cobre os mais comuns
+            const token: string | null =
+                data?.token ??
+                data?.accessToken ??
+                data?.access_token ??
+                data?.jwt ??
+                null;
+
+            const usuario = data?.user ?? data?.usuario ?? data ?? null;
+
+            const storage = lembrarDeMim ? localStorage : sessionStorage;
+            const otherStorage = lembrarDeMim ? sessionStorage : localStorage;
+
+            if (token) {
+                storage.setItem("token", token);
+                otherStorage.removeItem("token");
+            }
+            if (usuario) {
+                storage.setItem("user", JSON.stringify(usuario));
+                otherStorage.removeItem("user");
+            }
+            // Guarda o perfil selecionado na tela (empresa/comprador) para uso futuro
+            storage.setItem("tipoUsuario", tipoUsuario);
+
+            navigate("/");
+        } catch (err) {
+            if (axios.isAxiosError(err)) {
+                if (!err.response) {
+                    setErro(
+                        "Não foi possível conectar à API (http://10.89.240.27:5000). Verifique se você está na mesma rede e se a API está rodando."
+                    );
+                } else {
+                    const status = err.response.status;
+                    const respData = err.response.data as unknown;
+                    console.error("[login] erro da API", status, respData);
+                    const msg =
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        (respData as any)?.message ??
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        (respData as any)?.msg ??
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        (respData as any)?.error ??
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        (respData as any)?.erros ??
+                        (status === 401 || status === 404
+                            ? "E-mail ou senha inválidos."
+                            : "Erro ao fazer login. Tente novamente.");
+                    setErro(Array.isArray(msg) ? msg.join(" ") : String(msg));
+                }
+            } else {
+                setErro("Erro inesperado ao fazer login. Tente novamente.");
+            }
+        } finally {
+            setCarregando(false);
         }
     }
 
@@ -162,25 +212,25 @@ export default function Login() {
                     </div>
 
                     <form className={styles.formulario} onSubmit={handleSubmit}>
+                        {erro && (
+                            <p role="alert" className={styles.erroBox}>
+                                {erro}
+                            </p>
+                        )}
+
                         <div className={styles.campoGrupo}>
-                            <label htmlFor="documento" className={styles.rotulo}>
-                                {ehEmpresa ? "CNPJ da empresa" : "CPF"}
+                            <label htmlFor="email" className={styles.rotulo}>
+                                {ehEmpresa ? "E-mail da empresa" : "E-mail"}
                             </label>
                             <input
-                                id="documento"
-                                type="text"
-                                inputMode="numeric"
-                                autoComplete={ehEmpresa ? "off" : "off"}
+                                id="email"
+                                type="email"
+                                autoComplete="email"
                                 required
-                                minLength={ehEmpresa ? 18 : 14}
-                                maxLength={ehEmpresa ? 18 : 14}
-                                placeholder={
-                                    ehEmpresa
-                                        ? "00.000.000/0000-00"
-                                        : "000.000.000-00"
-                                }
-                                value={documento}
-                                onChange={(e) => handleDocumentoChange(e.target.value)}
+                                placeholder="voce@exemplo.com"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                disabled={carregando}
                                 className={styles.input}
                             />
                         </div>
@@ -198,6 +248,7 @@ export default function Login() {
                                     placeholder="Sua senha secreta"
                                     value={senha}
                                     onChange={(e) => setSenha(e.target.value)}
+                                    disabled={carregando}
                                     className={`${styles.input} ${styles.inputSenha}`}
                                 />
                                 <button
@@ -221,6 +272,7 @@ export default function Login() {
                                     type="checkbox"
                                     checked={lembrarDeMim}
                                     onChange={(e) => setLembrarDeMim(e.target.checked)}
+                                    disabled={carregando}
                                     className={styles.checkbox}
                                 />
                                 Lembrar de mim
@@ -230,8 +282,12 @@ export default function Login() {
                             </Link>
                         </div>
 
-                        <button type="submit" className={styles.botaoEntrar}>
-                            Entrar na Plataforma
+                        <button
+                            type="submit"
+                            disabled={carregando}
+                            className={styles.botaoEntrar}
+                        >
+                            {carregando ? "Entrando..." : "Entrar na Plataforma"}
                         </button>
                     </form>
 
