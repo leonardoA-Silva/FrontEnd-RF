@@ -14,28 +14,33 @@ export default api;
 // ─── Tipos ─────────────────────────────────────────────────────────────────────
 
 export interface CadastroEmpresaPayload {
-  razaoSocial: string;
-  cnpj: string;
-  setorIndustrial: string;
-  estado: string;
-  cidade: string;
-  endereco: string;
-  responsavel: string;
-  cpfResponsavel: string;
-  telefone: string;
-  senha: string;
-  foto?: string;
+  cpf: string;
+  name: string;
+  email: string;
+  birthday?: string;
+  zip_code: string;
+  street: string;
+  neighborhood: string;
+  number: string;
+  city: string;
+  state: string;
+  password: string;
+  cellphone: string;
 }
 
 export interface CadastroUsuarioPayload {
-  nomeOuRazao: string;
   cpf: string;
-  tipoEntidade: string;
-  estado: string;
-  cidade: string;
-  localizacao: string;
-  senha: string;
-  foto?: string;
+  name: string;
+  email: string;
+  cnpj: string;
+  password: string;
+  cellphone: string;
+  zip_code: string;
+  street: string;
+  neighborhood: string;
+  number: string;
+  city: string;
+  state: string;
 }
 
 export interface LoginEmpresaPayload {

@@ -25,18 +25,24 @@ export default function RegisterUser() {
   const { notifications, removeNotification, notify } = useNotification();
 
   const [formData, setFormData] = useState({
-    nomeOuRazao: "",
     cpf: "",
-    tipoEntidade: "",
-    estado: "",
-    cidade: "",
-    localizacao: "",
-    senha: "",
+    name: "",
+    email: "",
+    cnpj: "",
+    password: "",
+    cellphone: "",
+    zip_code: "",
+    street: "",
+    neighborhood: "",
+    number: "",
+    city: "",
+    state: "",
   });
 
   const [estados, setEstados] = useState<EstadoIBGE[]>([]);
   const [cidades, setCidades] = useState<CidadeIBGE[]>([]);
   const [carregandoCidades, setCarregandoCidades] = useState(false);
+  const [carregandoCep, setCarregandoCep] = useState(false);
 
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const [foto, setFoto] = useState<string | null>(null);
@@ -51,14 +57,14 @@ export default function RegisterUser() {
 
   // Carrega as cidades do estado selecionado
   useEffect(() => {
-    if (!formData.estado) {
+    if (!formData.state) {
       setCidades([]);
       return;
     }
 
     setCarregandoCidades(true);
     fetch(
-      `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${formData.estado}/municipios?orderBy=nome`
+      `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${formData.state}/municipios?orderBy=nome`
     )
       .then((res) => res.json())
       .then((data: CidadeIBGE[]) => {
@@ -69,23 +75,47 @@ export default function RegisterUser() {
         console.error("Erro ao carregar cidades do IBGE:", err);
         setCarregandoCidades(false);
       });
-  }, [formData.estado]);
+  }, [formData.state]);
 
   const handleEstadoChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const estado = e.target.value;
+    const state = e.target.value;
     setFormData((prev) => ({
       ...prev,
-      estado,
-      cidade: "",
+      state,
+      city: "",
     }));
   };
 
   const handleCidadeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const cidade = e.target.value;
+    const city = e.target.value;
     setFormData((prev) => ({
       ...prev,
-      cidade,
+      city,
     }));
+  };
+
+  const handleCepBlur = async () => {
+    const cleanCep = formData.zip_code.replace(/\D/g, "");
+    if (cleanCep.length === 8) {
+      setCarregandoCep(true);
+      try {
+        const res = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
+        const data = await res.json();
+        if (!data.erro) {
+          setFormData((prev) => ({
+            ...prev,
+            street: data.logradouro || prev.street,
+            neighborhood: data.bairro || prev.neighborhood,
+            state: data.uf || prev.state,
+            city: data.localidade || prev.city,
+          }));
+        }
+      } catch (e) {
+        console.error("Erro ao buscar CEP:", e);
+      } finally {
+        setCarregandoCep(false);
+      }
+    }
   };
 
   const handleFotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -127,14 +157,18 @@ export default function RegisterUser() {
 
     try {
       await cadastrarUsuario({
-        nomeOuRazao: formData.nomeOuRazao,
         cpf: formData.cpf,
-        tipoEntidade: formData.tipoEntidade,
-        estado: formData.estado,
-        cidade: formData.cidade,
-        localizacao: formData.localizacao,
-        senha: formData.senha,
-        ...(foto ? { foto } : {}),
+        name: formData.name,
+        email: formData.email,
+        cnpj: formData.cnpj,
+        password: formData.password,
+        cellphone: formData.cellphone,
+        zip_code: formData.zip_code,
+        street: formData.street,
+        neighborhood: formData.neighborhood,
+        number: formData.number,
+        city: formData.city,
+        state: formData.state,
       });
       notify.success(
         "Cadastro realizado!",
@@ -509,24 +543,24 @@ export default function RegisterUser() {
               </Box>
             </Box>
 
-            {/* Nome Completo ou Razão Social */}
+            {/* Nome Completo */}
             <Box>
-              <Typography component="label" htmlFor="nomeOuRazao" sx={labelStyle}>
-                Nome Completo ou Razão Social
+              <Typography component="label" htmlFor="name" sx={labelStyle}>
+                Nome Completo
               </Typography>
               <Box
                 component="input"
-                id="nomeOuRazao"
-                name="nomeOuRazao"
+                id="name"
+                name="name"
                 type="text"
-                value={formData.nomeOuRazao}
+                value={formData.name}
                 onChange={handleChange}
-                placeholder="Ex: Ateliê Reutiliza Franca"
+                placeholder="Ex: Maria Silva"
                 sx={inputStyle}
               />
             </Box>
 
-            {/* CPF ou CNPJ e Tipo de Entidade */}
+            {/* CPF e CNPJ */}
             <Box
               sx={{
                 display: "grid",
@@ -553,23 +587,25 @@ export default function RegisterUser() {
               </Box>
 
               <Box>
-                <Typography component="label" htmlFor="tipoEntidade" sx={labelStyle}>
-                  Tipo de Entidade
+                <Typography component="label" htmlFor="cnpj" sx={labelStyle}>
+                  CNPJ (opcional)
                 </Typography>
                 <Box
                   component="input"
-                  id="tipoEntidade"
-                  name="tipoEntidade"
+                  id="cnpj"
+                  name="cnpj"
                   type="text"
-                  value={formData.tipoEntidade}
-                  onChange={handleChange}
-                  placeholder="Ex: Artesão Autônomo"
+                  inputMode="numeric"
+                  maxLength={14}
+                  value={formData.cnpj}
+                  onChange={handleNumerosChange("cnpj", 14)}
+                  placeholder="Apenas números (14 dígitos)"
                   sx={inputStyle}
                 />
               </Box>
             </Box>
 
-            {/* Estado e Cidade (IBGE) */}
+            {/* Email e Celular */}
             <Box
               sx={{
                 display: "grid",
@@ -578,14 +614,140 @@ export default function RegisterUser() {
               }}
             >
               <Box>
-                <Typography component="label" htmlFor="estado" sx={labelStyle}>
+                <Typography component="label" htmlFor="email" sx={labelStyle}>
+                  E-mail
+                </Typography>
+                <Box
+                  component="input"
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="exemplo@email.com"
+                  sx={inputStyle}
+                />
+              </Box>
+
+              <Box>
+                <Typography component="label" htmlFor="cellphone" sx={labelStyle}>
+                  Celular / Telefone
+                </Typography>
+                <Box
+                  component="input"
+                  id="cellphone"
+                  name="cellphone"
+                  type="text"
+                  value={formData.cellphone}
+                  onChange={handleChange}
+                  placeholder="(00) 00000-0000"
+                  sx={inputStyle}
+                />
+              </Box>
+            </Box>
+
+            {/* CEP e Número */}
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+                gap: 2.5,
+              }}
+            >
+              <Box>
+                <Typography component="label" htmlFor="zip_code" sx={labelStyle}>
+                  CEP {carregandoCep && "(Buscando...)"}
+                </Typography>
+                <Box
+                  component="input"
+                  id="zip_code"
+                  name="zip_code"
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={8}
+                  value={formData.zip_code}
+                  onChange={handleNumerosChange("zip_code", 8)}
+                  onBlur={handleCepBlur}
+                  placeholder="00000000 (8 dígitos)"
+                  sx={inputStyle}
+                />
+              </Box>
+
+              <Box>
+                <Typography component="label" htmlFor="number" sx={labelStyle}>
+                  Número
+                </Typography>
+                <Box
+                  component="input"
+                  id="number"
+                  name="number"
+                  type="text"
+                  value={formData.number}
+                  onChange={handleChange}
+                  placeholder="Ex: 123"
+                  sx={inputStyle}
+                />
+              </Box>
+            </Box>
+
+            {/* Rua / Logradouro e Bairro */}
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: { xs: "1fr", sm: "2fr 1fr" },
+                gap: 2.5,
+              }}
+            >
+              <Box>
+                <Typography component="label" htmlFor="street" sx={labelStyle}>
+                  Rua / Logradouro
+                </Typography>
+                <Box
+                  component="input"
+                  id="street"
+                  name="street"
+                  type="text"
+                  value={formData.street}
+                  onChange={handleChange}
+                  placeholder="Ex: Rua São Paulo"
+                  sx={inputStyle}
+                />
+              </Box>
+
+              <Box>
+                <Typography component="label" htmlFor="neighborhood" sx={labelStyle}>
+                  Bairro
+                </Typography>
+                <Box
+                  component="input"
+                  id="neighborhood"
+                  name="neighborhood"
+                  type="text"
+                  value={formData.neighborhood}
+                  onChange={handleChange}
+                  placeholder="Ex: Centro"
+                  sx={inputStyle}
+                />
+              </Box>
+            </Box>
+
+            {/* Estado e Cidade */}
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+                gap: 2.5,
+              }}
+            >
+              <Box>
+                <Typography component="label" htmlFor="state" sx={labelStyle}>
                   Estado (UF)
                 </Typography>
                 <Box
                   component="select"
-                  id="estado"
-                  name="estado"
-                  value={formData.estado}
+                  id="state"
+                  name="state"
+                  value={formData.state}
                   onChange={handleEstadoChange}
                   sx={selectStyle}
                 >
@@ -599,26 +761,26 @@ export default function RegisterUser() {
               </Box>
 
               <Box>
-                <Typography component="label" htmlFor="cidade" sx={labelStyle}>
+                <Typography component="label" htmlFor="city" sx={labelStyle}>
                   Cidade
                 </Typography>
                 <Box
                   component="select"
-                  id="cidade"
-                  name="cidade"
-                  value={formData.cidade}
-                  disabled={!formData.estado || carregandoCidades}
+                  id="city"
+                  name="city"
+                  value={formData.city}
+                  disabled={!formData.state || carregandoCidades}
                   onChange={handleCidadeChange}
                   sx={{
                     ...selectStyle,
-                    opacity: !formData.estado ? 0.6 : 1,
-                    cursor: !formData.estado ? "not-allowed" : "pointer",
+                    opacity: !formData.state ? 0.6 : 1,
+                    cursor: !formData.state ? "not-allowed" : "pointer",
                   }}
                 >
                   <option value="">
                     {carregandoCidades
                       ? "Carregando cidades..."
-                      : formData.estado
+                      : formData.state
                       ? "Selecione a Cidade"
                       : "Selecione o estado primeiro"}
                   </option>
@@ -631,35 +793,18 @@ export default function RegisterUser() {
               </Box>
             </Box>
 
-            {/* Localização para cálculo de logística */}
-            <Box>
-              <Typography component="label" htmlFor="localizacao" sx={labelStyle}>
-                Localização (Bairro / Rua)
-              </Typography>
-              <Box
-                component="input"
-                id="localizacao"
-                name="localizacao"
-                type="text"
-                value={formData.localizacao}
-                onChange={handleChange}
-                placeholder="Bairro, Rua ou Ponto de referência"
-                sx={inputStyle}
-              />
-            </Box>
-
             {/* Senha (largura total) */}
             <Box>
-              <Typography component="label" htmlFor="senha" sx={labelStyle}>
+              <Typography component="label" htmlFor="password" sx={labelStyle}>
                 Senha
               </Typography>
               <Box sx={{ position: "relative", width: "100%" }}>
                 <Box
                   component="input"
-                  id="senha"
-                  name="senha"
+                  id="password"
+                  name="password"
                   type={mostrarSenha ? "text" : "password"}
-                  value={formData.senha}
+                  value={formData.password}
                   onChange={handleChange}
                   placeholder="Crie uma senha segura"
                   sx={{

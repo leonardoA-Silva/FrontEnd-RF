@@ -25,21 +25,24 @@ export default function RegisterCompany() {
   const { notifications, removeNotification, notify } = useNotification();
 
   const [formData, setFormData] = useState({
-    razaoSocial: "",
-    cnpj: "",
-    setorIndustrial: "",
-    estado: "",
-    cidade: "",
-    endereco: "",
-    responsavel: "",
-    cpfResponsavel: "",
-    telefone: "",
-    senha: "",
+    cpf: "",
+    name: "",
+    email: "",
+    birthday: "",
+    cellphone: "",
+    zip_code: "",
+    street: "",
+    neighborhood: "",
+    number: "",
+    city: "",
+    state: "",
+    password: "",
   });
 
   const [estados, setEstados] = useState<EstadoIBGE[]>([]);
   const [cidades, setCidades] = useState<CidadeIBGE[]>([]);
   const [carregandoCidades, setCarregandoCidades] = useState(false);
+  const [carregandoCep, setCarregandoCep] = useState(false);
 
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const [foto, setFoto] = useState<string | null>(null);
@@ -54,14 +57,14 @@ export default function RegisterCompany() {
 
   // Carrega as cidades do estado selecionado
   useEffect(() => {
-    if (!formData.estado) {
+    if (!formData.state) {
       setCidades([]);
       return;
     }
 
     setCarregandoCidades(true);
     fetch(
-      `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${formData.estado}/municipios?orderBy=nome`
+      `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${formData.state}/municipios?orderBy=nome`
     )
       .then((res) => res.json())
       .then((data: CidadeIBGE[]) => {
@@ -72,23 +75,47 @@ export default function RegisterCompany() {
         console.error("Erro ao carregar cidades do IBGE:", err);
         setCarregandoCidades(false);
       });
-  }, [formData.estado]);
+  }, [formData.state]);
 
   const handleEstadoChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const estado = e.target.value;
+    const state = e.target.value;
     setFormData((prev) => ({
       ...prev,
-      estado,
-      cidade: "",
+      state,
+      city: "",
     }));
   };
 
   const handleCidadeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const cidade = e.target.value;
+    const city = e.target.value;
     setFormData((prev) => ({
       ...prev,
-      cidade,
+      city,
     }));
+  };
+
+  const handleCepBlur = async () => {
+    const cleanCep = formData.zip_code.replace(/\D/g, "");
+    if (cleanCep.length === 8) {
+      setCarregandoCep(true);
+      try {
+        const res = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
+        const data = await res.json();
+        if (!data.erro) {
+          setFormData((prev) => ({
+            ...prev,
+            street: data.logradouro || prev.street,
+            neighborhood: data.bairro || prev.neighborhood,
+            state: data.uf || prev.state,
+            city: data.localidade || prev.city,
+          }));
+        }
+      } catch (e) {
+        console.error("Erro ao buscar CEP:", e);
+      } finally {
+        setCarregandoCep(false);
+      }
+    }
   };
 
   const handleFotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -130,17 +157,18 @@ export default function RegisterCompany() {
 
     try {
       await cadastrarEmpresa({
-        razaoSocial: formData.razaoSocial,
-        cnpj: formData.cnpj,
-        setorIndustrial: formData.setorIndustrial,
-        estado: formData.estado,
-        cidade: formData.cidade,
-        endereco: formData.endereco,
-        responsavel: formData.responsavel,
-        cpfResponsavel: formData.cpfResponsavel,
-        telefone: formData.telefone,
-        senha: formData.senha,
-        ...(foto ? { foto } : {}),
+        cpf: formData.cpf,
+        name: formData.name,
+        email: formData.email,
+        birthday: formData.birthday || undefined,
+        cellphone: formData.cellphone,
+        zip_code: formData.zip_code,
+        street: formData.street,
+        neighborhood: formData.neighborhood,
+        number: formData.number,
+        city: formData.city,
+        state: formData.state,
+        password: formData.password,
       });
       notify.success(
         "Empresa cadastrada!",
@@ -426,24 +454,24 @@ export default function RegisterCompany() {
               </Box>
             </Box>
 
-            {/* Razão Social */}
+            {/* Nome / Razão Social */}
             <Box>
-              <Typography component="label" htmlFor="razaoSocial" sx={labelStyle}>
-                Razão Social
+              <Typography component="label" htmlFor="name" sx={labelStyle}>
+                Nome / Razão Social
               </Typography>
               <Box
                 component="input"
-                id="razaoSocial"
-                name="razaoSocial"
+                id="name"
+                name="name"
                 type="text"
-                value={formData.razaoSocial}
+                value={formData.name}
                 onChange={handleChange}
-                placeholder="Ex: Calçados Franca Conectada Ltda"
+                placeholder="Ex: Indústria de Calçados Franca Ltda"
                 sx={inputStyle}
               />
             </Box>
 
-            {/* CNPJ e Setor Industrial */}
+            {/* CPF e Data de Nascimento */}
             <Box
               sx={{
                 display: "grid",
@@ -452,41 +480,40 @@ export default function RegisterCompany() {
               }}
             >
               <Box>
-                <Typography component="label" htmlFor="cnpj" sx={labelStyle}>
-                  CNPJ
+                <Typography component="label" htmlFor="cpf" sx={labelStyle}>
+                  CPF
                 </Typography>
                 <Box
                   component="input"
-                  id="cnpj"
-                  name="cnpj"
+                  id="cpf"
+                  name="cpf"
                   type="text"
                   inputMode="numeric"
-                  maxLength={14}
-                  value={formData.cnpj}
-                  onChange={handleNumerosChange("cnpj", 14)}
-                  placeholder="Apenas números (14 dígitos)"
+                  maxLength={11}
+                  value={formData.cpf}
+                  onChange={handleNumerosChange("cpf", 11)}
+                  placeholder="Apenas números (11 dígitos)"
                   sx={inputStyle}
                 />
               </Box>
 
               <Box>
-                <Typography component="label" htmlFor="setorIndustrial" sx={labelStyle}>
-                  Setor Industrial
+                <Typography component="label" htmlFor="birthday" sx={labelStyle}>
+                  Data de Nascimento / Fundação
                 </Typography>
                 <Box
                   component="input"
-                  id="setorIndustrial"
-                  name="setorIndustrial"
-                  type="text"
-                  value={formData.setorIndustrial}
+                  id="birthday"
+                  name="birthday"
+                  type="date"
+                  value={formData.birthday}
                   onChange={handleChange}
-                  placeholder="Ex: Calçadista (Componentes)"
                   sx={inputStyle}
                 />
               </Box>
             </Box>
 
-            {/* Estado e Cidade (IBGE) */}
+            {/* Email e Celular / Telefone */}
             <Box
               sx={{
                 display: "grid",
@@ -495,14 +522,140 @@ export default function RegisterCompany() {
               }}
             >
               <Box>
-                <Typography component="label" htmlFor="estado" sx={labelStyle}>
+                <Typography component="label" htmlFor="email" sx={labelStyle}>
+                  E-mail
+                </Typography>
+                <Box
+                  component="input"
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="contato@empresa.com"
+                  sx={inputStyle}
+                />
+              </Box>
+
+              <Box>
+                <Typography component="label" htmlFor="cellphone" sx={labelStyle}>
+                  Celular / Telefone
+                </Typography>
+                <Box
+                  component="input"
+                  id="cellphone"
+                  name="cellphone"
+                  type="text"
+                  value={formData.cellphone}
+                  onChange={handleChange}
+                  placeholder="(00) 00000-0000"
+                  sx={inputStyle}
+                />
+              </Box>
+            </Box>
+
+            {/* CEP e Número */}
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+                gap: 2.5,
+              }}
+            >
+              <Box>
+                <Typography component="label" htmlFor="zip_code" sx={labelStyle}>
+                  CEP {carregandoCep && "(Buscando...)"}
+                </Typography>
+                <Box
+                  component="input"
+                  id="zip_code"
+                  name="zip_code"
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={8}
+                  value={formData.zip_code}
+                  onChange={handleNumerosChange("zip_code", 8)}
+                  onBlur={handleCepBlur}
+                  placeholder="00000000 (8 dígitos)"
+                  sx={inputStyle}
+                />
+              </Box>
+
+              <Box>
+                <Typography component="label" htmlFor="number" sx={labelStyle}>
+                  Número
+                </Typography>
+                <Box
+                  component="input"
+                  id="number"
+                  name="number"
+                  type="text"
+                  value={formData.number}
+                  onChange={handleChange}
+                  placeholder="Ex: 123"
+                  sx={inputStyle}
+                />
+              </Box>
+            </Box>
+
+            {/* Logradouro / Rua e Bairro */}
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: { xs: "1fr", sm: "2fr 1fr" },
+                gap: 2.5,
+              }}
+            >
+              <Box>
+                <Typography component="label" htmlFor="street" sx={labelStyle}>
+                  Rua / Logradouro
+                </Typography>
+                <Box
+                  component="input"
+                  id="street"
+                  name="street"
+                  type="text"
+                  value={formData.street}
+                  onChange={handleChange}
+                  placeholder="Ex: Av. Dr. Hélio Palermo"
+                  sx={inputStyle}
+                />
+              </Box>
+
+              <Box>
+                <Typography component="label" htmlFor="neighborhood" sx={labelStyle}>
+                  Bairro
+                </Typography>
+                <Box
+                  component="input"
+                  id="neighborhood"
+                  name="neighborhood"
+                  type="text"
+                  value={formData.neighborhood}
+                  onChange={handleChange}
+                  placeholder="Ex: Centro"
+                  sx={inputStyle}
+                />
+              </Box>
+            </Box>
+
+            {/* Estado e Cidade */}
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+                gap: 2.5,
+              }}
+            >
+              <Box>
+                <Typography component="label" htmlFor="state" sx={labelStyle}>
                   Estado (UF)
                 </Typography>
                 <Box
                   component="select"
-                  id="estado"
-                  name="estado"
-                  value={formData.estado}
+                  id="state"
+                  name="state"
+                  value={formData.state}
                   onChange={handleEstadoChange}
                   sx={selectStyle}
                 >
@@ -516,26 +669,26 @@ export default function RegisterCompany() {
               </Box>
 
               <Box>
-                <Typography component="label" htmlFor="cidade" sx={labelStyle}>
+                <Typography component="label" htmlFor="city" sx={labelStyle}>
                   Cidade
                 </Typography>
                 <Box
                   component="select"
-                  id="cidade"
-                  name="cidade"
-                  value={formData.cidade}
-                  disabled={!formData.estado || carregandoCidades}
+                  id="city"
+                  name="city"
+                  value={formData.city}
+                  disabled={!formData.state || carregandoCidades}
                   onChange={handleCidadeChange}
                   sx={{
                     ...selectStyle,
-                    opacity: !formData.estado ? 0.6 : 1,
-                    cursor: !formData.estado ? "not-allowed" : "pointer",
+                    opacity: !formData.state ? 0.6 : 1,
+                    cursor: !formData.state ? "not-allowed" : "pointer",
                   }}
                 >
                   <option value="">
                     {carregandoCidades
                       ? "Carregando cidades..."
-                      : formData.estado
+                      : formData.state
                       ? "Selecione a Cidade"
                       : "Selecione o estado primeiro"}
                   </option>
@@ -548,95 +701,18 @@ export default function RegisterCompany() {
               </Box>
             </Box>
 
-            {/* Endereço da Unidade */}
-            <Box>
-              <Typography component="label" htmlFor="endereco" sx={labelStyle}>
-                Endereço da Unidade (Logradouro / Bairro)
-              </Typography>
-              <Box
-                component="input"
-                id="endereco"
-                name="endereco"
-                type="text"
-                value={formData.endereco}
-                onChange={handleChange}
-                placeholder="Ex: Av. Dr. Hélio Palermo, 4200 - Jd. Paulista"
-                sx={inputStyle}
-              />
-            </Box>
-
-            {/* Responsável e CPF do Responsável */}
-            <Box
-              sx={{
-                display: "grid",
-                gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
-                gap: 2.5,
-              }}
-            >
-              <Box>
-                <Typography component="label" htmlFor="responsavel" sx={labelStyle}>
-                  Responsável
-                </Typography>
-                <Box
-                  component="input"
-                  id="responsavel"
-                  name="responsavel"
-                  type="text"
-                  value={formData.responsavel}
-                  onChange={handleChange}
-                  placeholder="Nome do responsável"
-                  sx={inputStyle}
-                />
-              </Box>
-
-              <Box>
-                <Typography component="label" htmlFor="cpfResponsavel" sx={labelStyle}>
-                  CPF do Responsável
-                </Typography>
-                <Box
-                  component="input"
-                  id="cpfResponsavel"
-                  name="cpfResponsavel"
-                  type="text"
-                  inputMode="numeric"
-                  maxLength={11}
-                  value={formData.cpfResponsavel}
-                  onChange={handleNumerosChange("cpfResponsavel", 11)}
-                  placeholder="Apenas números (11 dígitos)"
-                  sx={inputStyle}
-                />
-              </Box>
-            </Box>
-
-            {/* Telefone / WhatsApp */}
-            <Box>
-              <Typography component="label" htmlFor="telefone" sx={labelStyle}>
-                Telefone / WhatsApp
-              </Typography>
-              <Box
-                component="input"
-                id="telefone"
-                name="telefone"
-                type="text"
-                value={formData.telefone}
-                onChange={handleChange}
-                placeholder="(00) 00000-0000"
-                sx={inputStyle}
-              />
-            </Box>
-
             {/* Senha (largura total) */}
             <Box>
-              <Typography component="label" htmlFor="senha" sx={labelStyle}>
+              <Typography component="label" htmlFor="password" sx={labelStyle}>
                 Senha
               </Typography>
               <Box sx={{ position: "relative", width: "100%" }}>
                 <Box
                   component="input"
-                  id="senha"
-                  name="senha"
+                  id="password"
+                  name="password"
                   type={mostrarSenha ? "text" : "password"}
-                  value={formData.senha}
+                  value={formData.password}
                   onChange={handleChange}
                   placeholder="Crie uma senha segura"
                   sx={{
