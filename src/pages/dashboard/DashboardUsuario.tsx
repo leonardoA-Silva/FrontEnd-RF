@@ -92,21 +92,18 @@ export default function DashboardUsuario() {
   const navigate = useNavigate();
   const [menuAberto, setMenuAberto] = useState(false);
 
-  // Usuário real salvo no login (localStorage se "lembrar de mim", senão sessionStorage)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [usuario] = useState<any>(() => {
-    try {
-      const raw =
-        localStorage.getItem("user") ?? sessionStorage.getItem("user");
-      return raw ? JSON.parse(raw) : null;
-    } catch {
-      return null;
-    }
-  });
+  // 1. Recupera o usuário que o login salvou (local ou sessão)
+  const userSalvo =
+    localStorage.getItem("user") ?? sessionStorage.getItem("user");
 
-  const nomeExibicao: string =
-    usuario?.nome ?? usuario?.name ?? usuario?.email ?? "Usuário";
-  const primeiroNome = String(nomeExibicao).split(" ")[0];
+  // 2. Transforma o texto guardado de volta em objeto (ou null se ninguém logou)
+  const usuario = userSalvo ? JSON.parse(userSalvo) : null;
+
+  // 3. Pega o nome, ou o e-mail se não tiver nome, ou "Usuário" como padrão
+  const nomeCompleto = usuario?.nome ?? usuario?.email ?? "Usuário";
+
+  // 4. Mostra só o primeiro nome
+  const primeiroNome = nomeCompleto.split(" ")[0];
 
   function handleLogout() {
     for (const storage of [localStorage, sessionStorage]) {

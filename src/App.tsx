@@ -1,23 +1,8 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import type { ReactNode } from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from "./pages/home/Home"
 import Login from "./pages/login/Login";
 import DashboardUsuario from "./pages/dashboard/DashboardUsuario";
-
-
-function temToken(): boolean {
-  return Boolean(
-    localStorage.getItem("token") ?? sessionStorage.getItem("token")
-  );
-}
-
-// Bloqueia o acesso ao dashboard sem login (sem token -> volta para /login)
-function RotaProtegida({ children }: { children: ReactNode }) {
-  if (!temToken()) {
-    return <Navigate to="/login" replace />;
-  }
-  return <>{children}</>;
-}
+import ProtectedRoute from "./components/ProtectedRoute";
 
 
 function App() {
@@ -33,11 +18,11 @@ function App() {
 
           {/* rotas privadas */}
           <Route
-            path="/dashboard"
+            path="/dashboardUsuario"
             element={
-              <RotaProtegida>
+              <ProtectedRoute>
                 <DashboardUsuario/>
-              </RotaProtegida>
+              </ProtectedRoute>
             }
           />
         </Routes>

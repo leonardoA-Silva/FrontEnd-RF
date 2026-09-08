@@ -129,7 +129,13 @@ export default function Login() {
             // Guarda o perfil selecionado na tela (empresa/comprador) para uso futuro
             storage.setItem("tipoUsuario", tipoUsuario);
 
-            navigate("/");
+            // Redireciona conforme o perfil escolhido na tela:
+            // empresa -> dashboard da empresa, comprador -> dashboard do usuário
+            if (tipoUsuario === "empresa") {
+                navigate("/dashboardEmpresa");
+            } else {
+                navigate("/dashboardUsuario");
+            }
         } catch (err) {
             if (axios.isAxiosError(err)) {
                 if (!err.response) {
