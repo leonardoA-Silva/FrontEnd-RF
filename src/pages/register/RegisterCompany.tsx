@@ -1,12 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Box, Typography, Button } from "@mui/material";
-import { Check, ArrowRight } from "lucide-react";
+import { ArrowRight, Camera, X, Building2 } from "lucide-react";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 
 export default function RegisterCompany() {
   const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
     razaoSocial: "",
@@ -17,25 +18,24 @@ export default function RegisterCompany() {
     telefone: "",
   });
 
-  const [materiaisSelecionados, setMateriaisSelecionados] = useState<string[]>([
+  const [foto, setFoto] = useState<string | null>(null);
 
-  ]);
+  const handleFotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFoto(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
-  const listaMateriais = [
-    "Couro",
-    "Tecido",
-    "EVA",
-    "Borracha",
-    "Espuma",
-    "Pallets",
-  ];
-
-  const toggleMaterial = (material: string) => {
-    setMateriaisSelecionados((anteriores) =>
-      anteriores.includes(material)
-        ? anteriores.filter((m) => m !== material)
-        : [...anteriores, material]
-    );
+  const handleRemoverFoto = () => {
+    setFoto(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -47,7 +47,7 @@ export default function RegisterCompany() {
     e.preventDefault();
     console.log("Dados do cadastro da empresa:", {
       ...formData,
-      materiais: materiaisSelecionados,
+      foto,
     });
   };
 
@@ -81,6 +81,28 @@ export default function RegisterCompany() {
     color: "#2C3E35",
     mb: 0.75,
     display: "block",
+  };
+
+  const socialBtnStyle = {
+    width: 56,
+    height: 56,
+    minWidth: 56,
+    p: 0,
+    borderRadius: "16px",
+    border: "1px solid #E2E8F0",
+    bgcolor: "white",
+    boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+    transition: "all 0.2s ease",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    cursor: "pointer",
+    "&:hover": {
+      bgcolor: "#F9F8F5",
+      borderColor: "#10B981",
+      transform: "translateY(-1px)",
+      boxShadow: "0 4px 8px rgba(0,0,0,0.06)",
+    },
   };
 
   return (
@@ -169,12 +191,129 @@ export default function RegisterCompany() {
             </Typography>
           </Box>
 
+         
+
           {/* Formulário de cadastro */}
           <Box
             component="form"
             onSubmit={handleSubmit}
-            sx={{ mt: 4, display: "flex", flexDirection: "column", gap: 2.5 }}
+            sx={{ mt: 2, display: "flex", flexDirection: "column", gap: 2.5 }}
           >
+            {/* Campo para adicionar foto / logotipo da empresa */}
+            <Box>
+              <Typography sx={labelStyle}>Logotipo da Empresa</Typography>
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 2.5,
+                  p: 2,
+                  borderRadius: "12px",
+                  border: "1px dashed #B8B4A8",
+                  bgcolor: "#FAF9F5",
+                  transition: "all 0.2s ease",
+                  "&:hover": {
+                    borderColor: "#10B981",
+                    bgcolor: "rgba(16, 185, 129, 0.03)",
+                  },
+                }}
+              >
+                {/* Preview ou ícone placeholder */}
+                <Box
+                  onClick={() => fileInputRef.current?.click()}
+                  sx={{
+                    width: 72,
+                    height: 72,
+                    borderRadius: "12px",
+                    overflow: "hidden",
+                    border: "1px solid #D9D5C8",
+                    bgcolor: "white",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: "pointer",
+                    flexShrink: 0,
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+                  }}
+                >
+                  {foto ? (
+                    <Box
+                      component="img"
+                      src={foto}
+                      alt="Logo da empresa"
+                      sx={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    />
+                  ) : (
+                    <Building2 size={32} color="#9CA3AF" />
+                  )}
+                </Box>
+
+                <Box sx={{ flex: 1 }}>
+                  <Typography
+                    sx={{ fontSize: "0.875rem", fontWeight: 600, color: "#1B4B3A" }}
+                  >
+                    {foto ? "Logotipo selecionado" : "Adicionar logotipo"}
+                  </Typography>
+                  <Typography sx={{ fontSize: "0.75rem", color: "#6B7670", mt: 0.3 }}>
+                    PNG, JPG ou WEBP de até 5MB
+                  </Typography>
+
+                  <Box sx={{ display: "flex", gap: 1.5, mt: 1 }}>
+                    <Button
+                      type="button"
+                      size="small"
+                      variant="outlined"
+                      onClick={() => fileInputRef.current?.click()}
+                      startIcon={<Camera size={14} />}
+                      sx={{
+                        textTransform: "none",
+                        fontSize: "0.75rem",
+                        borderRadius: "6px",
+                        borderColor: "#D9D5C8",
+                        color: "#1B4B3A",
+                        px: 1.5,
+                        py: 0.5,
+                        "&:hover": {
+                          borderColor: "#10B981",
+                          bgcolor: "#F3F1EA",
+                        },
+                      }}
+                    >
+                      {foto ? "Alterar foto" : "Escolher arquivo"}
+                    </Button>
+
+                    {foto && (
+                      <Button
+                        type="button"
+                        size="small"
+                        color="error"
+                        onClick={handleRemoverFoto}
+                        startIcon={<X size={14} />}
+                        sx={{
+                          textTransform: "none",
+                          fontSize: "0.75rem",
+                          borderRadius: "6px",
+                          px: 1.2,
+                          py: 0.5,
+                        }}
+                      >
+                        Remover
+                      </Button>
+                    )}
+                  </Box>
+                </Box>
+
+                {/* Input escondido para upload de arquivo */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFotoChange}
+                  style={{ display: "none" }}
+                />
+              </Box>
+            </Box>
+
             {/* Razão Social */}
             <Box>
               <Typography component="label" htmlFor="razaoSocial" sx={labelStyle}>
@@ -291,70 +430,13 @@ export default function RegisterCompany() {
               </Box>
             </Box>
 
-            {/* Materiais Disponíveis */}
-            <Box sx={{ mt: 1 }}>
-              <Typography sx={labelStyle}>Materiais disponíveis</Typography>
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1.5, mt: 1 }}>
-                {listaMateriais.map((material) => {
-                  const selecionado = materiaisSelecionados.includes(material);
-                  return (
-                    <Box
-                      key={material}
-                      onClick={() => toggleMaterial(material)}
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 1,
-                        borderRadius: "8px",
-                        border: "1px solid",
-                        borderColor: selecionado ? "#10B981" : "#D9D5C8",
-                        bgcolor: selecionado ? "rgba(16, 185, 129, 0.08)" : "white",
-                        color: selecionado ? "#047857" : "#6B7670",
-                        px: 1.8,
-                        py: 0.9,
-                        fontSize: "0.875rem",
-                        fontWeight: 500,
-                        cursor: "pointer",
-                        userSelect: "none",
-                        transition: "all 0.2s ease",
-                        "&:hover": {
-                          bgcolor: selecionado
-                            ? "rgba(16, 185, 129, 0.14)"
-                            : "#F9F8F5",
-                        },
-                      }}
-                    >
-                      <Box
-                        sx={{
-                          width: 16,
-                          height: 16,
-                          borderRadius: "4px",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          bgcolor: selecionado ? "#10B981" : "white",
-                          border: selecionado ? "none" : "1px solid #B8B4A8",
-                          color: "white",
-                        }}
-                      >
-                        {selecionado && <Check size={12} strokeWidth={3} />}
-                      </Box>
-                      <Typography sx={{ fontSize: "0.875rem", fontWeight: 500 }}>
-                        {material}
-                      </Typography>
-                    </Box>
-                  );
-                })}
-              </Box>
-            </Box>
-
             {/* Ações do Formulário */}
             <Box
               sx={{
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
-                mt: 4,
+                mt: 3,
                 pt: 1,
               }}
             >
