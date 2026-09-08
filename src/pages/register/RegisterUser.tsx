@@ -1,22 +1,92 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Box, Typography, Button } from "@mui/material";
-import { Camera, X, User } from "lucide-react";
+import { Camera, X, User, Eye, EyeOff } from "lucide-react";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
+import { cadastrarUsuario } from "../../axios/Axios";
+import { NotificationContainer } from "../../components/Notification";
+import { useNotification } from "../../hooks/useNotification";
+
+interface EstadoIBGE {
+  id: number;
+  sigla: string;
+  nome: string;
+}
+
+interface CidadeIBGE {
+  id: number;
+  nome: string;
+}
 
 export default function RegisterUser() {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { notifications, removeNotification, notify } = useNotification();
 
   const [formData, setFormData] = useState({
     nomeOuRazao: "",
-    cpfOuCnpj: "",
+    cpf: "",
     tipoEntidade: "",
+    estado: "",
+    cidade: "",
     localizacao: "",
+    senha: "",
   });
 
+  const [estados, setEstados] = useState<EstadoIBGE[]>([]);
+  const [cidades, setCidades] = useState<CidadeIBGE[]>([]);
+  const [carregandoCidades, setCarregandoCidades] = useState(false);
+
+  const [mostrarSenha, setMostrarSenha] = useState(false);
   const [foto, setFoto] = useState<string | null>(null);
+
+  // Carrega todos os estados do Brasil via API do IBGE
+  useEffect(() => {
+    fetch("https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome")
+      .then((res) => res.json())
+      .then((data: EstadoIBGE[]) => setEstados(data))
+      .catch((err) => console.error("Erro ao carregar estados do IBGE:", err));
+  }, []);
+
+  // Carrega as cidades do estado selecionado
+  useEffect(() => {
+    if (!formData.estado) {
+      setCidades([]);
+      return;
+    }
+
+    setCarregandoCidades(true);
+    fetch(
+      `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${formData.estado}/municipios?orderBy=nome`
+    )
+      .then((res) => res.json())
+      .then((data: CidadeIBGE[]) => {
+        setCidades(data);
+        setCarregandoCidades(false);
+      })
+      .catch((err) => {
+        console.error("Erro ao carregar cidades do IBGE:", err);
+        setCarregandoCidades(false);
+      });
+  }, [formData.estado]);
+
+  const handleEstadoChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const estado = e.target.value;
+    setFormData((prev) => ({
+      ...prev,
+      estado,
+      cidade: "",
+    }));
+  };
+
+  const handleCidadeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const cidade = e.target.value;
+    setFormData((prev) => ({
+      ...prev,
+      cidade,
+    }));
+  };
 
   const handleFotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -41,12 +111,60 @@ export default function RegisterUser() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Permite estritamente apenas números e limita a quantidade de dígitos
+  const handleNumerosChange = (campo: string, maxLen: number) => (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const apenasNumeros = e.target.value.replace(/\D/g, "").slice(0, maxLen);
+    setFormData((prev) => ({ ...prev, [campo]: apenasNumeros }));
+  };
+
+  const [carregando, setCarregando] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Dados do comprador / artesão:", {
-      ...formData,
-      foto,
-    });
+    setCarregando(true);
+
+    try {
+      await cadastrarUsuario({
+        nomeOuRazao: formData.nomeOuRazao,
+        cpf: formData.cpf,
+        tipoEntidade: formData.tipoEntidade,
+        estado: formData.estado,
+        cidade: formData.cidade,
+        localizacao: formData.localizacao,
+        senha: formData.senha,
+        ...(foto ? { foto } : {}),
+      });
+      notify.success(
+        "Cadastro realizado!",
+        "Sua conta foi criada com sucesso. Redirecionando para o login..."
+      );
+      setTimeout(() => navigate("/login"), 2000);
+    } catch (error: unknown) {
+      console.error("Erro ao cadastrar usuário:", error);
+      if (
+        error &&
+        typeof error === "object" &&
+        "response" in error &&
+        (error as any).response &&
+        typeof (error as any).response === "object" &&
+        "data" in (error as any).response
+      ) {
+        const data = (error as any).response.data as { message?: string };
+        notify.error(
+          "Erro no cadastro",
+          data?.message || "Erro ao cadastrar. Tente novamente."
+        );
+      } else {
+        notify.error(
+          "Sem conexão",
+          "Não foi possível conectar ao servidor. Verifique sua conexão."
+        );
+      }
+    } finally {
+      setCarregando(false);
+    }
   };
 
   const handleVoltar = () => {
@@ -71,6 +189,17 @@ export default function RegisterUser() {
       borderColor: "#10B981",
       boxShadow: "0 0 0 1px #10B981",
     },
+  };
+
+  const selectStyle = {
+    ...inputStyle,
+    cursor: "pointer",
+    appearance: "none" as const,
+    backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236B7670' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`,
+    backgroundRepeat: "no-repeat",
+    backgroundPosition: "right 1rem center",
+    backgroundSize: "1em",
+    pr: 4,
   };
 
   const labelStyle = {
@@ -406,17 +535,19 @@ export default function RegisterUser() {
               }}
             >
               <Box>
-                <Typography component="label" htmlFor="cpfOuCnpj" sx={labelStyle}>
-                  CPF ou CNPJ
+                <Typography component="label" htmlFor="cpf" sx={labelStyle}>
+                  CPF
                 </Typography>
                 <Box
                   component="input"
-                  id="cpfOuCnpj"
-                  name="cpfOuCnpj"
+                  id="cpf"
+                  name="cpf"
                   type="text"
-                  value={formData.cpfOuCnpj}
-                  onChange={handleChange}
-                  placeholder="000.000.000-00 ou 00.000.000/0000-00"
+                  inputMode="numeric"
+                  maxLength={11}
+                  value={formData.cpf}
+                  onChange={handleNumerosChange("cpf", 11)}
+                  placeholder="Apenas números (11 dígitos)"
                   sx={inputStyle}
                 />
               </Box>
@@ -438,10 +569,72 @@ export default function RegisterUser() {
               </Box>
             </Box>
 
+            {/* Estado e Cidade (IBGE) */}
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+                gap: 2.5,
+              }}
+            >
+              <Box>
+                <Typography component="label" htmlFor="estado" sx={labelStyle}>
+                  Estado (UF)
+                </Typography>
+                <Box
+                  component="select"
+                  id="estado"
+                  name="estado"
+                  value={formData.estado}
+                  onChange={handleEstadoChange}
+                  sx={selectStyle}
+                >
+                  <option value="">Selecione o Estado</option>
+                  {estados.map((uf) => (
+                    <option key={uf.id} value={uf.sigla}>
+                      {uf.nome} ({uf.sigla})
+                    </option>
+                  ))}
+                </Box>
+              </Box>
+
+              <Box>
+                <Typography component="label" htmlFor="cidade" sx={labelStyle}>
+                  Cidade
+                </Typography>
+                <Box
+                  component="select"
+                  id="cidade"
+                  name="cidade"
+                  value={formData.cidade}
+                  disabled={!formData.estado || carregandoCidades}
+                  onChange={handleCidadeChange}
+                  sx={{
+                    ...selectStyle,
+                    opacity: !formData.estado ? 0.6 : 1,
+                    cursor: !formData.estado ? "not-allowed" : "pointer",
+                  }}
+                >
+                  <option value="">
+                    {carregandoCidades
+                      ? "Carregando cidades..."
+                      : formData.estado
+                      ? "Selecione a Cidade"
+                      : "Selecione o estado primeiro"}
+                  </option>
+                  {cidades.map((cid) => (
+                    <option key={cid.id} value={cid.nome}>
+                      {cid.nome}
+                    </option>
+                  ))}
+                </Box>
+              </Box>
+            </Box>
+
             {/* Localização para cálculo de logística */}
             <Box>
               <Typography component="label" htmlFor="localizacao" sx={labelStyle}>
-                Localização para cálculo de logística
+                Localização (Bairro / Rua)
               </Typography>
               <Box
                 component="input"
@@ -450,9 +643,48 @@ export default function RegisterUser() {
                 type="text"
                 value={formData.localizacao}
                 onChange={handleChange}
-                placeholder="Bairro, Franca - SP"
+                placeholder="Bairro, Rua ou Ponto de referência"
                 sx={inputStyle}
               />
+            </Box>
+
+            {/* Senha (largura total) */}
+            <Box>
+              <Typography component="label" htmlFor="senha" sx={labelStyle}>
+                Senha
+              </Typography>
+              <Box sx={{ position: "relative", width: "100%" }}>
+                <Box
+                  component="input"
+                  id="senha"
+                  name="senha"
+                  type={mostrarSenha ? "text" : "password"}
+                  value={formData.senha}
+                  onChange={handleChange}
+                  placeholder="Crie uma senha segura"
+                  sx={{
+                    ...inputStyle,
+                    pr: 5,
+                    width: "100%",
+                  }}
+                />
+                <Box
+                  onClick={() => setMostrarSenha(!mostrarSenha)}
+                  sx={{
+                    position: "absolute",
+                    right: 12,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    color: "#6B7670",
+                    "&:hover": { color: "#1B4B3A" },
+                  }}
+                >
+                  {mostrarSenha ? <EyeOff size={18} /> : <Eye size={18} />}
+                </Box>
+              </Box>
             </Box>
 
             {/* Ações do Formulário */}
@@ -490,6 +722,7 @@ export default function RegisterUser() {
               <Button
                 type="submit"
                 variant="contained"
+                disabled={carregando}
                 sx={{
                   textTransform: "none",
                   borderRadius: "8px",
@@ -504,9 +737,13 @@ export default function RegisterUser() {
                     bgcolor: "#059669",
                     boxShadow: "none",
                   },
+                  "&.Mui-disabled": {
+                    bgcolor: "#6EE7B7",
+                    color: "white",
+                  },
                 }}
               >
-                Finalizar Cadastro
+                {carregando ? "Cadastrando..." : "Finalizar Cadastro"}
               </Button>
             </Box>
           </Box>
@@ -514,6 +751,11 @@ export default function RegisterUser() {
       </Box>
 
       <Footer />
+
+      <NotificationContainer
+        notifications={notifications}
+        onClose={removeNotification}
+      />
     </Box>
   );
 }

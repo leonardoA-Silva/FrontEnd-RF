@@ -3,7 +3,7 @@ import Home from "./pages/home/Home";
 import RegisterType from "./pages/register/RegisterType";
 import RegisterCompany from "./pages/register/RegisterCompany";
 import RegisterUser from "./pages/register/RegisterUser";
-// import Login from "./pages/login/Login";
+import Login from "./pages/login/Login";
 
 function App() {
   return (
@@ -18,7 +18,7 @@ function App() {
           <Route path="/cadastro/empresa" element={<RegisterCompany />} />
           <Route path="/cadastro-pessoal" element={<RegisterUser />} />
           <Route path="/cadastro/pessoal" element={<RegisterUser />} />
-          {/* <Route path="/login" element={<Login/>} /> */}
+          <Route path="/login" element={<Login />} />
         </Routes>
       </BrowserRouter>
     </div>
