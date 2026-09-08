@@ -1,9 +1,11 @@
+import { useState } from "react";
 import {
   AlarmClock,
   CheckCircle2,
   Coins,
   Folder,
   Leaf,
+  Menu,
   Package,
   Plus,
   PlusCircle,
@@ -11,6 +13,7 @@ import {
   Sparkles,
   Star,
   UserRound,
+  X,
   XCircle,
 } from "lucide-react";
 import Footer from "../../components/Footer";
@@ -111,80 +114,103 @@ const navegacaoTopo = [
 ];
 
 export default function DashboardEmpresa() {
+  const [menuAberto, setMenuAberto] = useState(false);
+
   // Estilos centralizados aqui dentro da função (sem arquivo .css).
   // Cada chave tem um nome semântico e guarda as classes Tailwind correspondentes.
+  // Layout 100% fluido (w-full, sem max-width travado) para ocupar a tela em qualquer zoom.
   const styles = {
-    pagina: "min-h-screen bg-[#FAF9F5] text-[#1B4B3A] flex flex-col",
+    pagina: "flex min-h-screen w-full flex-col bg-[#FAF9F5] text-[#1B4B3A]",
 
-    cabecalho: "border-b border-[#E7E4DA] bg-white",
+    cabecalho: "w-full border-b border-[#E7E4DA] bg-white",
     cabecalhoConteudo:
-      "mx-auto flex max-w-7xl items-center justify-between gap-6 px-6 py-4 sm:px-10",
-    marca: "flex shrink-0 items-center gap-3",
+      "flex w-full items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8",
+    marca: "flex min-w-0 shrink-0 items-center gap-2.5",
     marcaIcone:
-      "flex h-11 w-11 items-center justify-center rounded-full bg-emerald-500 text-white",
+      "flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-white",
     marcaTextos: "leading-tight",
-    marcaTitulo: "text-lg font-bold text-[#1B4B3A]",
-    marcaSubtitulo: "text-sm font-bold tracking-wide text-orange-500",
-    menuTopo: "hidden items-center gap-7 xl:flex",
+    marcaTitulo: "text-base font-bold text-[#1B4B3A] sm:text-lg",
+    marcaSubtitulo: "text-xs font-bold tracking-wide text-orange-500 sm:text-sm",
+    menuTopo: "hidden min-w-0 flex-1 items-center justify-center gap-5 xl:gap-7 lg:flex",
     menuTopoLink:
-      "text-[15px] font-medium text-[#4B5A55] transition hover:text-[#1B4B3A]",
+      "whitespace-nowrap text-sm font-medium text-[#4B5A55] transition hover:text-[#1B4B3A] xl:text-[15px]",
+    cabecalhoAcoes: "flex shrink-0 items-center gap-2",
     usuarioPilha:
-      "flex shrink-0 items-center gap-2 rounded-full bg-emerald-50 py-1.5 pl-1.5 pr-4",
+      "flex items-center gap-2 rounded-full bg-emerald-50 py-1.5 pl-1.5 pr-3 sm:pr-4",
     usuarioAvatar: "h-7 w-7 shrink-0 rounded-full bg-gray-300",
-    usuarioNome: "text-sm font-semibold text-[#1B4B3A]",
+    usuarioNome:
+      "hidden max-w-32 truncate text-sm font-semibold text-[#1B4B3A] min-[420px]:block",
+    botaoMenu:
+      "flex h-10 w-10 items-center justify-center rounded-lg border border-[#E7E4DA] text-[#1B4B3A] transition hover:bg-[#F3F1EA] lg:hidden",
+    menuMovel: "border-t border-[#E7E4DA] bg-white px-4 py-2 lg:hidden",
+    menuMovelLink:
+      "block rounded-lg px-3 py-2.5 text-sm font-medium text-[#4B5A55] transition hover:bg-[#F3F1EA] hover:text-[#1B4B3A]",
 
-    conteudo: "mx-auto flex w-full max-w-7xl flex-1 items-stretch",
+    conteudo: "flex w-full flex-1 flex-col items-stretch lg:flex-row",
 
-    barraLateral: "hidden w-60 shrink-0 border-r border-[#E7E4DA] bg-white lg:block",
+    barraLateral:
+      "hidden w-56 shrink-0 border-r border-[#E7E4DA] bg-white lg:block xl:w-64",
     barraLateralNav: "flex flex-col gap-2 px-4 py-6",
     itemLateralBase: "flex items-center gap-3 rounded-lg px-4 py-2.5 text-[15px]",
     itemLateralAtivo: "bg-emerald-50 font-bold text-[#1B4B3A]",
     itemLateralInativo:
       "font-medium text-[#4B5A55] transition hover:bg-[#F3F1EA]",
-    itemLateralIconeAtivo: "h-5 w-5 text-emerald-500",
-    itemLateralIcone: "h-5 w-5 text-[#4B5A55]",
+    itemLateralIconeAtivo: "h-5 w-5 shrink-0 text-emerald-500",
+    itemLateralIcone: "h-5 w-5 shrink-0 text-[#4B5A55]",
 
-    principal: "flex-1 px-6 py-8 sm:px-10",
+    navegacaoMovel: "border-b border-[#E7E4DA] bg-white lg:hidden",
+    navegacaoMovelLista: "flex gap-2 overflow-x-auto px-4 py-3",
+    itemMovelBase:
+      "flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-4 py-2 text-sm",
+    itemMovelAtivo: "bg-emerald-50 font-bold text-[#1B4B3A]",
+    itemMovelInativo: "font-medium text-[#4B5A55]",
+
+    principal: "min-w-0 flex-1 px-4 py-6 sm:px-6 lg:px-8",
     principalTopo:
-      "flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between",
-    saudacao: "text-3xl font-extrabold tracking-tight text-[#0F3D2E]",
-    saudacaoDescricao: "mt-1.5 text-[15px] text-[#4B5A55]",
+      "flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between",
+    saudacao: "text-2xl font-extrabold tracking-tight text-[#0F3D2E] sm:text-3xl",
+    saudacaoDescricao: "mt-1.5 text-sm text-[#4B5A55] sm:text-[15px]",
     botaoPublicar:
-      "flex shrink-0 items-center gap-2 rounded-lg bg-emerald-500 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-600",
+      "flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-500 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-600 sm:w-auto sm:self-start",
 
-    gradeEstatisticas: "mt-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-4",
+    gradeEstatisticas:
+      "mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 2xl:grid-cols-4",
     cartaoEstatistica:
-      "flex items-center gap-4 rounded-2xl border border-[#E7E4DA] bg-white p-5",
+      "flex min-w-0 items-center gap-4 rounded-2xl border border-[#E7E4DA] bg-white p-5",
     estatisticaIconeCaixa:
       "flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-50",
     estatisticaIcone: "h-6 w-6 text-emerald-500",
-    estatisticaRotulo: "text-[13px] text-[#9AA5A0]",
+    estatisticaTextos: "min-w-0",
+    estatisticaRotulo: "truncate text-[13px] text-[#9AA5A0]",
     estatisticaValor: "text-2xl font-extrabold text-[#0F3D2E]",
     estatisticaDetalhe: "mt-0.5 text-[13px] text-[#6B7670]",
 
-    gradeConteudo: "mt-6 grid items-start gap-6 lg:grid-cols-[1.65fr_1fr]",
-    cartao: "rounded-2xl border border-[#E7E4DA] bg-white p-6",
-    cartaoCabecalho: "flex items-center justify-between gap-4",
-    cartaoTitulo: "text-lg font-extrabold text-[#0F3D2E]",
-    cartaoLink: "shrink-0 text-sm font-medium text-emerald-500 hover:text-emerald-600",
+    gradeConteudo: "mt-6 grid grid-cols-1 items-start gap-6 xl:grid-cols-[1.65fr_1fr]",
+    cartao: "min-w-0 rounded-2xl border border-[#E7E4DA] bg-white p-4 sm:p-6",
+    cartaoCabecalho: "flex flex-wrap items-center justify-between gap-2",
+    cartaoTitulo: "text-base font-extrabold text-[#0F3D2E] sm:text-lg",
+    cartaoLink:
+      "shrink-0 text-sm font-medium text-emerald-500 hover:text-emerald-600",
 
     listaResiduos: "mt-2 divide-y divide-[#EDEBE2]",
-    residuoItem: "flex items-center justify-between gap-4 py-4",
-    residuoTitulo: "text-[15px] font-semibold text-[#1F2A26]",
+    residuoItem: "flex flex-wrap items-center justify-between gap-x-4 gap-y-2 py-4",
+    residuoTextos: "min-w-0 flex-1 basis-48",
+    residuoTitulo: "break-words text-[15px] font-semibold text-[#1F2A26]",
     residuoData: "mt-0.5 text-[13px] text-[#9AA5A0]",
     residuoLadoDireito: "flex shrink-0 items-center gap-3",
-    residuoQuantidade: "text-[15px] font-bold text-[#0F3D2E]",
-    seloBase: "rounded-md px-2.5 py-1 text-xs font-semibold",
+    residuoQuantidade: "whitespace-nowrap text-[15px] font-bold text-[#0F3D2E]",
+    seloBase: "whitespace-nowrap rounded-md px-2.5 py-1 text-xs font-semibold",
     seloAtivo: "bg-emerald-50 text-emerald-600",
     seloReservado: "bg-amber-100 text-amber-600",
     seloColetado: "bg-gray-100 text-gray-500",
 
     listaAtividades: "mt-5 flex flex-col gap-5",
-    atividadeItem: "flex items-start gap-3",
+    atividadeItem: "flex min-w-0 items-start gap-3",
     atividadeIconeCaixa:
       "flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#F2F7F4]",
     atividadeIcone: "h-5 w-5 text-emerald-500",
-    atividadeTexto: "text-sm leading-relaxed text-[#3F4A45]",
+    atividadeTextos: "min-w-0",
+    atividadeTexto: "break-words text-sm leading-relaxed text-[#3F4A45]",
     atividadeDestaque: "font-bold text-[#1F2A26]",
     atividadeTempo: "mt-0.5 block text-xs text-[#9AA5A0]",
   };
@@ -219,15 +245,39 @@ export default function DashboardEmpresa() {
             ))}
           </nav>
 
-          <div className={styles.usuarioPilha}>
-            <span className={styles.usuarioAvatar} />
-            <span className={styles.usuarioNome}>Nome Empresa</span>
+          <div className={styles.cabecalhoAcoes}>
+            <div className={styles.usuarioPilha}>
+              <span className={styles.usuarioAvatar} />
+              <span className={styles.usuarioNome}>Nome Empresa</span>
+            </div>
+            <button
+              type="button"
+              aria-label={menuAberto ? "Fechar menu" : "Abrir menu"}
+              onClick={() => setMenuAberto((aberto) => !aberto)}
+              className={styles.botaoMenu}
+            >
+              {menuAberto ? (
+                <X className="h-5 w-5" strokeWidth={2} />
+              ) : (
+                <Menu className="h-5 w-5" strokeWidth={2} />
+              )}
+            </button>
           </div>
         </div>
+
+        {menuAberto && (
+          <nav className={styles.menuMovel}>
+            {navegacaoTopo.map((item) => (
+              <a key={item} href="#" className={styles.menuMovelLink}>
+                {item}
+              </a>
+            ))}
+          </nav>
+        )}
       </header>
 
       <div className={styles.conteudo}>
-        {/* Menu lateral */}
+        {/* Menu lateral (desktop) */}
         <aside className={styles.barraLateral}>
           <nav className={styles.barraLateralNav}>
             {menuLateral.map(({ icone: Icone, rotulo, ativo }) => (
@@ -250,10 +300,33 @@ export default function DashboardEmpresa() {
           </nav>
         </aside>
 
+        {/* Menu horizontal com rolagem (mobile/tablet) */}
+        <nav className={styles.navegacaoMovel}>
+          <div className={styles.navegacaoMovelLista}>
+            {menuLateral.map(({ icone: Icone, rotulo, ativo }) => (
+              <a
+                key={rotulo}
+                href="#"
+                className={`${styles.itemMovelBase} ${
+                  ativo ? styles.itemMovelAtivo : styles.itemMovelInativo
+                }`}
+              >
+                <Icone
+                  className={
+                    ativo ? styles.itemLateralIconeAtivo : styles.itemLateralIcone
+                  }
+                  strokeWidth={2}
+                />
+                {rotulo}
+              </a>
+            ))}
+          </div>
+        </nav>
+
         {/* Conteúdo principal */}
         <main className={styles.principal}>
           <div className={styles.principalTopo}>
-            <div>
+            <div className="min-w-0">
               <h1 className={styles.saudacao}>Olá, Curtume Franca Fino!</h1>
               <p className={styles.saudacaoDescricao}>
                 Acompanhe o impacto da sua fábrica e gerencie seus anúncios de
@@ -261,7 +334,7 @@ export default function DashboardEmpresa() {
               </p>
             </div>
             <button className={styles.botaoPublicar}>
-              <Plus className="h-5 w-5" strokeWidth={2.5} />
+              <Plus className="h-5 w-5 shrink-0" strokeWidth={2.5} />
               Publicar Novo Material
             </button>
           </div>
@@ -273,7 +346,7 @@ export default function DashboardEmpresa() {
                 <span className={styles.estatisticaIconeCaixa}>
                   <Icone className={styles.estatisticaIcone} strokeWidth={2} />
                 </span>
-                <div>
+                <div className={styles.estatisticaTextos}>
                   <p className={styles.estatisticaRotulo}>{rotulo}</p>
                   <p className={styles.estatisticaValor}>{valor}</p>
                   <p className={styles.estatisticaDetalhe}>{detalhe}</p>
@@ -297,7 +370,7 @@ export default function DashboardEmpresa() {
               <div className={styles.listaResiduos}>
                 {residuos.map(({ titulo, publicadoEm, quantidade, status }) => (
                   <div key={titulo} className={styles.residuoItem}>
-                    <div>
+                    <div className={styles.residuoTextos}>
                       <p className={styles.residuoTitulo}>{titulo}</p>
                       <p className={styles.residuoData}>{publicadoEm}</p>
                     </div>
@@ -328,7 +401,7 @@ export default function DashboardEmpresa() {
                           strokeWidth={2}
                         />
                       </span>
-                      <div>
+                      <div className={styles.atividadeTextos}>
                         <p className={styles.atividadeTexto}>
                           <span className={styles.atividadeDestaque}>
                             {destaque}
