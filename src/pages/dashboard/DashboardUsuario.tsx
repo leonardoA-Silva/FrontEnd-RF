@@ -1,8 +1,10 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Award,
   Compass,
   History,
+  LogOut,
   Menu,
   Package,
   Repeat2,
@@ -87,7 +89,33 @@ const menuLateral = [
 const navegacaoTopo = ["Início", "Marketplace", "Sobre Nós"];
 
 export default function DashboardUsuario() {
+  const navigate = useNavigate();
   const [menuAberto, setMenuAberto] = useState(false);
+
+  // Usuário real salvo no login (localStorage se "lembrar de mim", senão sessionStorage)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [usuario] = useState<any>(() => {
+    try {
+      const raw =
+        localStorage.getItem("user") ?? sessionStorage.getItem("user");
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const nomeExibicao: string =
+    usuario?.nome ?? usuario?.name ?? usuario?.email ?? "Usuário";
+  const primeiroNome = String(nomeExibicao).split(" ")[0];
+
+  function handleLogout() {
+    for (const storage of [localStorage, sessionStorage]) {
+      storage.removeItem("token");
+      storage.removeItem("user");
+      storage.removeItem("tipoUsuario");
+    }
+    navigate("/login");
+  }
 
   // Estilos centralizados aqui dentro da função (sem arquivo .css).
   // Cada chave tem um nome semântico e guarda as classes Tailwind correspondentes.
@@ -227,8 +255,17 @@ export default function DashboardUsuario() {
               <span className={styles.usuarioAvatar}>
                 <UserRound className={styles.usuarioAvatarIcone} strokeWidth={2} />
               </span>
-              <span className={styles.usuarioNome}>Nome usuario</span>
+              <span className={styles.usuarioNome}>{primeiroNome}</span>
             </div>
+            <button
+              type="button"
+              aria-label="Sair da conta"
+              title="Sair da conta"
+              onClick={handleLogout}
+              className={styles.botaoMenu}
+            >
+              <LogOut className="h-5 w-5" strokeWidth={2} />
+            </button>
             <button
               type="button"
               aria-label={menuAberto ? "Fechar menu" : "Abrir menu"}
@@ -313,7 +350,7 @@ export default function DashboardUsuario() {
         {/* Conteúdo principal */}
         <main className={styles.principal}>
           <div className="min-w-0">
-            <h1 className={styles.saudacao}>Bem-vinda, Nome usuario!</h1>
+            <h1 className={styles.saudacao}>Olá, {primeiroNome}!</h1>
             <p className={styles.saudacaoDescricao}>
               Artesã Autônoma • Confira suas reservas e novos materiais
               recomendados para suas bolsas.
