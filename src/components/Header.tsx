@@ -23,7 +23,7 @@ export default function Header() {
   return (
     <header className={styles.cabecalho}>
       <div className={styles.cabecalhoConteudo}>
-        <div className={styles.marca}>
+        <a href="/" className={`${styles.marca} no-underline`}>
           <span className={styles.marcaIcone}>
             <Repeat2 className={styles.marcaIconeSvg} strokeWidth={2.4} />
           </span>
@@ -31,20 +31,35 @@ export default function Header() {
             <p className={styles.marcaTitulo}>Reaproveita</p>
             <p className={styles.marcaSubtitulo}>FRANCA</p>
           </div>
+        </a>
+
+        <div className="hidden sm:flex items-center gap-6">
+          <a
+            href="/"
+            className="text-sm font-bold text-emerald-600 hover:text-emerald-700 transition"
+          >
+            Início
+          </a>
+          <a
+            href="/#sobre"
+            className="text-sm font-medium text-[#6B7670] hover:text-[#1B4B3A] transition"
+          >
+            Sobre Nós
+          </a>
         </div>
 
         <nav className={styles.menuNavegacao}>
           <Link
             className={styles.botaoEntrar}
             style={{ textDecoration: "none", color: "black" }}
-            href="Login"
+            href="/login"
           >
             Entrar
           </Link>
           <Link
             className={styles.botaoCadastrar}
             style={{ textDecoration: "none", color: "white" }}
-            href="../register/Register.tsx"
+            href="/cadastro"
           >
             Cadastrar
           </Link>

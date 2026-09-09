@@ -97,15 +97,10 @@ export default function Login() {
         try {
             const payload = {
                 email: email.trim(),
-                senha,
-                // alias para backends que esperam "password" em vez de "senha"
                 password: senha,
             };
-            console.log("[login] POST /user/login", { email: payload.email });
-            // POST http://10.89.240.27:5000/api/reaproveitafranca/user/login
             const { data } = await api.post("/user/login", payload);
 
-            // A API pode retornar o token com nomes diferentes — cobre os mais comuns
             const token: string | null =
                 data?.token ??
                 data?.accessToken ??
@@ -126,7 +121,6 @@ export default function Login() {
                 storage.setItem("user", JSON.stringify(usuario));
                 otherStorage.removeItem("user");
             }
-            // Guarda o perfil selecionado na tela (empresa/comprador) para uso futuro
             storage.setItem("tipoUsuario", tipoUsuario);
 
             // Redireciona conforme o perfil escolhido na tela:
@@ -140,20 +134,16 @@ export default function Login() {
             if (axios.isAxiosError(err)) {
                 if (!err.response) {
                     setErro(
-                        "Não foi possível conectar à API (http://10.89.240.27:5000). Verifique se você está na mesma rede e se a API está rodando."
+                        "Não foi possível conectar à API. Verifique sua conexão e se a API está rodando."
                     );
                 } else {
                     const status = err.response.status;
                     const respData = err.response.data as unknown;
                     console.error("[login] erro da API", status, respData);
                     const msg =
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                        (respData as any)?.message ??
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                        (respData as any)?.msg ??
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
                         (respData as any)?.error ??
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        (respData as any)?.message ??
+                        (respData as any)?.msg ??
                         (respData as any)?.erros ??
                         (status === 401 || status === 404
                             ? "E-mail ou senha inválidos."
@@ -339,7 +329,7 @@ export default function Login() {
 
                     <p className={styles.rodapeCartao}>
                         Ainda não tem conta?{" "}
-                        <Link to="/cadastrar" className={styles.linkCadastro}>
+                        <Link to="/cadastro" className={styles.linkCadastro}>
                             Cadastre-se agora
                         </Link>
                     </p>
