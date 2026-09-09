@@ -7,6 +7,7 @@ import Footer from "../../components/Footer";
 import { cadastrarUsuario } from "../../axios/Axios";
 import { NotificationContainer } from "../../components/Notification";
 import { useNotification } from "../../hooks/useNotification";
+import EmailVerificationModal from "../../components/EmailVerificationModal";
 
 interface EstadoIBGE {
   id: number;
@@ -28,7 +29,7 @@ export default function RegisterUser() {
     cpf: "",
     name: "",
     email: "",
-    cnpj: "",
+    birthday: "",
     password: "",
     cellphone: "",
     zip_code: "",
@@ -46,6 +47,10 @@ export default function RegisterUser() {
 
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const [foto, setFoto] = useState<string | null>(null);
+  const [fotoFile, setFotoFile] = useState<File | null>(null);
+
+  const [modalAberto, setModalAberto] = useState(false);
+  const [userIdCriado, setUserIdCriado] = useState("");
 
   // Carrega todos os estados do Brasil via API do IBGE
   useEffect(() => {
@@ -121,6 +126,7 @@ export default function RegisterUser() {
   const handleFotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setFotoFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
         setFoto(reader.result as string);
@@ -131,6 +137,7 @@ export default function RegisterUser() {
 
   const handleRemoverFoto = () => {
     setFoto(null);
+    setFotoFile(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -153,49 +160,104 @@ export default function RegisterUser() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const cleanCpf = formData.cpf.replace(/\D/g, "");
+    const cleanCellphone = formData.cellphone.replace(/\D/g, "");
+    const cleanZipCode = formData.zip_code.replace(/\D/g, "");
+
+    // Validações locais antes de enviar
+    if (!formData.name.trim()) {
+      notify.error("Campo obrigatório", "Por favor, informe seu nome completo.");
+      return;
+    }
+    if (cleanCpf.length !== 11) {
+      notify.error("CPF inválido", "O CPF deve conter exatamente 11 dígitos numéricos.");
+      return;
+    }
+    if (!formData.birthday) {
+      notify.error("Campo obrigatório", "Por favor, informe sua data de nascimento.");
+      return;
+    }
+    if (!formData.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      notify.error("E-mail inválido", "Informe um endereço de e-mail válido.");
+      return;
+    }
+    if (cleanCellphone.length !== 11) {
+      notify.error("Celular inválido", "Informe 11 dígitos numéricos com DDD (ex: 16999999999).");
+      return;
+    }
+    if (cleanZipCode.length !== 8) {
+      notify.error("CEP inválido", "O CEP deve conter 8 dígitos numéricos.");
+      return;
+    }
+    if (!formData.number.trim()) {
+      notify.error("Campo obrigatório", "Informe o número do endereço.");
+      return;
+    }
+    if (!formData.street.trim() || !formData.neighborhood.trim()) {
+      notify.error("Endereço incompleto", "Informe a rua e o bairro.");
+      return;
+    }
+    if (!formData.state || !formData.city) {
+      notify.error("Localização incompleta", "Selecione o estado e a cidade.");
+      return;
+    }
+    if (formData.password.length < 6) {
+      notify.error("Senha muito curta", "A senha deve conter no mínimo 6 caracteres.");
+      return;
+    }
+
     setCarregando(true);
 
     try {
-      await cadastrarUsuario({
-        cpf: formData.cpf,
-        name: formData.name,
-        email: formData.email,
-        cnpj: formData.cnpj,
-        password: formData.password,
-        cellphone: formData.cellphone,
-        zip_code: formData.zip_code,
-        street: formData.street,
-        neighborhood: formData.neighborhood,
-        number: formData.number,
-        city: formData.city,
-        state: formData.state,
-      });
-      notify.success(
-        "Cadastro realizado!",
-        "Sua conta foi criada com sucesso. Redirecionando para o login..."
+      const response = await cadastrarUsuario(
+        {
+          cpf: cleanCpf,
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+          birthday: formData.birthday,
+          password: formData.password,
+          cellphone: cleanCellphone,
+          zip_code: cleanZipCode,
+          street: formData.street.trim(),
+          neighborhood: formData.neighborhood.trim(),
+          number: formData.number.trim().slice(0, 6),
+          city: formData.city.trim(),
+          state: formData.state.trim().toUpperCase(),
+        },
+        fotoFile
       );
-      setTimeout(() => navigate("/login"), 2000);
+
+      const data = response.data;
+      setUserIdCriado(data.id);
+      setModalAberto(true);
+
+      if (data.emailSent === false) {
+        notify.warning(
+          "Conta criada",
+          "Usuário cadastrado, mas o envio do e-mail falhou. Clique em 'Reenviar código' no modal."
+        );
+      } else {
+        notify.success(
+          "Cadastro realizado!",
+          "Verifique a sua caixa de entrada e insira o código de confirmação."
+        );
+      }
     } catch (error: unknown) {
       console.error("Erro ao cadastrar usuário:", error);
+      let mensagem = "Não foi possível realizar o cadastro. Tente novamente.";
       if (
         error &&
         typeof error === "object" &&
         "response" in error &&
-        (error as any).response &&
-        typeof (error as any).response === "object" &&
-        "data" in (error as any).response
+        (error as any).response?.data
       ) {
-        const data = (error as any).response.data as { message?: string };
-        notify.error(
-          "Erro no cadastro",
-          data?.message || "Erro ao cadastrar. Tente novamente."
-        );
-      } else {
-        notify.error(
-          "Sem conexão",
-          "Não foi possível conectar ao servidor. Verifique sua conexão."
-        );
+        mensagem =
+          (error as any).response.data.error ||
+          (error as any).response.data.message ||
+          mensagem;
       }
+      notify.error("Erro no cadastro", mensagem);
     } finally {
       setCarregando(false);
     }
@@ -560,7 +622,7 @@ export default function RegisterUser() {
               />
             </Box>
 
-            {/* CPF e CNPJ */}
+            {/* CPF e Data de Nascimento */}
             <Box
               sx={{
                 display: "grid",
@@ -587,19 +649,16 @@ export default function RegisterUser() {
               </Box>
 
               <Box>
-                <Typography component="label" htmlFor="cnpj" sx={labelStyle}>
-                  CNPJ (opcional)
+                <Typography component="label" htmlFor="birthday" sx={labelStyle}>
+                  Data de Nascimento
                 </Typography>
                 <Box
                   component="input"
-                  id="cnpj"
-                  name="cnpj"
-                  type="text"
-                  inputMode="numeric"
-                  maxLength={14}
-                  value={formData.cnpj}
-                  onChange={handleNumerosChange("cnpj", 14)}
-                  placeholder="Apenas números (14 dígitos)"
+                  id="birthday"
+                  name="birthday"
+                  type="date"
+                  value={formData.birthday}
+                  onChange={handleChange}
                   sx={inputStyle}
                 />
               </Box>
@@ -896,6 +955,17 @@ export default function RegisterUser() {
       </Box>
 
       <Footer />
+
+      <EmailVerificationModal
+        open={modalAberto}
+        userId={userIdCriado}
+        email={formData.email}
+        onSuccess={() => {
+          notify.success("Conta ativada!", "Faça login com seu e-mail e senha.");
+          navigate("/login");
+        }}
+        onClose={() => setModalAberto(false)}
+      />
 
       <NotificationContainer
         notifications={notifications}

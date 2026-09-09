@@ -7,6 +7,7 @@ import Footer from "../../components/Footer";
 import { cadastrarEmpresa } from "../../axios/Axios";
 import { NotificationContainer } from "../../components/Notification";
 import { useNotification } from "../../hooks/useNotification";
+import EmailVerificationModal from "../../components/EmailVerificationModal";
 
 interface EstadoIBGE {
   id: number;
@@ -25,10 +26,10 @@ export default function RegisterCompany() {
   const { notifications, removeNotification, notify } = useNotification();
 
   const [formData, setFormData] = useState({
-    cpf: "",
     name: "",
+    cnpj: "",
+    cpf: "",
     email: "",
-    birthday: "",
     cellphone: "",
     zip_code: "",
     street: "",
@@ -46,6 +47,10 @@ export default function RegisterCompany() {
 
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const [foto, setFoto] = useState<string | null>(null);
+  const [fotoFile, setFotoFile] = useState<File | null>(null);
+
+  const [modalAberto, setModalAberto] = useState(false);
+  const [userIdCriado, setUserIdCriado] = useState("");
 
   // Carrega todos os estados do Brasil via API do IBGE
   useEffect(() => {
@@ -121,6 +126,7 @@ export default function RegisterCompany() {
   const handleFotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setFotoFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
         setFoto(reader.result as string);
@@ -131,6 +137,7 @@ export default function RegisterCompany() {
 
   const handleRemoverFoto = () => {
     setFoto(null);
+    setFotoFile(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -153,49 +160,105 @@ export default function RegisterCompany() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const cleanCnpj = formData.cnpj.replace(/\D/g, "");
+    const cleanCpf = formData.cpf.replace(/\D/g, "");
+    const cleanCellphone = formData.cellphone.replace(/\D/g, "");
+    const cleanZipCode = formData.zip_code.replace(/\D/g, "");
+
+    // Validações locais antes de enviar
+    if (!formData.name.trim()) {
+      notify.error("Campo obrigatório", "Informe a razão social ou nome da empresa.");
+      return;
+    }
+    if (cleanCnpj.length !== 14) {
+      notify.error("CNPJ inválido", "O CNPJ deve conter exatamente 14 dígitos numéricos.");
+      return;
+    }
+    if (cleanCpf.length !== 11) {
+      notify.error("CPF inválido", "O CPF do responsável legal deve conter 11 dígitos numéricos.");
+      return;
+    }
+    if (!formData.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      notify.error("E-mail inválido", "Informe um endereço de e-mail corporativo válido.");
+      return;
+    }
+    if (cleanCellphone.length !== 11) {
+      notify.error("Celular inválido", "Informe 11 dígitos numéricos com DDD (ex: 16999999999).");
+      return;
+    }
+    if (cleanZipCode.length !== 8) {
+      notify.error("CEP inválido", "O CEP deve conter 8 dígitos numéricos.");
+      return;
+    }
+    if (!formData.number.trim()) {
+      notify.error("Campo obrigatório", "Informe o número do endereço.");
+      return;
+    }
+    if (!formData.street.trim() || !formData.neighborhood.trim()) {
+      notify.error("Endereço incompleto", "Informe a rua e o bairro.");
+      return;
+    }
+    if (!formData.state || !formData.city) {
+      notify.error("Localização incompleta", "Selecione o estado e a cidade.");
+      return;
+    }
+    if (formData.password.length < 6) {
+      notify.error("Senha muito curta", "A senha deve conter no mínimo 6 caracteres.");
+      return;
+    }
+
     setCarregando(true);
 
     try {
-      await cadastrarEmpresa({
-        cpf: formData.cpf,
-        name: formData.name,
-        email: formData.email,
-        birthday: formData.birthday || undefined,
-        cellphone: formData.cellphone,
-        zip_code: formData.zip_code,
-        street: formData.street,
-        neighborhood: formData.neighborhood,
-        number: formData.number,
-        city: formData.city,
-        state: formData.state,
-        password: formData.password,
-      });
-      notify.success(
-        "Empresa cadastrada!",
-        "Seu cadastro foi realizado com sucesso. Redirecionando para o login..."
+      const response = await cadastrarEmpresa(
+        {
+          name: formData.name.trim(),
+          cnpj: cleanCnpj,
+          cpf: cleanCpf,
+          email: formData.email.trim(),
+          password: formData.password,
+          cellphone: cleanCellphone,
+          zip_code: cleanZipCode,
+          street: formData.street.trim(),
+          neighborhood: formData.neighborhood.trim(),
+          number: formData.number.trim().slice(0, 6),
+          city: formData.city.trim(),
+          state: formData.state.trim().toUpperCase(),
+        },
+        fotoFile
       );
-      setTimeout(() => navigate("/login"), 2000);
+
+      const data = response.data;
+      setUserIdCriado(data.id);
+      setModalAberto(true);
+
+      if (data.emailSent === false) {
+        notify.warning(
+          "Conta criada",
+          "Empresa cadastrada, mas o envio do e-mail falhou. Clique em 'Reenviar código' no modal."
+        );
+      } else {
+        notify.success(
+          "Cadastro realizado!",
+          "Verifique o e-mail corporativo informado e confirme o código de ativação."
+        );
+      }
     } catch (error: unknown) {
       console.error("Erro ao cadastrar empresa:", error);
+      let mensagem = "Não foi possível realizar o cadastro da empresa. Tente novamente.";
       if (
         error &&
         typeof error === "object" &&
         "response" in error &&
-        error.response &&
-        typeof error.response === "object" &&
-        "data" in error.response
+        (error as any).response?.data
       ) {
-        const data = (error.response as { data: { message?: string } }).data;
-        notify.error(
-          "Erro no cadastro",
-          data?.message || "Erro ao cadastrar. Tente novamente."
-        );
-      } else {
-        notify.error(
-          "Sem conexão",
-          "Não foi possível conectar ao servidor. Verifique sua conexão."
-        );
+        mensagem =
+          (error as any).response.data.error ||
+          (error as any).response.data.message ||
+          mensagem;
       }
+      notify.error("Erro no cadastro", mensagem);
     } finally {
       setCarregando(false);
     }
@@ -471,7 +534,7 @@ export default function RegisterCompany() {
               />
             </Box>
 
-            {/* CPF e Data de Nascimento */}
+            {/* CNPJ e CPF do Responsável */}
             <Box
               sx={{
                 display: "grid",
@@ -480,8 +543,26 @@ export default function RegisterCompany() {
               }}
             >
               <Box>
+                <Typography component="label" htmlFor="cnpj" sx={labelStyle}>
+                  CNPJ da Empresa
+                </Typography>
+                <Box
+                  component="input"
+                  id="cnpj"
+                  name="cnpj"
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={14}
+                  value={formData.cnpj}
+                  onChange={handleNumerosChange("cnpj", 14)}
+                  placeholder="Apenas números (14 dígitos)"
+                  sx={inputStyle}
+                />
+              </Box>
+
+              <Box>
                 <Typography component="label" htmlFor="cpf" sx={labelStyle}>
-                  CPF
+                  CPF do Responsável Legal
                 </Typography>
                 <Box
                   component="input"
@@ -493,21 +574,6 @@ export default function RegisterCompany() {
                   value={formData.cpf}
                   onChange={handleNumerosChange("cpf", 11)}
                   placeholder="Apenas números (11 dígitos)"
-                  sx={inputStyle}
-                />
-              </Box>
-
-              <Box>
-                <Typography component="label" htmlFor="birthday" sx={labelStyle}>
-                  Data de Nascimento / Fundação
-                </Typography>
-                <Box
-                  component="input"
-                  id="birthday"
-                  name="birthday"
-                  type="date"
-                  value={formData.birthday}
-                  onChange={handleChange}
                   sx={inputStyle}
                 />
               </Box>
@@ -807,6 +873,17 @@ export default function RegisterCompany() {
       </Box>
 
       <Footer />
+
+      <EmailVerificationModal
+        open={modalAberto}
+        userId={userIdCriado}
+        email={formData.email}
+        onSuccess={() => {
+          notify.success("Conta ativada!", "Faça login com seu CNPJ/CPF e senha.");
+          navigate("/login");
+        }}
+        onClose={() => setModalAberto(false)}
+      />
 
       <NotificationContainer
         notifications={notifications}
