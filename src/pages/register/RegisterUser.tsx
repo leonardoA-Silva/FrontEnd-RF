@@ -99,6 +99,7 @@ export default function RegisterUser() {
     }));
   };
 
+// Remover caracter para buscar o CEP apenas com números
   const handleCepBlur = async () => {
     const cleanCep = formData.zip_code.replace(/\D/g, "");
     if (cleanCep.length === 8) {

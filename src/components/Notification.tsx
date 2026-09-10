@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
-import { CheckCircle, XCircle, Info, X } from "lucide-react";
-
-export type NotificationType = "success" | "error" | "info";
+import { CheckCircle, XCircle, Info, AlertTriangle, X } from "lucide-react";
+export type NotificationType = "success" | "error" | "info" | "warning";
 
 export interface NotificationData {
   id: string;
@@ -61,6 +60,13 @@ function NotificationItem({ notification, onClose }: NotificationItemProps) {
       title: "#1E3A5F",
       bar: "#3B82F6",
     },
+    warning: {
+      bg: "#FFFBEB",
+      border: "#FDE68A",
+      icon: "#D97706",
+      title: "#78350F",
+      bar: "#F59E0B",
+    },
   };
 
   const c = colors[notification.type];
@@ -69,8 +75,10 @@ function NotificationItem({ notification, onClose }: NotificationItemProps) {
     notification.type === "success"
       ? CheckCircle
       : notification.type === "error"
-      ? XCircle
-      : Info;
+        ? XCircle
+        : notification.type === "warning"
+          ? AlertTriangle
+          : Info;
 
   return (
     <div

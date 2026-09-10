@@ -18,14 +18,19 @@ export function useNotification() {
     setNotifications((prev) => prev.filter((n) => n.id !== id));
   }, []);
 
-  const notify = {
-    success: (title: string, message: string) =>
-      addNotification("success", title, message),
-    error: (title: string, message: string) =>
-      addNotification("error", title, message),
-    info: (title: string, message: string) =>
-      addNotification("info", title, message),
-  };
+const notify = {
+  success: (title: string, message: string) =>
+    addNotification("success", title, message),
+
+  error: (title: string, message: string) =>
+    addNotification("error", title, message),
+
+  info: (title: string, message: string) =>
+    addNotification("info", title, message),
+
+  warning: (title: string, message: string) =>
+    addNotification("warning", title, message),
+};
 
   return { notifications, removeNotification, notify };
 }
