@@ -186,14 +186,27 @@ export default function Login() {
             });
             const resposta = data as Record<string, unknown>;
 
-            // Passo 3: salva token + usuário no navegador.
+            // Passo 3: confere se o perfil da conta bate com a aba escolhida.
+            // O back retorna role "company" | "user" | "admin".
             const { token, usuario } = lerRespostaLogin(resposta);
+            const role = (usuario as Record<string, unknown> | null)?.["role"];
+            const esperado = tipoUsuario === "empresa" ? "company" : "user";
+            if (typeof role === "string" && role !== esperado && role !== "admin") {
+                setErro(
+                    tipoUsuario === "empresa"
+                        ? "Esta conta é de comprador/artesão. Troque para a aba Comprador / Artesão."
+                        : "Esta conta é de empresa. Troque para a aba Empresa Geradora."
+                );
+                return;
+            }
+
+            // Passo 4: salva token + usuário no navegador.
             salvarSessao(token, usuario);
 
-            // Passo 4: entra no dashboard do perfil escolhido.
+            // Passo 5: entra no dashboard do perfil escolhido.
             irParaDashboard();
         } catch (err) {
-            // Passo 5: algo deu errado -> mostra a mensagem na tela.
+            // Passo 6: algo deu errado -> mostra a mensagem na tela.
             setErro(mensagemDeErroLogin(err));
         } finally {
             setCarregando(false);
