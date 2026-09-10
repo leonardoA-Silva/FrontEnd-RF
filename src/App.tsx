@@ -5,6 +5,7 @@ import RegisterCompany from "./pages/register/RegisterCompany";
 import RegisterUser from "./pages/register/RegisterUser";
 import Login from "./pages/login/Login";
 import DashboardUsuario from "./pages/dashboard/DashboardUsuario";
+import DashboardEmpresa from "./pages/dashboard/DashboardEmpresa";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
@@ -30,6 +31,23 @@ function App() {
             element={
               <ProtectedRoute>
                 <DashboardUsuario/>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboardEmpresa"
+            element={
+              <ProtectedRoute>
+                <DashboardEmpresa/>
+              </ProtectedRoute>
+            }
+          />
+          {/* mantido por compatibilidade com a branch Dashboard-empresa */}
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <DashboardEmpresa/>
               </ProtectedRoute>
             }
           />

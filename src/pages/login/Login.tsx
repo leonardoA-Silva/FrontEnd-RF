@@ -84,10 +84,94 @@ export default function Login() {
         setErro("");
     }
 
+    // Lê a resposta da API aceitando os vários nomes que ela pode usar.
+    function lerRespostaLogin(resposta: Record<string, unknown>) {
+        const token =
+            resposta["token"] ??
+            resposta["accessToken"] ??
+            resposta["access_token"] ??
+            resposta["jwt"];
+        const usuario =
+            resposta["user"] ??
+            resposta["usuario"] ??
+            resposta;
+        return {
+            token: typeof token === "string" ? token : null,
+            usuario,
+        };
+    }
+
+    // Tenta guardar o usuário; se a foto estourar o limite do navegador,
+    // guarda de novo sem a foto para não perder o resto.
+    function guardarUsuario(storage: Storage, usuario: unknown) {
+        try {
+            storage.setItem("user", JSON.stringify(usuario));
+            return;
+        } catch {
+            // Cai aqui quando o storage está cheio (foto grande em base64).
+        }
+        if (usuario !== null && typeof usuario === "object") {
+            const copia = { ...(usuario as Record<string, unknown>) };
+            delete copia["photo"];
+            storage.setItem("user", JSON.stringify(copia));
+        }
+    }
+
+    // Guarda token + usuário + perfil no lugar certo:
+    // "Lembrar de mim" marcado -> localStorage (continua após fechar o navegador).
+    // Desmarcado -> sessionStorage (apaga ao fechar a aba).
+    function salvarSessao(token: string | null, usuario: unknown) {
+        const principal = lembrarDeMim ? localStorage : sessionStorage;
+        const outro = lembrarDeMim ? sessionStorage : localStorage;
+
+        if (token) {
+            principal.setItem("token", token);
+            outro.removeItem("token");
+        }
+        if (usuario !== null && usuario !== undefined) {
+            guardarUsuario(principal, usuario);
+            outro.removeItem("user");
+        }
+        principal.setItem("tipoUsuario", tipoUsuario);
+    }
+
+    // Leva para o dashboard conforme a aba escolhida na tela.
+    function irParaDashboard() {
+        if (tipoUsuario === "empresa") {
+            navigate("/dashboardEmpresa");
+        } else {
+            navigate("/dashboardUsuario");
+        }
+    }
+
+    // Transforma o erro em frase pronta para mostrar na tela.
+    function mensagemDeErroLogin(err: unknown): string {
+        if (!axios.isAxiosError(err)) {
+            return "Erro inesperado ao fazer login. Tente novamente.";
+        }
+        if (!err.response) {
+            return "Não foi possível conectar à API. Verifique sua conexão e se a API está rodando.";
+        }
+        const resposta = err.response.data as Record<string, unknown> | undefined;
+        console.error("[login] erro da API", err.response.status, resposta);
+        // A API pode chamar o texto de 4 jeitos: procura em todos.
+        for (const chave of ["error", "message", "msg", "erros"]) {
+            const valor = resposta?.[chave];
+            if (valor) {
+                return Array.isArray(valor) ? valor.join(" ") : String(valor);
+            }
+        }
+        if (err.response.status === 401 || err.response.status === 404) {
+            return "E-mail ou senha inválidos.";
+        }
+        return "Erro ao fazer login. Tente novamente.";
+    }
+
     async function handleSubmit(e: FormEvent) {
         e.preventDefault();
         setErro("");
 
+        // Passo 1: valida os campos antes de chamar a API.
         if (!email.trim() || !senha) {
             setErro("Informe e-mail e senha para continuar.");
             return;
@@ -95,64 +179,22 @@ export default function Login() {
 
         setCarregando(true);
         try {
-            const payload = {
+            // Passo 2: envia e-mail + senha para a API.
+            const { data } = await api.post("/user/login", {
                 email: email.trim(),
                 password: senha,
-            };
-            const { data } = await api.post("/user/login", payload);
+            });
+            const resposta = data as Record<string, unknown>;
 
-            const token: string | null =
-                data?.token ??
-                data?.accessToken ??
-                data?.access_token ??
-                data?.jwt ??
-                null;
+            // Passo 3: salva token + usuário no navegador.
+            const { token, usuario } = lerRespostaLogin(resposta);
+            salvarSessao(token, usuario);
 
-            const usuario = data?.user ?? data?.usuario ?? data ?? null;
-
-            const storage = lembrarDeMim ? localStorage : sessionStorage;
-            const otherStorage = lembrarDeMim ? sessionStorage : localStorage;
-
-            if (token) {
-                storage.setItem("token", token);
-                otherStorage.removeItem("token");
-            }
-            if (usuario) {
-                storage.setItem("user", JSON.stringify(usuario));
-                otherStorage.removeItem("user");
-            }
-            storage.setItem("tipoUsuario", tipoUsuario);
-
-            // Redireciona conforme o perfil escolhido na tela:
-            // empresa -> dashboard da empresa, comprador -> dashboard do usuário
-            if (tipoUsuario === "empresa") {
-                navigate("/dashboardEmpresa");
-            } else {
-                navigate("/dashboardUsuario");
-            }
+            // Passo 4: entra no dashboard do perfil escolhido.
+            irParaDashboard();
         } catch (err) {
-            if (axios.isAxiosError(err)) {
-                if (!err.response) {
-                    setErro(
-                        "Não foi possível conectar à API. Verifique sua conexão e se a API está rodando."
-                    );
-                } else {
-                    const status = err.response.status;
-                    const respData = err.response.data as unknown;
-                    console.error("[login] erro da API", status, respData);
-                    const msg =
-                        (respData as any)?.error ??
-                        (respData as any)?.message ??
-                        (respData as any)?.msg ??
-                        (respData as any)?.erros ??
-                        (status === 401 || status === 404
-                            ? "E-mail ou senha inválidos."
-                            : "Erro ao fazer login. Tente novamente.");
-                    setErro(Array.isArray(msg) ? msg.join(" ") : String(msg));
-                }
-            } else {
-                setErro("Erro inesperado ao fazer login. Tente novamente.");
-            }
+            // Passo 5: algo deu errado -> mostra a mensagem na tela.
+            setErro(mensagemDeErroLogin(err));
         } finally {
             setCarregando(false);
         }

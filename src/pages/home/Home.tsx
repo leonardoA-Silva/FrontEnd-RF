@@ -1,6 +1,7 @@
 import { MapPin, BarChart3 } from "lucide-react";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
+import { Link } from "react-router-dom";
 
 const stats = [
   { value: "2.500+", label: "Toneladas desviadas de aterros" },
@@ -154,7 +155,7 @@ export default function Home() {
           </div>
         </div>
       </section>
-
+              <Link to="/dashboard" className={styles.botaoPublicar}>dashboard</Link>
       <Footer />
     </div>
   );

@@ -12,6 +12,7 @@ import {
   X,
 } from "lucide-react";
 import Footer from "../../components/Footer";
+import { useLoggedUser } from "../../hooks/useLoggedUser";
 
 const estatisticas = [
   {
@@ -33,7 +34,7 @@ const estatisticas = [
 
 const recomendados = [
   {
-    imagem: "https://picsum.photos/seed/couro-nobre/400/260",
+    imagem: "/retalho-couro-nobre.png",
     imagemAlt: "Pilha de retalhos de couro marrom",
     titulo: "Retalhos de Couro Nobre",
     origem: "Curtume Franca Fino",
@@ -41,7 +42,7 @@ const recomendados = [
     distancia: "2.3 km",
   },
   {
-    imagem: "https://picsum.photos/seed/eva-camurca/400/260",
+    imagem: "/eva-camurca-premium.png",
     imagemAlt: "Placas azuis de EVA empilhadas",
     titulo: "EVA Camurça Premium",
     origem: "Borrachas Estrela",
@@ -49,7 +50,7 @@ const recomendados = [
     distancia: "4.5 km",
   },
   {
-    imagem: "https://picsum.photos/seed/nobuck-macio/400/260",
+    imagem: "/retalho-nobuck-macio.png",
     imagemAlt: "Retalhos de tecido nobuck cinza dobrados",
     titulo: "Retalho Nobuck Macio",
     origem: "Calçados Franca Ltda",
@@ -92,18 +93,10 @@ export default function DashboardUsuario() {
   const navigate = useNavigate();
   const [menuAberto, setMenuAberto] = useState(false);
 
-  // 1. Recupera o usuário que o login salvou (local ou sessão)
-  const userSalvo =
-    localStorage.getItem("user") ?? sessionStorage.getItem("user");
-
-  // 2. Transforma o texto guardado de volta em objeto (ou null se ninguém logou)
-  const usuario = userSalvo ? JSON.parse(userSalvo) : null;
-
-  // 3. Pega o nome, ou o e-mail se não tiver nome, ou "Usuário" como padrão
-  const nomeCompleto = usuario?.nome ?? usuario?.email ?? "Usuário";
-
-  // 4. Mostra só o primeiro nome
-  const primeiroNome = nomeCompleto.split(" ")[0];
+  // Nome e foto vêm do login (local/sessionStorage) e são atualizados via /user/me.
+  const { displayName, firstName, photoSrc } = useLoggedUser({
+    fallbackName: "Usuário",
+  });
 
   function handleLogout() {
     for (const storage of [localStorage, sessionStorage]) {
@@ -136,8 +129,9 @@ export default function DashboardUsuario() {
     usuarioPilha:
       "flex items-center gap-2 rounded-full bg-emerald-50 py-1.5 pl-1.5 pr-3 sm:pr-4",
     usuarioAvatar:
-      "flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gray-300",
+      "flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-300",
     usuarioAvatarIcone: "h-5 w-5 text-gray-500",
+    usuarioAvatarImg: "h-7 w-7 shrink-0 rounded-full object-cover",
     usuarioNome:
       "hidden max-w-40 truncate text-sm font-semibold text-[#1B4B3A] min-[420px]:block",
     botaoMenu:
@@ -248,11 +242,19 @@ export default function DashboardUsuario() {
           </nav>
 
           <div className={styles.cabecalhoAcoes}>
-            <div className={styles.usuarioPilha}>
+            <div className={styles.usuarioPilha} title={displayName}>
               <span className={styles.usuarioAvatar}>
-                <UserRound className={styles.usuarioAvatarIcone} strokeWidth={2} />
+                {photoSrc ? (
+                  <img
+                    src={photoSrc}
+                    alt={`Foto de perfil de ${displayName}`}
+                    className={styles.usuarioAvatarImg}
+                  />
+                ) : (
+                  <UserRound className={styles.usuarioAvatarIcone} strokeWidth={2} />
+                )}
               </span>
-              <span className={styles.usuarioNome}>{primeiroNome}</span>
+              <span className={styles.usuarioNome}>{firstName}</span>
             </div>
             <button
               type="button"
@@ -347,7 +349,7 @@ export default function DashboardUsuario() {
         {/* Conteúdo principal */}
         <main className={styles.principal}>
           <div className="min-w-0">
-            <h1 className={styles.saudacao}>Olá, {primeiroNome}!</h1>
+            <h1 className={styles.saudacao}>Olá, {firstName}!</h1>
             <p className={styles.saudacaoDescricao}>
               Artesã Autônoma • Confira suas reservas e novos materiais
               recomendados para suas bolsas.
