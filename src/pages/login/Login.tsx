@@ -9,12 +9,22 @@ import Footer from "../../components/Footer";
 
 type TipoUsuario = "empresa" | "comprador";
 
+const REMEMBERED_EMAIL_KEY = "rememberedEmail";
+
+function readRememberedEmail(): string {
+    try {
+        return localStorage.getItem(REMEMBERED_EMAIL_KEY) ?? "";
+    } catch {
+        return "";
+    }
+}
+
 export default function Login() {
     const navigate = useNavigate();
     const [tipoUsuario, setTipoUsuario] = useState<TipoUsuario>("empresa");
-    const [email, setEmail] = useState("");
+    const [email, setEmail] = useState(readRememberedEmail);
     const [senha, setSenha] = useState("");
-    const [lembrarDeMim, setLembrarDeMim] = useState(false);
+    const [lembrarDeMim, setLembrarDeMim] = useState(() => readRememberedEmail() !== "");
     const [mostrarSenha, setMostrarSenha] = useState(false);
     const [carregando, setCarregando] = useState(false);
     const [erro, setErro] = useState("");
@@ -133,6 +143,15 @@ export default function Login() {
             outro.removeItem("user");
         }
         principal.setItem("tipoUsuario", tipoUsuario);
+        try {
+            if (lembrarDeMim && email.trim()) {
+                localStorage.setItem(REMEMBERED_EMAIL_KEY, email.trim());
+            } else if (!lembrarDeMim) {
+                localStorage.removeItem(REMEMBERED_EMAIL_KEY);
+            }
+        } catch {
+            // storage indisponível: login continua funcionando
+        }
     }
 
     // Leva para o dashboard conforme a aba escolhida na tela.
