@@ -59,7 +59,7 @@ export default function Header() {
           <Link
             className={styles.botaoCadastrar}
             style={{ textDecoration: "none", color: "white" }}
-            href="/register"
+            href="/cadastro"
           >
             Cadastrar
           </Link>

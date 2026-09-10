@@ -155,7 +155,7 @@ export default function Home() {
           </div>
         </div>
       </section>
-              <Link to="/dashboard" className={styles.botaoPublicar}>dashboard</Link>
+              <Link to="/dashboardEmpresa" className={styles.botaoPublicar}>dashboard</Link>
       <Footer />
     </div>
   );

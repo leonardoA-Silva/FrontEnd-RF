@@ -16,12 +16,8 @@ function App() {
           {/* rotas publicas */}
           <Route path="/" element={<Home />} />
           <Route path="/cadastro" element={<RegisterType />} />
-          <Route path="/cadastrar" element={<RegisterType />} />
-          <Route path="/register" element={<RegisterType />} />
           <Route path="/cadastro-empresa" element={<RegisterCompany />} />
-          <Route path="/cadastro/empresa" element={<RegisterCompany />} />
           <Route path="/cadastro-pessoal" element={<RegisterUser />} />
-          <Route path="/cadastro/pessoal" element={<RegisterUser />} />
           <Route path="/login" element={<Login />} />
 
 
@@ -36,15 +32,6 @@ function App() {
           />
           <Route
             path="/dashboardEmpresa"
-            element={
-              <ProtectedRoute>
-                <DashboardEmpresa/>
-              </ProtectedRoute>
-            }
-          />
-          {/* mantido por compatibilidade com a branch Dashboard-empresa */}
-          <Route
-            path="/dashboard"
             element={
               <ProtectedRoute>
                 <DashboardEmpresa/>
