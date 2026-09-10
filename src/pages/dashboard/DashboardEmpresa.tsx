@@ -1,10 +1,13 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   AlarmClock,
+  Building2,
   CheckCircle2,
   Coins,
   Folder,
   Leaf,
+  LogOut,
   Menu,
   Package,
   Plus,
@@ -17,6 +20,7 @@ import {
   XCircle,
 } from "lucide-react";
 import Footer from "../../components/Footer";
+import { useLoggedUser } from "../../hooks/useLoggedUser";
 
 const estatisticas = [
   {
@@ -114,7 +118,22 @@ const navegacaoTopo = [
 ];
 
 export default function DashboardEmpresa() {
+  const navigate = useNavigate();
   const [menuAberto, setMenuAberto] = useState(false);
+
+  // Nome e foto vêm do login (local/sessionStorage) e são atualizados via /user/me.
+  const { displayName, photoSrc } = useLoggedUser({
+    fallbackName: "Minha Empresa",
+  });
+
+  function handleLogout() {
+    for (const storage of [localStorage, sessionStorage]) {
+      storage.removeItem("token");
+      storage.removeItem("user");
+      storage.removeItem("tipoUsuario");
+    }
+    navigate("/login");
+  }
 
   // Estilos centralizados aqui dentro da função (sem arquivo .css).
   // Cada chave tem um nome semântico e guarda as classes Tailwind correspondentes.
@@ -137,7 +156,10 @@ export default function DashboardEmpresa() {
     cabecalhoAcoes: "flex shrink-0 items-center gap-2",
     usuarioPilha:
       "flex items-center gap-2 rounded-full bg-emerald-50 py-1.5 pl-1.5 pr-3 sm:pr-4",
-    usuarioAvatar: "h-7 w-7 shrink-0 rounded-full bg-gray-300",
+    usuarioAvatar:
+      "flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-300",
+    usuarioAvatarIcone: "h-5 w-5 text-gray-500",
+    usuarioAvatarImg: "h-7 w-7 shrink-0 rounded-full object-cover",
     usuarioNome:
       "hidden max-w-32 truncate text-sm font-semibold text-[#1B4B3A] min-[420px]:block",
     botaoMenu:
@@ -246,10 +268,29 @@ export default function DashboardEmpresa() {
           </nav>
 
           <div className={styles.cabecalhoAcoes}>
-            <div className={styles.usuarioPilha}>
-              <span className={styles.usuarioAvatar} />
-              <span className={styles.usuarioNome}>Nome Empresa</span>
+            <div className={styles.usuarioPilha} title={displayName}>
+              <span className={styles.usuarioAvatar}>
+                {photoSrc ? (
+                  <img
+                    src={photoSrc}
+                    alt={`Logotipo de ${displayName}`}
+                    className={styles.usuarioAvatarImg}
+                  />
+                ) : (
+                  <Building2 className={styles.usuarioAvatarIcone} strokeWidth={2} />
+                )}
+              </span>
+              <span className={styles.usuarioNome}>{displayName}</span>
             </div>
+            <button
+              type="button"
+              aria-label="Sair da conta"
+              title="Sair da conta"
+              onClick={handleLogout}
+              className={styles.botaoMenu}
+            >
+              <LogOut className="h-5 w-5" strokeWidth={2} />
+            </button>
             <button
               type="button"
               aria-label={menuAberto ? "Fechar menu" : "Abrir menu"}
@@ -327,7 +368,7 @@ export default function DashboardEmpresa() {
         <main className={styles.principal}>
           <div className={styles.principalTopo}>
             <div className="min-w-0">
-              <h1 className={styles.saudacao}>Olá, Curtume Franca Fino!</h1>
+              <h1 className={styles.saudacao}>Olá, {displayName}!</h1>
               <p className={styles.saudacaoDescricao}>
                 Acompanhe o impacto da sua fábrica e gerencie seus anúncios de
                 resíduos.
