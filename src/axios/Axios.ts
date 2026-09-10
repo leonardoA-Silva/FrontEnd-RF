@@ -126,7 +126,7 @@ export const verificarCodigoOtp = (id: string, code: string) =>
 
 /** POST /api/reaproveitafranca/login/empresa */
 export const loginEmpresa = (payload: LoginEmpresaPayload) =>
-  api.post("/login/empresa", payload);
+  api.post("/login", payload);
 
 /** POST /api/reaproveitafranca/login */
 export const loginUsuario = (payload: LoginUsuarioPayload) =>

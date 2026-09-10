@@ -4,6 +4,8 @@ import RegisterType from "./pages/register/RegisterType";
 import RegisterCompany from "./pages/register/RegisterCompany";
 import RegisterUser from "./pages/register/RegisterUser";
 import Login from "./pages/login/Login";
+import DashboardUsuario from "./pages/dashboard/DashboardUsuario";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
@@ -20,6 +22,17 @@ function App() {
           <Route path="/cadastro-pessoal" element={<RegisterUser />} />
           <Route path="/cadastro/pessoal" element={<RegisterUser />} />
           <Route path="/login" element={<Login />} />
+
+
+          {/* rotas privadas */}
+          <Route
+            path="/dashboardUsuario"
+            element={
+              <ProtectedRoute>
+                <DashboardUsuario/>
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </BrowserRouter>
     </div>
