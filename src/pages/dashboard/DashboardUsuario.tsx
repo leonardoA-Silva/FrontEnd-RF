@@ -321,6 +321,17 @@ export default function DashboardUsuario() {
               no artesanato de calçados finos.
             </p>
           </div>
+
+          <div className="px-4 pb-6">
+            <button
+              type="button"
+              onClick={handleLogout}
+              className={`${styles.itemLateralBase} ${styles.itemLateralInativo} w-full`}
+            >
+              <LogOut className={styles.itemLateralIcone} strokeWidth={2} />
+              Sair
+            </button>
+          </div>
         </aside>
 
         {/* Menu horizontal com rolagem (mobile/tablet) */}

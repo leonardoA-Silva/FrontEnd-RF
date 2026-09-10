@@ -171,7 +171,7 @@ export default function DashboardEmpresa() {
     conteudo: "flex w-full flex-1 flex-col items-stretch lg:flex-row",
 
     barraLateral:
-      "hidden w-56 shrink-0 border-r border-[#E7E4DA] bg-white lg:block xl:w-64",
+      "hidden w-56 shrink-0 flex-col border-r border-[#E7E4DA] bg-white lg:flex xl:w-64",
     barraLateralNav: "flex flex-col gap-2 px-4 py-6",
     itemLateralBase: "flex items-center gap-3 rounded-lg px-4 py-2.5 text-[15px]",
     itemLateralAtivo: "bg-emerald-50 font-bold text-[#1B4B3A]",
@@ -339,6 +339,16 @@ export default function DashboardEmpresa() {
               </a>
             ))}
           </nav>
+          <div className="mt-auto border-t border-[#E7E4DA] p-4">
+            <button
+              type="button"
+              onClick={handleLogout}
+              className={`${styles.itemLateralBase} ${styles.itemLateralInativo} w-full`}
+            >
+              <LogOut className={styles.itemLateralIcone} strokeWidth={2} />
+              Sair
+            </button>
+          </div>
         </aside>
 
         {/* Menu horizontal com rolagem (mobile/tablet) */}
