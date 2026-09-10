@@ -700,6 +700,7 @@ export default function RegisterUser() {
                   type="text"
                   value={formData.cellphone}
                   onChange={handleChange}
+                  maxLength={11}
                   placeholder="(00) 00000-0000"
                   sx={inputStyle}
                 />
@@ -744,6 +745,7 @@ export default function RegisterUser() {
                   type="text"
                   value={formData.number}
                   onChange={handleChange}
+                  maxLength={4}
                   placeholder="Ex: 123"
                   sx={inputStyle}
                 />

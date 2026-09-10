@@ -20,6 +20,7 @@ import {
   XCircle,
 } from "lucide-react";
 import Footer from "../../components/Footer";
+import Header from "../../components/Header";
 import { useLoggedUser } from "../../hooks/useLoggedUser";
 
 const estatisticas = [
@@ -246,76 +247,8 @@ export default function DashboardEmpresa() {
 
   return (
     <div className={styles.pagina}>
-      {/* Topo do dashboard */}
-      <header className={styles.cabecalho}>
-        <div className={styles.cabecalhoConteudo}>
-          <div className={styles.marca}>
-            <span className={styles.marcaIcone}>
-              <Repeat2 className="h-6 w-6" strokeWidth={2.4} />
-            </span>
-            <div className={styles.marcaTextos}>
-              <p className={styles.marcaTitulo}>Reaproveita</p>
-              <p className={styles.marcaSubtitulo}>FRANCA</p>
-            </div>
-          </div>
-
-          <nav className={styles.menuTopo}>
-            {navegacaoTopo.map((item) => (
-              <a key={item} href="#" className={styles.menuTopoLink}>
-                {item}
-              </a>
-            ))}
-          </nav>
-
-          <div className={styles.cabecalhoAcoes}>
-            <div className={styles.usuarioPilha} title={displayName}>
-              <span className={styles.usuarioAvatar}>
-                {photoSrc ? (
-                  <img
-                    src={photoSrc}
-                    alt={`Logotipo de ${displayName}`}
-                    className={styles.usuarioAvatarImg}
-                  />
-                ) : (
-                  <Building2 className={styles.usuarioAvatarIcone} strokeWidth={2} />
-                )}
-              </span>
-              <span className={styles.usuarioNome}>{displayName}</span>
-            </div>
-            <button
-              type="button"
-              aria-label="Sair da conta"
-              title="Sair da conta"
-              onClick={handleLogout}
-              className={styles.botaoMenu}
-            >
-              <LogOut className="h-5 w-5" strokeWidth={2} />
-            </button>
-            <button
-              type="button"
-              aria-label={menuAberto ? "Fechar menu" : "Abrir menu"}
-              onClick={() => setMenuAberto((aberto) => !aberto)}
-              className={styles.botaoMenu}
-            >
-              {menuAberto ? (
-                <X className="h-5 w-5" strokeWidth={2} />
-              ) : (
-                <Menu className="h-5 w-5" strokeWidth={2} />
-              )}
-            </button>
-          </div>
-        </div>
-
-        {menuAberto && (
-          <nav className={styles.menuMovel}>
-            {navegacaoTopo.map((item) => (
-              <a key={item} href="#" className={styles.menuMovelLink}>
-                {item}
-              </a>
-            ))}
-          </nav>
-        )}
-      </header>
+      {/* Topo do dashboard com Header Dinâmico */}
+      <Header />
 
       <div className={styles.conteudo}>
         {/* Menu lateral (desktop) */}

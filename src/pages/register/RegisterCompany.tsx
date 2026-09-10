@@ -612,6 +612,7 @@ export default function RegisterCompany() {
                   id="cellphone"
                   name="cellphone"
                   type="text"
+                  maxLength={11}
                   value={formData.cellphone}
                   onChange={handleChange}
                   placeholder="(00) 00000-0000"
@@ -656,6 +657,7 @@ export default function RegisterCompany() {
                   id="number"
                   name="number"
                   type="text"
+                  maxLength={4}
                   value={formData.number}
                   onChange={handleChange}
                   placeholder="Ex: 123"
