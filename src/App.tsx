@@ -6,6 +6,7 @@ import RegisterUser from "./pages/register/RegisterUser";
 import Login from "./pages/login/Login";
 import DashboardUsuario from "./pages/dashboard/DashboardUsuario";
 import DashboardEmpresa from "./pages/dashboard/DashboardEmpresa";
+import MapaEmpresas from "./pages/dashboard/MapaEmpresas";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
@@ -35,6 +36,14 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={["company"]}>
                 <DashboardEmpresa/>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/mapaEmpresas"
+            element={
+              <ProtectedRoute allowedRoles={["company"]}>
+                <MapaEmpresas/>
               </ProtectedRoute>
             }
           />
