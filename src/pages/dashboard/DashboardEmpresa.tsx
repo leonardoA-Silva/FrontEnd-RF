@@ -110,11 +110,11 @@ const menuLateral = [
 ];
 
 const navegacaoTopo = [
-  "Início",
-  "Mapa de Empresas",
-  "Indicadores Ambientais",
-  "Histórico de Negociações",
-  "Sobre Nós",
+  { rotulo: "Início", href: "/dashboardEmpresa", ativo: true },
+  { rotulo: "Mapa de Empresas", href: "/mapaEmpresas", ativo: false },
+  { rotulo: "Indicadores Ambientais", href: "#", ativo: false },
+  { rotulo: "Histórico de Negociações", href: "#", ativo: false },
+  { rotulo: "Sobre Nós", href: "#", ativo: false },
 ];
 
 export default function DashboardEmpresa() {
@@ -261,8 +261,16 @@ export default function DashboardEmpresa() {
 
           <nav className={styles.menuTopo}>
             {navegacaoTopo.map((item) => (
-              <a key={item} href="#" className={styles.menuTopoLink}>
-                {item}
+              <a
+                key={item.rotulo}
+                href={item.href}
+                className={`${styles.menuTopoLink} ${
+                  item.rotulo === "Início"
+                    ? "font-bold text-emerald-600"
+                    : ""
+                }`}
+              >
+                {item.rotulo}
               </a>
             ))}
           </nav>
@@ -309,8 +317,8 @@ export default function DashboardEmpresa() {
         {menuAberto && (
           <nav className={styles.menuMovel}>
             {navegacaoTopo.map((item) => (
-              <a key={item} href="#" className={styles.menuMovelLink}>
-                {item}
+              <a key={item.rotulo} href={item.href} className={styles.menuMovelLink}>
+                {item.rotulo}
               </a>
             ))}
           </nav>
