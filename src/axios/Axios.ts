@@ -78,6 +78,55 @@ export interface LoginUsuarioPayload {
   senha: string;
 }
 
+// ─── Tipos de Produtos (Banco de Dados) ────────────────────────────────────────
+
+export type CategoriaProduto =
+  | "madeira"
+  | "metal"
+  | "plastico"
+  | "papel/papelao"
+  | "vidro"
+  | "tecido"
+  | "borracha"
+  | "eletronicos"
+  | string;
+
+export type TipoNegociacao = "sale" | "donation";
+
+export type EstadoConservacao = "new" | "good" | "regular" | "poor";
+
+export type StatusProduto = "available" | "reserved" | "unavailable";
+
+export interface ProductBackend {
+  id: string;
+  name: string;
+  description: string | null;
+  price: number | string | null;
+  priority?: number;
+  quantity: number;
+  status: StatusProduto;
+  category: CategoriaProduto;
+  type_negotiation: TipoNegociacao;
+  weight: number | string;
+  conservation_state: EstadoConservacao;
+  id_user?: string;
+  id_localization?: string;
+}
+
+export interface CreateProductPayload {
+  name: string;
+  description?: string;
+  price?: number | string | null;
+  priority?: number;
+  quantity?: number;
+  status?: StatusProduto;
+  category: CategoriaProduto;
+  type_negotiation: TipoNegociacao;
+  weight: number | string;
+  conservation_state: EstadoConservacao;
+  id_localization?: string;
+}
+
 // ─── Utilitário para Montagem de FormData ─────────────────────────────────────
 
 function buildFormData<T extends Record<string, unknown>>(data: T, photoFile?: File | null): FormData {
@@ -131,3 +180,68 @@ export const loginEmpresa = (payload: LoginEmpresaPayload) =>
 /** POST /api/reaproveitafranca/login */
 export const loginUsuario = (payload: LoginUsuarioPayload) =>
   api.post("/login", payload);
+
+// ─── Serviços de Perfil de Usuário ────────────────────────────────────────────
+
+export interface UsuarioPerfil {
+  id: string;
+  role: string;
+  name: string;
+  email: string;
+  cellphone: string;
+  status: string;
+  birthday?: string | null;
+  created_in?: string;
+  zip_code?: string;
+  street?: string;
+  neighborhood?: string;
+  number?: string;
+  city?: string;
+  state?: string;
+}
+
+/** GET /api/reaproveitafranca/user/me */
+export const obterMeuPerfil = () =>
+  api.get<UsuarioPerfil>("/user/me");
+
+/** GET /api/reaproveitafranca/user/profile/:id */
+export const obterPerfilUsuario = (id: string) =>
+  api.get<UsuarioPerfil>(`/user/profile/${id}`);
+
+// ─── Serviços de Produtos (Banco de Dados) ────────────────────────────────────
+
+/** GET /api/reaproveitafranca/product */
+export const listarProdutos = () =>
+  api.get<ProductBackend[]>("/product");
+
+/** GET /api/reaproveitafranca/product/:id */
+export const obterProdutoPorId = (id: string) =>
+  api.get<ProductBackend>(`/product/${id}`);
+
+/** POST /api/reaproveitafranca/product/create */
+export const cadastrarProduto = (payload: CreateProductPayload) =>
+  api.post<{ message: string; id: string }>("/product/create", payload);
+
+/** PUT /api/reaproveitafranca/product/:id */
+export const atualizarProduto = (id: string, payload: Partial<CreateProductPayload>) =>
+  api.put<{ message: string }>(`/product/${id}`, payload);
+
+// ─── Serviços de Logs e Auditoria (Atividades) ────────────────────────────────
+
+export interface LogBackend {
+  id: string;
+  reference_id: string;
+  status: string;
+  operation: string;
+  table: string;
+  datetime: string;
+}
+
+/** GET /api/reaproveitafranca/log */
+export const listarLogs = (params?: { reference_id?: string; status?: string; operation?: string; table?: string }) =>
+  api.get<LogBackend[]>("/log", { params });
+
+/** POST /api/reaproveitafranca/log */
+export const criarLog = (payload: { reference_id: string; status: string; operation: string; table: string }) =>
+  api.post<{ message: string; id: string }>("/log", payload);
+

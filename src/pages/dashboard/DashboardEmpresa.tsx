@@ -1,108 +1,27 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   AlarmClock,
-  Building2,
   CheckCircle2,
   Coins,
   Folder,
   Leaf,
   LogOut,
-  Menu,
   Package,
+  PackageOpen,
   Plus,
   PlusCircle,
-  Repeat2,
   Sparkles,
   Star,
   UserRound,
-  X,
-  XCircle,
+  RefreshCw,
+  History,
 } from "lucide-react";
 import Footer from "../../components/Footer";
 import Header from "../../components/Header";
 import { useLoggedUser } from "../../hooks/useLoggedUser";
-
-const estatisticas = [
-  {
-    icone: Package,
-    rotulo: "Materiais Publicados",
-    valor: "24",
-    detalhe: "18 já destinados",
-  },
-  {
-    icone: AlarmClock,
-    rotulo: "Reservas Ativas",
-    valor: "8",
-    detalhe: "Aguardando retirada",
-  },
-  {
-    icone: Leaf,
-    rotulo: "Resíduos Desviados",
-    valor: "1.450 kg",
-    detalhe: "Desviados do aterro local",
-  },
-  {
-    icone: Coins,
-    rotulo: "Valor Social Gerado",
-    valor: "R$ 12.300",
-    detalhe: "Economia p/ artesãos",
-  },
-];
-
-const residuos = [
-  {
-    titulo: "Retalhos de Couro Bovino Premium",
-    publicadoEm: "Publicado em Hoje, 09:12",
-    quantidade: "150 kg",
-    status: "Ativo",
-  },
-  {
-    titulo: "Pallets de Madeira Maciça",
-    publicadoEm: "Publicado em Ontem, 16:45",
-    quantidade: "12 unid",
-    status: "Reservado",
-  },
-  {
-    titulo: "Rebarbas de EVA e Forros",
-    publicadoEm: "Publicado em 02 de Ago, 10:20",
-    quantidade: "40 kg",
-    status: "Coletado",
-  },
-  {
-    titulo: "Retalhos de Tecido Sintético",
-    publicadoEm: "Publicado em 28 de Jul, 14:00",
-    quantidade: "90 kg",
-    status: "Coletado",
-  },
-];
-
-const atividades = [
-  {
-    icone: XCircle,
-    destaque: "Silvana M. (Artesã)",
-    resto: " reservou os Retalhos de Couro",
-    tempo: "Há 10 min",
-  },
-  {
-    icone: CheckCircle2,
-    destaque: "Ateliê Reutiliza",
-    resto: " coletou 120 kg de Pallets",
-    tempo: "Ontem",
-  },
-  {
-    icone: Sparkles,
-    destaque: "Reaproveita Franca AI",
-    resto: " reclassificou seu lote de EVA como Premium",
-    tempo: "Há 2 dias",
-  },
-  {
-    icone: Star,
-    destaque: "Assoc. Tecendo Franca",
-    resto: " avaliou seu curtume com 5 estrelas",
-    tempo: "Há 3 dias",
-  },
-];
+import { listarProdutos, listarLogs } from "../../axios/Axios";
+import type { ProductBackend, LogBackend } from "../../axios/Axios";
 
 const menuLateral = [
   { icone: Folder, rotulo: "Meus Materiais", ativo: true },
@@ -110,22 +29,47 @@ const menuLateral = [
   { icone: UserRound, rotulo: "Perfil", ativo: false },
 ];
 
-const navegacaoTopo = [
-  "Início",
-  "Mapa de Empresas",
-  "Indicadores Ambientais",
-  "Histórico de Negociações",
-  "Sobre Nós",
-];
-
 export default function DashboardEmpresa() {
   const navigate = useNavigate();
-  const [menuAberto, setMenuAberto] = useState(false);
 
-  // Nome e foto vêm do login (local/sessionStorage) e são atualizados via /user/me.
-  const { displayName, photoSrc } = useLoggedUser({
+  const { displayName } = useLoggedUser({
     fallbackName: "Minha Empresa",
   });
+
+  const [produtos, setProdutos] = useState<ProductBackend[]>([]);
+  const [logs, setLogs] = useState<LogBackend[]>([]);
+  const [carregando, setCarregando] = useState<boolean>(true);
+
+  const carregarDados = async () => {
+    setCarregando(true);
+    try {
+      const [resProd, resLogs] = await Promise.allSettled([
+        listarProdutos(),
+        listarLogs(),
+      ]);
+
+      if (resProd.status === "fulfilled" && Array.isArray(resProd.value.data)) {
+        setProdutos(resProd.value.data);
+      } else {
+        setProdutos([]);
+      }
+
+      if (resLogs.status === "fulfilled" && Array.isArray(resLogs.value.data)) {
+        setLogs(resLogs.value.data);
+      } else {
+        setLogs([]);
+      }
+    } catch {
+      setProdutos([]);
+      setLogs([]);
+    } finally {
+      setCarregando(false);
+    }
+  };
+
+  useEffect(() => {
+    carregarDados();
+  }, []);
 
   function handleLogout() {
     for (const storage of [localStorage, sessionStorage]) {
@@ -136,72 +80,68 @@ export default function DashboardEmpresa() {
     navigate("/login");
   }
 
-  // Estilos centralizados aqui dentro da função (sem arquivo .css).
-  // Cada chave tem um nome semântico e guarda as classes Tailwind correspondentes.
-  // Layout 100% fluido (w-full, sem max-width travado) para ocupar a tela em qualquer zoom.
+  // Estatísticas calculadas exclusivamente a partir dos dados reais do backend
+  const estatisticasCalculadas = useMemo(() => {
+    const totalPublicados = produtos.length;
+    const reservados = produtos.filter((p) => p.status === "reserved").length;
+    const kgTotal = produtos.reduce((acc, p) => acc + (parseFloat(String(p.weight)) || 0), 0);
+    const valorGerado = produtos.reduce((acc, p) => acc + (parseFloat(String(p.price)) || 50), 0);
+
+    return [
+      {
+        icone: Package,
+        rotulo: "Materiais Publicados",
+        valor: String(totalPublicados),
+        detalhe: totalPublicados > 0 ? `${reservados} já reservados` : "Nenhum material publicado",
+      },
+      {
+        icone: AlarmClock,
+        rotulo: "Reservas Ativas",
+        valor: String(reservados),
+        detalhe: reservados > 0 ? "Aguardando retirada" : "Sem reservas pendentes",
+      },
+      {
+        icone: Leaf,
+        rotulo: "Resíduos Desviados",
+        valor: kgTotal > 0 ? `${kgTotal.toLocaleString("pt-BR")} kg` : "0 kg",
+        detalhe: "Desviados do aterro local",
+      },
+      {
+        icone: Coins,
+        rotulo: "Valor Social Gerado",
+        valor: valorGerado > 0 ? `R$ ${valorGerado.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}` : "R$ 0,00",
+        detalhe: "Economia p/ artesãos",
+      },
+    ];
+  }, [produtos]);
+
   const styles = {
     pagina: "flex min-h-screen w-full flex-col bg-[#FAF9F5] text-[#1B4B3A]",
-
-    cabecalho: "w-full border-b border-[#E7E4DA] bg-white",
-    cabecalhoConteudo:
-      "flex w-full items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8",
-    marca: "flex min-w-0 shrink-0 items-center gap-2.5",
-    marcaIcone:
-      "flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-white",
-    marcaTextos: "leading-tight",
-    marcaTitulo: "text-base font-bold text-[#1B4B3A] sm:text-lg",
-    marcaSubtitulo: "text-xs font-bold tracking-wide text-orange-500 sm:text-sm",
-    menuTopo: "hidden min-w-0 flex-1 items-center justify-center gap-5 xl:gap-7 lg:flex",
-    menuTopoLink:
-      "whitespace-nowrap text-sm font-medium text-[#4B5A55] transition hover:text-[#1B4B3A] xl:text-[15px]",
-    cabecalhoAcoes: "flex shrink-0 items-center gap-2",
-    usuarioPilha:
-      "flex items-center gap-2 rounded-full bg-emerald-50 py-1.5 pl-1.5 pr-3 sm:pr-4",
-    usuarioAvatar:
-      "flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-300",
-    usuarioAvatarIcone: "h-5 w-5 text-gray-500",
-    usuarioAvatarImg: "h-7 w-7 shrink-0 rounded-full object-cover",
-    usuarioNome:
-      "hidden max-w-32 truncate text-sm font-semibold text-[#1B4B3A] min-[420px]:block",
-    botaoMenu:
-      "flex h-10 w-10 items-center justify-center rounded-lg border border-[#E7E4DA] text-[#1B4B3A] transition hover:bg-[#F3F1EA] lg:hidden",
-    menuMovel: "border-t border-[#E7E4DA] bg-white px-4 py-2 lg:hidden",
-    menuMovelLink:
-      "block rounded-lg px-3 py-2.5 text-sm font-medium text-[#4B5A55] transition hover:bg-[#F3F1EA] hover:text-[#1B4B3A]",
-
     conteudo: "flex w-full flex-1 flex-col items-stretch lg:flex-row",
-
-    barraLateral:
-      "hidden w-56 shrink-0 flex-col border-r border-[#E7E4DA] bg-white lg:flex xl:w-64",
+    barraLateral: "hidden w-56 shrink-0 flex-col border-r border-[#E7E4DA] bg-white lg:flex xl:w-64",
     barraLateralNav: "flex flex-col gap-2 px-4 py-6",
     itemLateralBase: "flex items-center gap-3 rounded-lg px-4 py-2.5 text-[15px]",
     itemLateralAtivo: "bg-emerald-50 font-bold text-[#1B4B3A]",
-    itemLateralInativo:
-      "font-medium text-[#4B5A55] transition hover:bg-[#F3F1EA]",
+    itemLateralInativo: "font-medium text-[#4B5A55] transition hover:bg-[#F3F1EA]",
     itemLateralIconeAtivo: "h-5 w-5 shrink-0 text-emerald-500",
     itemLateralIcone: "h-5 w-5 shrink-0 text-[#4B5A55]",
 
     navegacaoMovel: "border-b border-[#E7E4DA] bg-white lg:hidden",
     navegacaoMovelLista: "flex gap-2 overflow-x-auto px-4 py-3",
-    itemMovelBase:
-      "flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-4 py-2 text-sm",
+    itemMovelBase: "flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-4 py-2 text-sm",
     itemMovelAtivo: "bg-emerald-50 font-bold text-[#1B4B3A]",
     itemMovelInativo: "font-medium text-[#4B5A55]",
 
     principal: "min-w-0 flex-1 px-4 py-6 sm:px-6 lg:px-8",
-    principalTopo:
-      "flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between",
+    principalTopo: "flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between",
     saudacao: "text-2xl font-extrabold tracking-tight text-[#0F3D2E] sm:text-3xl",
     saudacaoDescricao: "mt-1.5 text-sm text-[#4B5A55] sm:text-[15px]",
     botaoPublicar:
-      "flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-500 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-600 sm:w-auto sm:self-start",
+      "flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-500 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-600 sm:w-auto sm:self-start cursor-pointer",
 
-    gradeEstatisticas:
-      "mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 2xl:grid-cols-4",
-    cartaoEstatistica:
-      "flex min-w-0 items-center gap-4 rounded-2xl border border-[#E7E4DA] bg-white p-5",
-    estatisticaIconeCaixa:
-      "flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-50",
+    gradeEstatisticas: "mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 2xl:grid-cols-4",
+    cartaoEstatistica: "flex min-w-0 items-center gap-4 rounded-2xl border border-[#E7E4DA] bg-white p-5",
+    estatisticaIconeCaixa: "flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-50",
     estatisticaIcone: "h-6 w-6 text-emerald-500",
     estatisticaTextos: "min-w-0",
     estatisticaRotulo: "truncate text-[13px] text-[#9AA5A0]",
@@ -212,8 +152,7 @@ export default function DashboardEmpresa() {
     cartao: "min-w-0 rounded-2xl border border-[#E7E4DA] bg-white p-4 sm:p-6",
     cartaoCabecalho: "flex flex-wrap items-center justify-between gap-2",
     cartaoTitulo: "text-base font-extrabold text-[#0F3D2E] sm:text-lg",
-    cartaoLink:
-      "shrink-0 text-sm font-medium text-emerald-500 hover:text-emerald-600",
+    cartaoLink: "shrink-0 text-sm font-medium text-emerald-500 hover:text-emerald-600 cursor-pointer",
 
     listaResiduos: "mt-2 divide-y divide-[#EDEBE2]",
     residuoItem: "flex flex-wrap items-center justify-between gap-x-4 gap-y-2 py-4",
@@ -229,8 +168,7 @@ export default function DashboardEmpresa() {
 
     listaAtividades: "mt-5 flex flex-col gap-5",
     atividadeItem: "flex min-w-0 items-start gap-3",
-    atividadeIconeCaixa:
-      "flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#F2F7F4]",
+    atividadeIconeCaixa: "flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#F2F7F4]",
     atividadeIcone: "h-5 w-5 text-emerald-500",
     atividadeTextos: "min-w-0",
     atividadeTexto: "break-words text-sm leading-relaxed text-[#3F4A45]",
@@ -238,16 +176,8 @@ export default function DashboardEmpresa() {
     atividadeTempo: "mt-0.5 block text-xs text-[#9AA5A0]",
   };
 
-  function estiloSelo(status: string) {
-    if (status === "Ativo") return `${styles.seloBase} ${styles.seloAtivo}`;
-    if (status === "Reservado")
-      return `${styles.seloBase} ${styles.seloReservado}`;
-    return `${styles.seloBase} ${styles.seloColetado}`;
-  }
-
   return (
     <div className={styles.pagina}>
-      {/* Topo do dashboard com Header Dinâmico */}
       <Header />
 
       <div className={styles.conteudo}>
@@ -276,7 +206,7 @@ export default function DashboardEmpresa() {
             <button
               type="button"
               onClick={handleLogout}
-              className={`${styles.itemLateralBase} ${styles.itemLateralInativo} w-full`}
+              className={`${styles.itemLateralBase} ${styles.itemLateralInativo} w-full cursor-pointer`}
             >
               <LogOut className={styles.itemLateralIcone} strokeWidth={2} />
               Sair
@@ -284,7 +214,7 @@ export default function DashboardEmpresa() {
           </div>
         </aside>
 
-        {/* Menu horizontal com rolagem (mobile/tablet) */}
+        {/* Menu horizontal (mobile) */}
         <nav className={styles.navegacaoMovel}>
           <div className={styles.navegacaoMovelLista}>
             {menuLateral.map(({ icone: Icone, rotulo, ativo }) => (
@@ -313,19 +243,32 @@ export default function DashboardEmpresa() {
             <div className="min-w-0">
               <h1 className={styles.saudacao}>Olá, {displayName}!</h1>
               <p className={styles.saudacaoDescricao}>
-                Acompanhe o impacto da sua fábrica e gerencie seus anúncios de
-                resíduos.
+                Acompanhe o impacto da sua fábrica e gerencie seus anúncios de resíduos.
               </p>
             </div>
-            <button className={styles.botaoPublicar}>
-              <Plus className="h-5 w-5 shrink-0" strokeWidth={2.5} />
-              Publicar Novo Material
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={carregarDados}
+                className="flex items-center gap-1.5 rounded-lg border border-[#D9D5C8] bg-white px-3 py-2.5 text-xs font-semibold text-[#4B5A55] hover:bg-gray-50 shadow-xs cursor-pointer"
+              >
+                <RefreshCw className={`h-3.5 w-3.5 ${carregando ? "animate-spin text-emerald-600" : ""}`} />
+                Atualizar
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate("/dashboardUsuario")}
+                className={styles.botaoPublicar}
+              >
+                <Plus className="h-5 w-5 shrink-0" strokeWidth={2.5} />
+                Publicar Novo Material
+              </button>
+            </div>
           </div>
 
-          {/* Cartões de resumo */}
+          {/* Cartões de resumo dinâmicos */}
           <div className={styles.gradeEstatisticas}>
-            {estatisticas.map(({ icone: Icone, rotulo, valor, detalhe }) => (
+            {estatisticasCalculadas.map(({ icone: Icone, rotulo, valor, detalhe }) => (
               <div key={rotulo} className={styles.cartaoEstatistica}>
                 <span className={styles.estatisticaIconeCaixa}>
                   <Icone className={styles.estatisticaIcone} strokeWidth={2} />
@@ -340,64 +283,112 @@ export default function DashboardEmpresa() {
           </div>
 
           <div className={styles.gradeConteudo}>
-            {/* Últimos resíduos */}
+            {/* Últimos resíduos (com empty state intuitivo) */}
             <section className={styles.cartao}>
               <div className={styles.cartaoCabecalho}>
                 <h2 className={styles.cartaoTitulo}>
                   Últimos Resíduos Publicados
                 </h2>
-                <a href="#" className={styles.cartaoLink}>
-                  Ver todos (24)
-                </a>
+                <span className={styles.cartaoLink}>
+                  Ver todos ({produtos.length})
+                </span>
               </div>
 
-              <div className={styles.listaResiduos}>
-                {residuos.map(({ titulo, publicadoEm, quantidade, status }) => (
-                  <div key={titulo} className={styles.residuoItem}>
-                    <div className={styles.residuoTextos}>
-                      <p className={styles.residuoTitulo}>{titulo}</p>
-                      <p className={styles.residuoData}>{publicadoEm}</p>
+              {carregando ? (
+                <div className="divide-y divide-gray-100 py-4">
+                  {[1, 2].map((n) => (
+                    <div key={n} className="py-3 animate-pulse">
+                      <div className="h-4 w-40 bg-gray-200 rounded mb-2"></div>
+                      <div className="h-3 w-24 bg-gray-100 rounded"></div>
                     </div>
-                    <div className={styles.residuoLadoDireito}>
-                      <span className={styles.residuoQuantidade}>
-                        {quantidade}
-                      </span>
-                      <span className={estiloSelo(status)}>{status}</span>
-                    </div>
+                  ))}
+                </div>
+              ) : produtos.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-[#E7E4DA] bg-[#FAF9F5] p-8 text-center my-4">
+                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#EBF6F2] text-emerald-600 mb-3">
+                    <PackageOpen className="h-6 w-6" />
                   </div>
-                ))}
-              </div>
+                  <h3 className="text-sm font-bold text-[#0F3D2E]">
+                    Nenhum resíduo publicado até o momento
+                  </h3>
+                  <p className="mx-auto mt-1 max-w-sm text-xs text-[#6B7670] leading-relaxed">
+                    Sua empresa ainda não publicou anúncios de sobras ou materiais recicláveis.
+                  </p>
+                </div>
+              ) : (
+                <div className={styles.listaResiduos}>
+                  {produtos.slice(0, 5).map((prod) => (
+                    <div key={prod.id} className={styles.residuoItem}>
+                      <div className={styles.residuoTextos}>
+                        <p className={styles.residuoTitulo}>{prod.name}</p>
+                        <p className={styles.residuoData}>
+                          {prod.category} • {prod.conservation_state}
+                        </p>
+                      </div>
+                      <div className={styles.residuoLadoDireito}>
+                        <span className={styles.residuoQuantidade}>
+                          {prod.weight} kg
+                        </span>
+                        <span
+                          className={`${styles.seloBase} ${
+                            prod.status === "reserved"
+                              ? styles.seloReservado
+                              : styles.seloAtivo
+                          }`}
+                        >
+                          {prod.status === "reserved" ? "Reservado" : "Disponível"}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </section>
 
-            {/* Atividade recente */}
+            {/* Atividade recente (com empty state intuitivo) */}
             <section className={styles.cartao}>
               <h2 className={styles.cartaoTitulo}>
                 Atividade Circular Recente
               </h2>
 
-              <div className={styles.listaAtividades}>
-                {atividades.map(
-                  ({ icone: Icone, destaque, resto, tempo }) => (
-                    <div key={`${destaque}-${tempo}`} className={styles.atividadeItem}>
+              {logs.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-[#E7E4DA] bg-[#FAF9F5] p-8 text-center my-4">
+                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#EBF6F2] text-emerald-600 mb-3">
+                    <History className="h-6 w-6" />
+                  </div>
+                  <h3 className="text-sm font-bold text-[#0F3D2E]">
+                    Nenhuma atividade recente registrada
+                  </h3>
+                  <p className="mx-auto mt-1 max-w-xs text-xs text-[#6B7670] leading-relaxed">
+                    Movimentações, reservas e coletas de resíduos da sua fábrica serão notificadas aqui.
+                  </p>
+                </div>
+              ) : (
+                <div className={styles.listaAtividades}>
+                  {logs.slice(0, 5).map((log) => (
+                    <div key={log.id} className={styles.atividadeItem}>
                       <span className={styles.atividadeIconeCaixa}>
-                        <Icone
-                          className={styles.atividadeIcone}
-                          strokeWidth={2}
-                        />
+                        {log.operation.includes("reserva") ? (
+                          <CheckCircle2 className={styles.atividadeIcone} strokeWidth={2} />
+                        ) : log.operation.includes("ia") ? (
+                          <Sparkles className="h-5 w-5 text-teal-600" strokeWidth={2} />
+                        ) : (
+                          <Star className="h-5 w-5 text-amber-500" strokeWidth={2} />
+                        )}
                       </span>
                       <div className={styles.atividadeTextos}>
                         <p className={styles.atividadeTexto}>
                           <span className={styles.atividadeDestaque}>
-                            {destaque}
-                          </span>
-                          {resto}
+                            {log.operation}
+                          </span>{" "}
+                          registrado na tabela {log.table} ({log.status})
                         </p>
-                        <span className={styles.atividadeTempo}>{tempo}</span>
+                        <span className={styles.atividadeTempo}>{log.datetime}</span>
                       </div>
                     </div>
-                  )
-                )}
-              </div>
+                  ))}
+                </div>
+              )}
             </section>
           </div>
         </main>
