@@ -192,6 +192,12 @@ export interface UsuarioPerfil {
   status: string;
   birthday?: string | null;
   created_in?: string;
+  photo?: string | null;
+  cpf?: string | null;
+  cnpj?: string | null;
+  cargo?: string;
+  razaoSocial?: string;
+  setor?: string;
   zip_code?: string;
   street?: string;
   neighborhood?: string;
@@ -204,9 +210,18 @@ export interface UsuarioPerfil {
 export const obterMeuPerfil = () =>
   api.get<UsuarioPerfil>("/user/me");
 
-/** GET /api/reaproveitafranca/user/profile/:id */
-export const obterPerfilUsuario = (id: string) =>
-  api.get<UsuarioPerfil>(`/user/profile/${id}`);
+/** GET /api/reaproveitafranca/user/profile ou /user/profile/:id */
+export const obterPerfilUsuario = (id?: string) =>
+  api.get<UsuarioPerfil>(id ? `/user/profile/${id}` : "/user/profile");
+
+/** PUT /api/reaproveitafranca/user/me ou /user/profile/:id */
+export const atualizarPerfilUsuario = (payload: FormData | Record<string, unknown>, id?: string) => {
+  const url = id ? `/user/profile/${id}` : "/user/me";
+  const isFormData = payload instanceof FormData;
+  return api.put<{ message: string }>(url, payload, {
+    headers: isFormData ? { "Content-Type": "multipart/form-data" } : undefined,
+  });
+};
 
 // ─── Serviços de Produtos (Banco de Dados) ────────────────────────────────────
 

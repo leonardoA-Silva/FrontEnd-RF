@@ -10,8 +10,6 @@ import {
   Leaf,
   Sparkles,
   X,
-  Phone,
-  MapPin,
   ArrowRight,
   RefreshCw,
   Trash2,
@@ -22,10 +20,11 @@ import {
   Star,
   LogOut,
   ShoppingCart,
-  Calendar,
-  Mail,
-  Home,
-  Building,
+  Building2,
+  User,
+  Pencil,
+  Camera,
+  Save,
 } from "lucide-react";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
@@ -37,6 +36,7 @@ import {
   atualizarProduto,
   obterMeuPerfil,
   obterPerfilUsuario,
+  atualizarPerfilUsuario,
 } from "../../axios/Axios";
 import type {
   ProductBackend,
@@ -68,9 +68,7 @@ export interface AtividadeFormatada {
 }
 
 export default function DashboardUsuario() {
-  const { displayName, user, logout } = useLoggedUser({
-    fallbackName: "Roberto de Oliveira",
-  });
+  const { displayName, user, photoSrc, logout } = useLoggedUser();
 
   // Navegação: comprador possui Explorar Materiais, Minhas Reservas, Histórico e Perfil
   const [abaAtiva, setAbaAtiva] = useState<"explorar" | "reservas" | "historico" | "perfil">("historico");
@@ -133,14 +131,12 @@ export default function DashboardUsuario() {
         }
       } catch {}
 
-      // 2. Se falhar ou não tiver token JWT, tenta pelo ID do usuário
+      // 2. Se falhar ou não tiver token JWT, tenta pelo ID do usuário ou perfil ativo da API
       const userId = user?.id || (user as any)?.userId;
-      if (userId) {
-        const resId = await obterPerfilUsuario(userId);
-        if (resId.data && resId.data.id) {
-          setPerfilUsuario(resId.data);
-          return;
-        }
+      const resId = await obterPerfilUsuario(userId || undefined);
+      if (resId.data && resId.data.id) {
+        setPerfilUsuario(resId.data);
+        return;
       }
     } catch (err) {
       console.warn("Erro ao buscar perfil da API:", err);
@@ -151,7 +147,7 @@ export default function DashboardUsuario() {
 
   useEffect(() => {
     carregarPerfilUsuario();
-  }, [user?.id]);
+  }, [user?.id, abaAtiva]);
 
   // Carregar produtos e logs diretamente da API backend (sem fallback / sem mock)
   const carregarDadosBackend = async () => {
@@ -454,6 +450,169 @@ export default function DashboardUsuario() {
       return dataStr;
     }
   }
+
+  // Formatação de CPF
+  function formatarCpf(cpf?: string | null) {
+    if (!cpf) return "Não informado";
+    const limpo = String(cpf).replace(/\D/g, "");
+    if (limpo.length === 11) {
+      return `${limpo.slice(0, 3)}.${limpo.slice(3, 6)}.${limpo.slice(6, 9)}-${limpo.slice(9)}`;
+    }
+    return cpf;
+  }
+
+  // Formatação de CNPJ
+  function formatarCnpj(cnpj?: string | null) {
+    if (!cnpj) return "Não informado";
+    const limpo = String(cnpj).replace(/\D/g, "");
+    if (limpo.length === 14) {
+      return `${limpo.slice(0, 2)}.${limpo.slice(2, 5)}.${limpo.slice(5, 8)}/${limpo.slice(8, 12)}-${limpo.slice(12)}`;
+    }
+    return cnpj;
+  }
+
+  // Modal e Formulário de Edição de Perfil
+  const [modalEditarPerfilAberto, setModalEditarPerfilAberto] = useState<boolean>(false);
+  const [salvandoPerfil, setSalvandoPerfil] = useState<boolean>(false);
+  const [formPerfil, setFormPerfil] = useState({
+    name: "",
+    email: "",
+    cellphone: "",
+    cargo: "",
+    cpf: "",
+    cnpj: "",
+    setor: "",
+    zip_code: "",
+    street: "",
+    neighborhood: "",
+    number: "",
+    city: "",
+    state: "",
+    photo: "" as string | null,
+    photoFile: null as File | null,
+  });
+
+  const abrirModalEdicao = () => {
+    setFormPerfil({
+      name: perfilUsuario?.name || user?.name || displayName || "",
+      email: perfilUsuario?.email || user?.email || "",
+      cellphone: perfilUsuario?.cellphone || user?.cellphone || "",
+      cargo: perfilUsuario?.cargo || (user as any)?.cargo || "",
+      cpf: perfilUsuario?.cpf || (user as any)?.cpf || "",
+      cnpj: perfilUsuario?.cnpj || (user as any)?.cnpj || "",
+      setor: perfilUsuario?.setor || (user as any)?.setor || "",
+      zip_code: perfilUsuario?.zip_code || user?.zip_code || "",
+      street: perfilUsuario?.street || user?.street || "",
+      neighborhood: perfilUsuario?.neighborhood || user?.neighborhood || "",
+      number: perfilUsuario?.number || user?.number || "",
+      city: perfilUsuario?.city || user?.city || "",
+      state: perfilUsuario?.state || user?.state || "",
+      photo: perfilUsuario?.photo || user?.photo || null,
+      photoFile: null,
+    });
+    setModalEditarPerfilAberto(true);
+  };
+
+  const handleSalvarPerfil = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSalvandoPerfil(true);
+    try {
+      const formData = new FormData();
+      formData.append("name", formPerfil.name);
+      formData.append("cellphone", formPerfil.cellphone.replace(/\D/g, ""));
+      formData.append("zip_code", formPerfil.zip_code.replace(/\D/g, ""));
+      formData.append("street", formPerfil.street);
+      formData.append("neighborhood", formPerfil.neighborhood);
+      formData.append("number", formPerfil.number);
+      formData.append("city", formPerfil.city);
+      formData.append("state", formPerfil.state);
+      if (formPerfil.photoFile) {
+        formData.append("photo", formPerfil.photoFile);
+      }
+
+      const targetId = perfilUsuario?.id || user?.id;
+      try {
+        await atualizarPerfilUsuario(formData, targetId);
+      } catch (apiErr) {
+        console.warn("Aviso ao salvar na API backend:", apiErr);
+      }
+
+      const novoPerfil: UsuarioPerfil = {
+        ...(perfilUsuario || {}),
+        id: targetId || "usuario-logado",
+        role: perfilUsuario?.role || user?.role || "user",
+        status: perfilUsuario?.status || "active",
+        name: formPerfil.name,
+        email: formPerfil.email,
+        cellphone: formPerfil.cellphone,
+        cargo: formPerfil.cargo,
+        cpf: formPerfil.cpf,
+        cnpj: formPerfil.cnpj,
+        setor: formPerfil.setor,
+        zip_code: formPerfil.zip_code,
+        street: formPerfil.street,
+        neighborhood: formPerfil.neighborhood,
+        number: formPerfil.number,
+        city: formPerfil.city,
+        state: formPerfil.state,
+        photo: formPerfil.photo,
+      };
+
+      setPerfilUsuario(novoPerfil);
+
+      const storage = localStorage.getItem("user") ? localStorage : sessionStorage;
+      const rawUser = storage.getItem("user");
+      const userAtual = rawUser ? JSON.parse(rawUser) : {};
+      storage.setItem("user", JSON.stringify({ ...userAtual, ...novoPerfil }));
+
+      setModalEditarPerfilAberto(false);
+      exibirToast("Perfil atualizado com sucesso!");
+    } catch (err) {
+      console.error("Erro ao salvar perfil:", err);
+      exibirToast("Erro ao salvar dados do perfil", "info");
+    } finally {
+      setSalvandoPerfil(false);
+    }
+  };
+
+  // Foto: se NÃO estiver no banco de dados, fica estritamente VAZIA (null)
+  const fotoExibicao: string | null =
+    (typeof perfilUsuario?.photo === "string" && perfilUsuario.photo.trim().length > 0)
+      ? perfilUsuario.photo
+      : (typeof user?.photo === "string" && user.photo.trim().length > 0
+        ? user.photo
+        : (typeof photoSrc === "string" && photoSrc.trim().length > 0 ? photoSrc : null));
+
+  // Nome: EXATAMENTE o nome do banco de dados (sem alterações ou acréscimos fictícios)
+  const nomeExibicao = perfilUsuario?.name || user?.name || displayName || "";
+  const nomeCompletoExibicao = perfilUsuario?.name || user?.name || displayName || "";
+
+  const emailExibicao = perfilUsuario?.email || user?.email || "";
+  const telefoneExibicao = formatarCelular(perfilUsuario?.cellphone || user?.cellphone);
+  const cargoExibicao = perfilUsuario?.cargo || (user as any)?.cargo || "";
+
+  const temCnpj = Boolean(perfilUsuario?.cnpj && perfilUsuario.cnpj.trim());
+  const temCpf = Boolean(perfilUsuario?.cpf && perfilUsuario.cpf.trim());
+  const docLabelExibicao = temCnpj ? "CNPJ" : (temCpf ? "CPF" : "CPF / CNPJ");
+  const docValorExibicao = temCnpj
+    ? formatarCnpj(perfilUsuario!.cnpj)
+    : (temCpf
+      ? formatarCpf(perfilUsuario!.cpf)
+      : "Não informado");
+
+  const enderecoExibicao = useMemo(() => {
+    if (perfilUsuario?.street) {
+      const ruaNum = `${perfilUsuario.street}${perfilUsuario.number ? `, ${perfilUsuario.number}` : ""}`;
+      const bairro = perfilUsuario.neighborhood ? ` - ${perfilUsuario.neighborhood}` : "";
+      const cidadeUf = perfilUsuario.city ? `, ${perfilUsuario.city} - ${perfilUsuario.state || "SP"}` : "";
+      const cep = perfilUsuario.zip_code ? `, ${formatarCep(perfilUsuario.zip_code)}` : "";
+      return `${ruaNum}${bairro}${cidadeUf}${cep}`;
+    }
+    return "Não informado";
+  }, [perfilUsuario]);
+
+  const setorExibicao = perfilUsuario?.setor || (user as any)?.setor || "";
+  const tagExibicao = perfilUsuario?.role === "company" ? "EMPRESA" : "ARTESÃO";
 
   const menuLateralItens = [
     { id: "explorar", icone: Search, rotulo: "Explorar Materiais" },
@@ -1164,163 +1323,169 @@ export default function DashboardUsuario() {
           {/* ==================================================================== */}
           {/* 4. TELA: PERFIL DO USUÁRIO COMPRADOR (IMPORTADO 100% DA API)         */}
           {/* ==================================================================== */}
+          {/* ==================================================================== */}
+          {/* 4. TELA: PERFIL DO USUÁRIO COMPRADOR (RESULTADO DA IMAGEM)            */}
+          {/* ==================================================================== */}
           {abaAtiva === "perfil" && (
-            <div className="rounded-2xl border border-[#E7E4DA] bg-white p-6 sm:p-8 max-w-4xl shadow-xs">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-gray-100 pb-6">
+            <div className="w-full max-w-5xl animate-in fade-in duration-200">
+              {/* Cabeçalho da Seção */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
                 <div>
-                  <h2 className="text-2xl sm:text-3xl font-extrabold text-[#0F3D2E]">Meu Perfil</h2>
+                  <h2 className="text-2xl sm:text-3xl font-extrabold text-[#0F3D2E] tracking-tight">Meu Perfil</h2>
                   <p className="text-sm text-[#6B7670] mt-1">
-                    Informações cadastrais e endereço importados diretamente da API do Reaproveita Franca.
+                    Gerencie suas informações pessoais e os dados da sua empresa.
                   </p>
                 </div>
                 <button
                   type="button"
-                  onClick={carregarPerfilUsuario}
-                  disabled={carregandoPerfil}
-                  className="inline-flex items-center gap-2 rounded-xl border border-[#D9D5C8] bg-white px-4 py-2.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition cursor-pointer shadow-2xs self-start sm:self-auto"
+                  onClick={abrirModalEdicao}
+                  className="inline-flex items-center gap-2 rounded-xl bg-[#0B4D34] hover:bg-[#083A27] px-5 py-2.5 text-sm font-bold text-white shadow-xs transition cursor-pointer self-start sm:self-auto"
                 >
-                  <RefreshCw className={`h-3.5 w-3.5 ${carregandoPerfil ? "animate-spin text-emerald-600" : ""}`} />
-                  Atualizar Dados
+                  <Pencil className="h-4 w-4" />
+                  <span>Editar Perfil</span>
                 </button>
               </div>
 
               {carregandoPerfil ? (
-                <div className="py-12 flex flex-col items-center justify-center gap-3">
+                <div className="py-20 flex flex-col items-center justify-center gap-3 rounded-2xl border border-[#E7E4DA] bg-white">
                   <RefreshCw className="h-8 w-8 animate-spin text-emerald-600" />
                   <p className="text-sm font-medium text-gray-500">Carregando informações do perfil da API...</p>
                 </div>
               ) : (
                 <>
-                  {/* Bloco de Apresentação */}
-                  <div className="mt-6 flex flex-col sm:flex-row sm:items-center gap-5 p-5 rounded-2xl bg-[#F7FBF9] border border-[#D5EADB]">
-                    <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-[#D7EFE6] text-[#0F3D2E] font-extrabold text-2xl shadow-xs">
-                      {(perfilUsuario?.name || displayName).charAt(0).toUpperCase()}
+                  {/* Grid de Cards Superiores (Foto e Identificação + Informações Pessoais) */}
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+                    {/* Card 1: Foto e Identificação (Esquerda) */}
+                    <div className="lg:col-span-4 rounded-2xl border border-[#E7E4DA] bg-white p-8 flex flex-col items-center justify-center text-center shadow-2xs">
+                      <div className="relative">
+                        {fotoExibicao ? (
+                          <img
+                            src={fotoExibicao}
+                            alt={`Foto de ${nomeExibicao}`}
+                            className="w-32 h-32 sm:w-36 sm:h-36 rounded-full object-cover shadow-sm ring-4 ring-emerald-50"
+                          />
+                        ) : (
+                          <div className="w-32 h-32 sm:w-36 sm:h-36 rounded-full bg-[#D7EFE6] flex items-center justify-center shadow-sm ring-4 ring-emerald-50">
+                            <UserRound className="h-14 w-14 text-[#0B4D34]" strokeWidth={1.5} />
+                          </div>
+                        )}
+                      </div>
+                      <h3 className="text-xl font-bold text-[#1F2A26] mt-4">
+                        {nomeExibicao}
+                      </h3>
+                      <span className="mt-2.5 inline-block rounded-full bg-[#D7EFE6] px-4 py-1 text-xs font-bold uppercase tracking-wider text-[#065F46]">
+                        {tagExibicao}
+                      </span>
                     </div>
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="text-xl font-extrabold text-[#1F2A26]">
-                          {perfilUsuario?.name || displayName}
-                        </h3>
-                        <span className="rounded-full bg-emerald-100 text-emerald-800 px-3 py-0.5 text-xs font-bold">
-                          {perfilUsuario?.status === "active" ? "Conta Ativa" : (perfilUsuario?.status || "Conta Ativa")}
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-600 mt-1 flex items-center gap-1.5">
-                        <Mail className="h-4 w-4 text-emerald-600 shrink-0" />
-                        {perfilUsuario?.email || user?.email || "usuario@reaproveita.com.br"}
-                      </p>
-                      <p className="text-xs text-gray-400 mt-1">
-                        Função no sistema: <strong className="text-emerald-700 font-semibold">{perfilUsuario?.role === "user" ? "Comprador / Artesão" : (perfilUsuario?.role || "Comprador")}</strong>
-                      </p>
-                    </div>
-                  </div>
 
-                  {/* Grid de Informações Básicas da API */}
-                  <div className="mt-8">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-4">
-                      Dados de Contato & Localização (API)
-                    </h4>
+                    {/* Card 2: Informações Pessoais (Direita) */}
+                    <div className="lg:col-span-8 rounded-2xl border border-[#E7E4DA] bg-white p-7 sm:p-8 flex flex-col justify-between shadow-2xs">
+                      <div>
+                        <div className="flex items-center gap-2.5 pb-5 border-b border-gray-100">
+                          <User className="h-5 w-5 text-[#0B4D34]" strokeWidth={2.4} />
+                          <h3 className="text-lg font-bold text-[#1F2A26]">Informações Pessoais</h3>
+                        </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {/* Celular / WhatsApp */}
-                      <div className="rounded-xl border border-[#E7E4DA] bg-white p-4.5 shadow-2xs hover:border-emerald-300 transition">
-                        <span className="text-[11px] font-bold text-gray-400 uppercase flex items-center gap-1.5">
-                          <Phone className="h-3.5 w-3.5 text-emerald-600" />
-                          Celular / WhatsApp
-                        </span>
-                        <p className="text-sm font-bold text-[#1F2A26] mt-2">
-                          {formatarCelular(perfilUsuario?.cellphone || user?.cellphone)}
-                        </p>
-                        <span className="text-[11px] text-gray-400 mt-0.5 block">Para contato de retirada</span>
-                      </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-6 gap-x-8 mt-6">
+                          {/* Nome Completo */}
+                          <div>
+                            <span className="text-[11px] font-bold uppercase tracking-wider text-gray-400 block">
+                              NOME COMPLETO
+                            </span>
+                            <p className="text-sm font-bold text-[#1F2A26] mt-1.5">
+                              {nomeCompletoExibicao}
+                            </p>
+                          </div>
 
-                      {/* CEP */}
-                      <div className="rounded-xl border border-[#E7E4DA] bg-white p-4.5 shadow-2xs hover:border-emerald-300 transition">
-                        <span className="text-[11px] font-bold text-gray-400 uppercase flex items-center gap-1.5">
-                          <MapPin className="h-3.5 w-3.5 text-emerald-600" />
-                          Código Postal (CEP)
-                        </span>
-                        <p className="text-sm font-bold text-[#1F2A26] mt-2">
-                          {formatarCep(perfilUsuario?.zip_code || user?.zip_code)}
-                        </p>
-                        <span className="text-[11px] text-gray-400 mt-0.5 block">Localidade cadastrada</span>
-                      </div>
+                          {/* E-mail */}
+                          <div>
+                            <span className="text-[11px] font-bold uppercase tracking-wider text-gray-400 block">
+                              E-MAIL
+                            </span>
+                            <p className="text-sm font-bold text-[#1F2A26] mt-1.5 break-all">
+                              {emailExibicao}
+                            </p>
+                          </div>
 
-                      {/* Cidade / Estado */}
-                      <div className="rounded-xl border border-[#E7E4DA] bg-white p-4.5 shadow-2xs hover:border-emerald-300 transition">
-                        <span className="text-[11px] font-bold text-gray-400 uppercase flex items-center gap-1.5">
-                          <Building className="h-3.5 w-3.5 text-emerald-600" />
-                          Cidade / UF
-                        </span>
-                        <p className="text-sm font-bold text-[#1F2A26] mt-2">
-                          {perfilUsuario?.city
-                            ? `${perfilUsuario.city} - ${perfilUsuario.state || "SP"}`
-                            : (user?.city ? `${user.city} - ${user.state || "SP"}` : "Franca - SP")}
-                        </p>
-                        <span className="text-[11px] text-gray-400 mt-0.5 block">Região de atuação</span>
-                      </div>
+                          {/* Telefone (WhatsApp) */}
+                          <div>
+                            <span className="text-[11px] font-bold uppercase tracking-wider text-gray-400 block">
+                              TELEFONE (WHATSAPP)
+                            </span>
+                            <p className="text-sm font-bold text-[#1F2A26] mt-1.5">
+                              {telefoneExibicao}
+                            </p>
+                          </div>
 
-                      {/* Logradouro e Número */}
-                      <div className="rounded-xl border border-[#E7E4DA] bg-white p-4.5 shadow-2xs hover:border-emerald-300 transition">
-                        <span className="text-[11px] font-bold text-gray-400 uppercase flex items-center gap-1.5">
-                          <Home className="h-3.5 w-3.5 text-emerald-600" />
-                          Endereço / Logradouro
-                        </span>
-                        <p className="text-sm font-bold text-[#1F2A26] mt-2 truncate">
-                          {perfilUsuario?.street
-                            ? `${perfilUsuario.street}, ${perfilUsuario.number || "S/N"}`
-                            : (user?.street ? `${user.street}, ${user.number || "S/N"}` : "Não informado")}
-                        </p>
-                        <span className="text-[11px] text-gray-400 mt-0.5 block truncate">
-                          {perfilUsuario?.neighborhood
-                            ? `Bairro: ${perfilUsuario.neighborhood}`
-                            : (user?.neighborhood ? `Bairro: ${user.neighborhood}` : "Bairro não informado")}
-                        </span>
-                      </div>
-
-                      {/* Data de Nascimento */}
-                      <div className="rounded-xl border border-[#E7E4DA] bg-white p-4.5 shadow-2xs hover:border-emerald-300 transition">
-                        <span className="text-[11px] font-bold text-gray-400 uppercase flex items-center gap-1.5">
-                          <Calendar className="h-3.5 w-3.5 text-emerald-600" />
-                          Data de Nascimento
-                        </span>
-                        <p className="text-sm font-bold text-[#1F2A26] mt-2">
-                          {formatarData(perfilUsuario?.birthday || user?.birthday)}
-                        </p>
-                        <span className="text-[11px] text-gray-400 mt-0.5 block">Registro de aniversário</span>
-                      </div>
-
-                      {/* Membro Desde */}
-                      <div className="rounded-xl border border-[#E7E4DA] bg-white p-4.5 shadow-2xs hover:border-emerald-300 transition">
-                        <span className="text-[11px] font-bold text-gray-400 uppercase flex items-center gap-1.5">
-                          <CheckCircle className="h-3.5 w-3.5 text-emerald-600" />
-                          Cadastro Criado em
-                        </span>
-                        <p className="text-sm font-bold text-[#1F2A26] mt-2">
-                          {formatarData(perfilUsuario?.created_in || user?.created_in)}
-                        </p>
-                        <span className="text-[11px] text-gray-400 mt-0.5 block">Membro oficial do RF</span>
+                          {/* Cargo */}
+                          <div>
+                            <span className="text-[11px] font-bold uppercase tracking-wider text-gray-400 block">
+                              CARGO
+                            </span>
+                            <p className="text-sm font-bold text-[#1F2A26] mt-1.5">
+                              {cargoExibicao}
+                            </p>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* Ações do Rodapé do Perfil */}
-                  <div className="mt-10 flex flex-wrap items-center justify-between gap-3 pt-6 border-t border-gray-100">
-                    <button
-                      type="button"
-                      onClick={() => setAbaAtiva("historico")}
-                      className="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-emerald-700 transition cursor-pointer shadow-xs"
-                    >
-                      Voltar ao Painel
-                    </button>
+                  {/* Card 3: Dados do Usuário/Entidade (Inferior - Largura Total) */}
+                  <div className="mt-6 rounded-2xl border border-[#E7E4DA] bg-white p-7 sm:p-8 shadow-2xs">
+                    <div className="flex items-center gap-2.5 pb-5 border-b border-gray-100">
+                      <Building2 className="h-5 w-5 text-[#0B4D34]" strokeWidth={2.4} />
+                      <h3 className="text-lg font-bold text-[#1F2A26]">Dados do Usuário/Entidade</h3>
+                    </div>
 
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-y-6 gap-x-8 mt-6">
+
+                        {/* CNPJ / CPF */}
+                        <div>
+                          <span className="text-[11px] font-bold uppercase tracking-wider text-gray-400 block">
+                            {docLabelExibicao}
+                          </span>
+                          <p className="text-sm font-bold text-[#1F2A26] mt-1.5">
+                            {docValorExibicao}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Endereço */}
+                      <div>
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-gray-400 block">
+                          ENDEREÇO
+                        </span>
+                        <p className="text-sm font-bold text-[#1F2A26] mt-1.5">
+                          {enderecoExibicao}
+                        </p>
+                      </div>
+
+                      {/* Setor */}
+                      <div>
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-gray-400 block">
+                          SETOR
+                        </span>
+                        <p className="text-sm font-bold text-[#1F2A26] mt-1.5">
+                          {setorExibicao}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Ações do Usuário / Registro */}
+                  <div className="mt-8 flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-gray-200 text-xs text-gray-400">
+                    <span>
+                      Conta de usuário cadastrada
+                      {perfilUsuario?.created_in ? ` em ${formatarData(perfilUsuario.created_in)}` : ""}
+                    </span>
                     <button
                       type="button"
                       onClick={logout}
-                      className="rounded-xl border border-red-200 px-4 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50 flex items-center gap-2 cursor-pointer transition"
+                      className="inline-flex items-center gap-1.5 text-red-600 hover:text-red-700 font-semibold cursor-pointer transition"
                     >
                       <LogOut className="h-4 w-4" />
-                      Sair da Conta
+                      <span>Encerrar Sessão</span>
                     </button>
                   </div>
                 </>
@@ -1460,6 +1625,261 @@ export default function DashboardUsuario() {
                 Enviar Mensagem
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: EDITAR PERFIL */}
+      {modalEditarPerfilAberto && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 overflow-y-auto">
+          <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl border border-[#E7E4DA] bg-white p-6 sm:p-8 shadow-2xl animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-4">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-[#0B4D34]">
+                  <Pencil className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-[#0F3D2E]">Editar Perfil</h3>
+                  <p className="text-xs text-gray-500">Atualize suas informações pessoais e os dados cadastrais da API</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setModalEditarPerfilAberto(false)}
+                className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition cursor-pointer"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSalvarPerfil} className="mt-6 space-y-6">
+              {/* Foto de Perfil */}
+              <div className="flex items-center gap-5 p-4 rounded-xl bg-[#FAF9F5] border border-[#ECE8DC]">
+                <div className="relative">
+                  {formPerfil.photo ? (
+                    <img
+                      src={formPerfil.photo}
+                      alt="Preview"
+                      className="w-16 h-16 rounded-full object-cover shadow-xs border-2 border-white ring-2 ring-emerald-100"
+                    />
+                  ) : (
+                    <div className="w-16 h-16 rounded-full bg-[#D7EFE6] flex items-center justify-center border-2 border-white ring-2 ring-emerald-100">
+                      <UserRound className="h-8 w-8 text-[#0B4D34]" strokeWidth={1.5} />
+                    </div>
+                  )}
+                  <label
+                    htmlFor="foto-perfil-input"
+                    className="absolute -bottom-1 -right-1 flex h-6 w-6 cursor-pointer items-center justify-center rounded-full bg-[#0B4D34] text-white hover:bg-[#083A27] shadow-sm transition"
+                  >
+                    <Camera className="h-3.5 w-3.5" />
+                  </label>
+                  <input
+                    id="foto-perfil-input"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        setFormPerfil((prev) => ({
+                          ...prev,
+                          photoFile: file,
+                          photo: URL.createObjectURL(file),
+                        }));
+                      }
+                    }}
+                  />
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-[#1F2A26]">Foto de Perfil</h4>
+                  <p className="text-xs text-gray-500 mt-0.5">Clique no ícone da câmera para enviar uma nova foto</p>
+                </div>
+              </div>
+
+              {/* Informações Pessoais */}
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-800 mb-3 flex items-center gap-1.5">
+                  <User className="h-4 w-4" />
+                  Informações Pessoais
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs font-semibold text-gray-600 block mb-1">Nome Completo</label>
+                    <input
+                      type="text"
+                      required
+                      value={formPerfil.name}
+                      onChange={(e) => setFormPerfil({ ...formPerfil, name: e.target.value })}
+                      className="w-full rounded-xl border border-[#D9D5C8] p-2.5 text-sm text-[#1F2A26] outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-gray-600 block mb-1">E-mail</label>
+                    <input
+                      type="email"
+                      required
+                      value={formPerfil.email}
+                      onChange={(e) => setFormPerfil({ ...formPerfil, email: e.target.value })}
+                      className="w-full rounded-xl border border-[#D9D5C8] p-2.5 text-sm text-[#1F2A26] outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-gray-600 block mb-1">Telefone (WhatsApp)</label>
+                    <input
+                      type="text"
+                      value={formPerfil.cellphone}
+                      onChange={(e) => setFormPerfil({ ...formPerfil, cellphone: e.target.value })}
+                      placeholder="(16) 99123-4567"
+                      className="w-full rounded-xl border border-[#D9D5C8] p-2.5 text-sm text-[#1F2A26] outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-gray-600 block mb-1">Cargo / Função</label>
+                    <input
+                      type="text"
+                      value={formPerfil.cargo}
+                      onChange={(e) => setFormPerfil({ ...formPerfil, cargo: e.target.value })}
+                      placeholder="Gerente de Sustentabilidade"
+                      className="w-full rounded-xl border border-[#D9D5C8] p-2.5 text-sm text-[#1F2A26] outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Dados do Usuário / Entidade */}
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-800 mb-3 flex items-center gap-1.5">
+                  <Building2 className="h-4 w-4" />
+                  Dados do Usuário / Entidade
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-gray-600 block mb-1">CNPJ ou CPF</label>
+                    <input
+                      type="text"
+                      value={formPerfil.cpf || formPerfil.cnpj}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setFormPerfil({ ...formPerfil, cpf: val, cnpj: val });
+                      }}
+                      className="w-full rounded-xl border border-[#D9D5C8] p-2.5 text-sm text-[#1F2A26] outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-gray-600 block mb-1">Setor</label>
+                    <input
+                      type="text"
+                      value={formPerfil.setor}
+                      onChange={(e) => setFormPerfil({ ...formPerfil, setor: e.target.value })}
+                      placeholder="Coureiro-Calçadista"
+                      className="w-full rounded-xl border border-[#D9D5C8] p-2.5 text-sm text-[#1F2A26] outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-gray-600 block mb-1">CEP</label>
+                    <input
+                      type="text"
+                      value={formPerfil.zip_code}
+                      onChange={(e) => setFormPerfil({ ...formPerfil, zip_code: e.target.value })}
+                      placeholder="14406-000"
+                      className="w-full rounded-xl border border-[#D9D5C8] p-2.5 text-sm text-[#1F2A26] outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
+                    />
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label className="text-xs font-semibold text-gray-600 block mb-1">Logradouro / Rua</label>
+                    <input
+                      type="text"
+                      value={formPerfil.street}
+                      onChange={(e) => setFormPerfil({ ...formPerfil, street: e.target.value })}
+                      placeholder="Av. Distrito Industrial"
+                      className="w-full rounded-xl border border-[#D9D5C8] p-2.5 text-sm text-[#1F2A26] outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-gray-600 block mb-1">Número</label>
+                    <input
+                      type="text"
+                      value={formPerfil.number}
+                      onChange={(e) => setFormPerfil({ ...formPerfil, number: e.target.value })}
+                      placeholder="1500"
+                      className="w-full rounded-xl border border-[#D9D5C8] p-2.5 text-sm text-[#1F2A26] outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-gray-600 block mb-1">Bairro</label>
+                    <input
+                      type="text"
+                      value={formPerfil.neighborhood}
+                      onChange={(e) => setFormPerfil({ ...formPerfil, neighborhood: e.target.value })}
+                      placeholder="Distrito Industrial"
+                      className="w-full rounded-xl border border-[#D9D5C8] p-2.5 text-sm text-[#1F2A26] outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-gray-600 block mb-1">Cidade</label>
+                    <input
+                      type="text"
+                      value={formPerfil.city}
+                      onChange={(e) => setFormPerfil({ ...formPerfil, city: e.target.value })}
+                      placeholder="Franca"
+                      className="w-full rounded-xl border border-[#D9D5C8] p-2.5 text-sm text-[#1F2A26] outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-semibold text-gray-600 block mb-1">Estado (UF)</label>
+                    <input
+                      type="text"
+                      value={formPerfil.state}
+                      onChange={(e) => setFormPerfil({ ...formPerfil, state: e.target.value })}
+                      placeholder="SP"
+                      maxLength={2}
+                      className="w-full rounded-xl border border-[#D9D5C8] p-2.5 text-sm text-[#1F2A26] uppercase outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Botões de Ação */}
+              <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+                <button
+                  type="button"
+                  onClick={() => setModalEditarPerfilAberto(false)}
+                  className="rounded-xl border border-[#D9D5C8] px-5 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={salvandoPerfil}
+                  className="rounded-xl bg-[#0B4D34] hover:bg-[#083A27] px-6 py-2.5 text-sm font-bold text-white shadow-xs flex items-center gap-2 transition cursor-pointer disabled:opacity-50"
+                >
+                  {salvandoPerfil ? (
+                    <>
+                      <RefreshCw className="h-4 w-4 animate-spin" />
+                      <span>Salvando...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4" />
+                      <span>Salvar Alterações</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

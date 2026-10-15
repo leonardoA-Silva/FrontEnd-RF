@@ -5,9 +5,7 @@ import { useLoggedUser } from "../hooks/useLoggedUser";
 
 export default function Header() {
   const navigate = useNavigate();
-  const { isLoggedIn, role, displayName, photoSrc, logout } = useLoggedUser({
-    fallbackName: "Roberto de Oliveira",
-  });
+  const { isLoggedIn, role, displayName, photoSrc, logout } = useLoggedUser();
 
   const [menuUsuarioAberto, setMenuUsuarioAberto] = useState(false);
   const [menuMovelAberto, setMenuMovelAberto] = useState(false);

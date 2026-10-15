@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 
-export function useLoggedUser({ fallbackName = "Roberto de Oliveira" }: { fallbackName?: string } = {}) {
+export function useLoggedUser({ fallbackName = "" }: { fallbackName?: string } = {}) {
   const [user, setUser] = useState<any>(() => {
     try {
       const raw = localStorage.getItem("user") ?? sessionStorage.getItem("user");
