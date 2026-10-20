@@ -25,10 +25,16 @@ import {
   Pencil,
   Camera,
   Save,
+  QrCode,
 } from "lucide-react";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import { useLoggedUser } from "../../hooks/useLoggedUser";
+import ResiduoDetalheModal from "./comprador/ResiduoDetalheModal";
+import SolicitarReservaModal, { type DadosReservaFinalizada } from "./comprador/SolicitarReservaModal";
+import QrCodeRetiradaModal from "./comprador/QrCodeRetiradaModal";
+import AvaliacaoColetaModal from "./comprador/AvaliacaoColetaModal";
+import ChatReservaModal from "./comprador/ChatReservaModal";
 import {
   listarProdutos,
   listarLogs,
@@ -95,9 +101,49 @@ export default function DashboardUsuario() {
     }
   });
 
-  // Modais e alertas
-  const [itemSelecionado, setItemSelecionado] = useState<ProductBackend | null>(null);
-  const [modalContatoAberto, setModalContatoAberto] = useState<boolean>(false);
+  // Detalhes completos das reservas do comprador (com código, data, turno, etc.)
+  const [reservasDetalhes, setReservasDetalhes] = useState<DadosReservaFinalizada[]>(() => {
+    try {
+      const storageKey = `rf_comprador_reservas_detalhes_${user?.id || "padrao"}`;
+      const salvas = localStorage.getItem(storageKey);
+      return salvas ? JSON.parse(salvas) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  // Sincronizar detalhes de reservas
+  useEffect(() => {
+    try {
+      const storageKey = `rf_comprador_reservas_detalhes_${user?.id || "padrao"}`;
+      localStorage.setItem(storageKey, JSON.stringify(reservasDetalhes));
+    } catch (e) {
+      console.warn("Falha ao salvar detalhes de reservas:", e);
+    }
+  }, [reservasDetalhes, user?.id]);
+
+  // Modais do fluxo Figma
+  const [modalDetalhesAberto, setModalDetalhesAberto] = useState<boolean>(false);
+  const [produtoDetalhes, setProdutoDetalhes] = useState<ProductBackend | null>(null);
+
+  const [modalSolicitarReservaAberto, setModalSolicitarReservaAberto] = useState<boolean>(false);
+  const [produtoParaReserva, setProdutoParaReserva] = useState<ProductBackend | null>(null);
+
+  const [modalQrCodeAberto, setModalQrCodeAberto] = useState<boolean>(false);
+  const [dadosQrCode, setDadosQrCode] = useState<{
+    produto: ProductBackend;
+    codigo: string;
+    quantidade: number;
+    dataRetirada?: string;
+  } | null>(null);
+
+  const [modalAvaliacaoAberto, setModalAvaliacaoAberto] = useState<boolean>(false);
+  const [produtoParaAvaliar, setProdutoParaAvaliar] = useState<ProductBackend | null>(null);
+
+  const [modalChatAberto, setModalChatAberto] = useState<boolean>(false);
+  const [produtoParaChat, setProdutoParaChat] = useState<ProductBackend | null>(null);
+
+  // Alertas
   const [mensagemToast, setMensagemToast] = useState<{ tipo: "sucesso" | "info"; texto: string } | null>(null);
 
   // Sincronizar IDs de reservas locais por usuário
@@ -291,33 +337,42 @@ export default function DashboardUsuario() {
     return lista;
   }, [logs, materiaisReservadosApi]);
 
-  // Ação de Reservar Material no Backend (Comprador)
-  async function handleReservarMaterial(prod: ProductBackend) {
+  // Ação de Confirmar Reserva Completa (Fluxo Multietapas do Figma)
+  async function handleConfirmarReserva(dados: DadosReservaFinalizada) {
     try {
       // 1. Atualiza na lista de IDs reservados localmente
-      if (!reservasIdsUsuario.includes(prod.id)) {
-        setReservasIdsUsuario((prev) => [...prev, prod.id]);
+      if (!reservasIdsUsuario.includes(dados.produtoId)) {
+        setReservasIdsUsuario((prev) => [...prev, dados.produtoId]);
       }
 
-      // 2. Envia atualização de status para o backend se suportado
-      try {
-        await atualizarProduto(prod.id, {
-          name: prod.name,
-          category: prod.category,
-          type_negotiation: prod.type_negotiation,
-          weight: prod.weight,
-          conservation_state: prod.conservation_state,
-          id_localization: prod.id_localization,
-          status: "reserved",
-        });
-      } catch (errPut) {
-        console.warn("Tentativa de atualizar status do produto no backend:", errPut);
+      // 2. Salva os detalhes completos da reserva (código, data, quantidade, etc.)
+      setReservasDetalhes((prev) => {
+        const filtradas = prev.filter((r) => r.produtoId !== dados.produtoId);
+        return [dados, ...filtradas];
+      });
+
+      // 3. Atualiza status na API backend (tabela product)
+      const prod = produtos.find((p) => p.id === dados.produtoId);
+      if (prod) {
+        try {
+          await atualizarProduto(prod.id, {
+            name: prod.name,
+            category: prod.category,
+            type_negotiation: prod.type_negotiation,
+            weight: prod.weight,
+            conservation_state: prod.conservation_state,
+            id_localization: prod.id_localization,
+            status: "reserved",
+          });
+        } catch (errPut) {
+          console.warn("Tentativa de atualizar status do produto no backend:", errPut);
+        }
       }
 
-      // 3. Registra log de auditoria no backend
+      // 4. Registra log de auditoria na API (tabela log)
       try {
         await criarLog({
-          reference_id: prod.id,
+          reference_id: dados.produtoId,
           status: "reserved",
           operation: "reserva",
           table: "product",
@@ -326,13 +381,11 @@ export default function DashboardUsuario() {
         console.warn("Tentativa de registrar log no backend:", errLog);
       }
 
-      // 4. Atualiza os dados da API
+      // 5. Atualiza os dados locais
       await carregarDadosBackend();
-
-      setItemSelecionado(null);
-      exibirToast(`Reserva realizada para "${prod.name}"! Acompanhe em Minhas Reservas.`);
+      exibirToast(`Reserva #${dados.codigo} registrada com sucesso!`);
     } catch (e: any) {
-      console.error("Erro ao reservar:", e);
+      console.error("Erro ao confirmar reserva:", e);
       exibirToast("Erro ao processar a reserva.", "info");
     }
   }
@@ -341,6 +394,7 @@ export default function DashboardUsuario() {
   async function handleCancelarReserva(prodId: string) {
     try {
       setReservasIdsUsuario((prev) => prev.filter((id) => id !== prodId));
+      setReservasDetalhes((prev) => prev.filter((r) => r.produtoId !== prodId));
 
       const prod = produtos.find((p) => p.id === prodId);
       if (prod) {
@@ -872,7 +926,10 @@ export default function DashboardUsuario() {
                       {materiaisReservadosApi.slice(0, 5).map((prod) => (
                         <div
                           key={prod.id}
-                          onClick={() => setItemSelecionado(prod)}
+                          onClick={() => {
+                            setProdutoDetalhes(prod);
+                            setModalDetalhesAberto(true);
+                          }}
                           className="flex items-center justify-between py-4 hover:bg-gray-50/70 px-2 rounded-xl transition cursor-pointer"
                         >
                           <div className="min-w-0 pr-3">
@@ -1149,7 +1206,10 @@ export default function DashboardUsuario() {
                     {produtosExplorarFiltrados.map((prod) => (
                       <div
                         key={prod.id}
-                        onClick={() => setItemSelecionado(prod)}
+                        onClick={() => {
+                          setProdutoDetalhes(prod);
+                          setModalDetalhesAberto(true);
+                        }}
                         className="flex flex-col justify-between rounded-2xl border border-[#E7E4DA] bg-white p-5 shadow-xs hover:shadow-md hover:border-emerald-500/50 transition cursor-pointer group"
                       >
                         <div>
@@ -1195,7 +1255,8 @@ export default function DashboardUsuario() {
                               type="button"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleReservarMaterial(prod);
+                                setProdutoParaReserva(prod);
+                                setModalSolicitarReservaAberto(true);
                               }}
                               className="rounded-lg bg-emerald-600 hover:bg-emerald-700 px-3 py-1.5 text-xs font-bold text-white shadow-xs transition cursor-pointer"
                             >
@@ -1257,64 +1318,129 @@ export default function DashboardUsuario() {
               ) : (
                 /* LISTAGEM DOS MATERIAIS RESERVADOS DA API */
                 <div className="grid grid-cols-1 gap-4">
-                  {materiaisReservadosApi.map((prod) => (
-                    <div
-                      key={prod.id}
-                      className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-[#E7E4DA] bg-white p-5 shadow-xs"
-                    >
-                      <div className="flex items-start gap-4">
-                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#D7EFE6] text-emerald-700 font-bold">
-                          <Package className="h-6 w-6" />
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-[11px] font-semibold text-gray-700">
-                              {formatarCategoria(prod.category)}
-                            </span>
-                            <span className="rounded-full bg-amber-100 text-amber-800 px-2.5 py-0.5 text-[11px] font-bold">
-                              Reserva Ativa
-                            </span>
+                  {materiaisReservadosApi.map((prod) => {
+                    const detalhe = reservasDetalhes.find((r) => r.produtoId === prod.id);
+                    const codigoReserva = detalhe?.codigo || `RF-${prod.id.slice(0, 5).toUpperCase()}`;
+                    const qtdReserva = detalhe?.quantidade || prod.quantity || 1;
+                    const dataColeta = detalhe?.dataRetirada
+                      ? (() => {
+                          try {
+                            const [ano, mes, dia] = detalhe.dataRetirada.split("-");
+                            return `${dia}/${mes}/${ano}`;
+                          } catch {
+                            return detalhe.dataRetirada;
+                          }
+                        })()
+                      : null;
+
+                    return (
+                      <div
+                        key={prod.id}
+                        className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 rounded-2xl border border-[#E7E4DA] bg-white p-5 sm:p-6 shadow-xs hover:border-emerald-500/40 transition"
+                      >
+                        <div className="flex items-start gap-4">
+                          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#D7EFE6] text-emerald-800 font-bold">
+                            <Package className="h-7 w-7 text-emerald-700" />
                           </div>
-                          <h3 className="text-base font-bold text-[#1F2A26] mt-1">{prod.name}</h3>
-                          <p className="text-xs text-gray-500 mt-0.5">
-                            Peso: {prod.weight} kg • Quantidade: {prod.quantity} un • Conservação: {formatarEstadoConservacao(prod.conservation_state)}
-                          </p>
+                          <div>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="font-mono text-xs font-extrabold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-lg">
+                                #{codigoReserva}
+                              </span>
+                              <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-[11px] font-semibold text-gray-700">
+                                {formatarCategoria(prod.category)}
+                              </span>
+                              <span className="rounded-full bg-amber-100 text-amber-800 px-2.5 py-0.5 text-[11px] font-bold">
+                                {detalhe?.status === "aprovada"
+                                  ? "Pronta para Coleta"
+                                  : "Aguardando Aprovação"}
+                              </span>
+                            </div>
+                            <h3 className="text-base sm:text-lg font-bold text-[#1F2A26] mt-1.5">{prod.name}</h3>
+                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500 mt-1">
+                              <span>Qtd: <strong>{qtdReserva} un</strong></span>
+                              <span>Peso ref: {prod.weight} kg</span>
+                              <span>Conservação: <strong>{formatarEstadoConservacao(prod.conservation_state)}</strong></span>
+                              {dataColeta && <span>Coleta prevista: <strong>{dataColeta}</strong></span>}
+                              {detalhe?.finalidade && (
+                                <span className="text-emerald-700">Uso: {detalhe.finalidade}</span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between lg:justify-end gap-4 pt-4 lg:pt-0 border-t lg:border-t-0 border-gray-100">
+                          <div className="text-left lg:text-right">
+                            <p className="text-[10px] font-bold uppercase text-gray-400">VALOR TOTAL</p>
+                            <p className="text-lg font-extrabold text-[#0F3D2E]">
+                              {detalhe && detalhe.valorTotal > 0
+                                ? `R$ ${detalhe.valorTotal.toFixed(2)}`
+                                : formatarPreco(prod.price, prod.type_negotiation)}
+                            </p>
+                          </div>
+
+                          <div className="flex flex-wrap items-center gap-2">
+                            {/* Botão Ver QR Code */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setDadosQrCode({
+                                  produto: prod,
+                                  codigo: codigoReserva,
+                                  quantidade: qtdReserva,
+                                  dataRetirada: dataColeta || undefined,
+                                });
+                                setModalQrCodeAberto(true);
+                              }}
+                              className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-50 border border-emerald-200 px-3.5 py-2 text-xs font-bold text-emerald-800 hover:bg-emerald-100 transition cursor-pointer shadow-2xs"
+                              title="Ver QR Code de Retirada"
+                            >
+                              <QrCode className="h-4 w-4 text-emerald-700" />
+                              <span>QR Code</span>
+                            </button>
+
+                            {/* Botão Falar com a Fábrica */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setProdutoParaChat(prod);
+                                setModalChatAberto(true);
+                              }}
+                              className="inline-flex items-center gap-1.5 rounded-xl border border-[#D9D5C8] bg-white px-3.5 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition cursor-pointer shadow-2xs"
+                              title="Mensagens com a fábrica"
+                            >
+                              <MessageSquare className="h-4 w-4 text-emerald-700" />
+                              <span className="hidden sm:inline">Mensagens</span>
+                            </button>
+
+                            {/* Botão Avaliar Coleta */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setProdutoParaAvaliar(prod);
+                                setModalAvaliacaoAberto(true);
+                              }}
+                              className="inline-flex items-center gap-1.5 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-800 hover:bg-amber-100 transition cursor-pointer shadow-2xs"
+                              title="Avaliar Coleta"
+                            >
+                              <Star className="h-4 w-4 text-amber-500 fill-amber-400" />
+                              <span className="hidden sm:inline">Avaliar</span>
+                            </button>
+
+                            {/* Botão Cancelar */}
+                            <button
+                              type="button"
+                              onClick={() => handleCancelarReserva(prod.id)}
+                              className="rounded-xl border border-red-200 p-2 text-red-600 hover:bg-red-50 transition cursor-pointer"
+                              title="Cancelar reserva"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
                         </div>
                       </div>
-
-                      <div className="flex items-center justify-between sm:justify-end gap-4 pt-3 sm:pt-0 border-t sm:border-t-0 border-gray-100">
-                        <div className="text-left sm:text-right">
-                          <p className="text-[10px] font-bold uppercase text-gray-400">VALOR TOTAL</p>
-                          <p className="text-base font-extrabold text-[#0F3D2E]">
-                            {formatarPreco(prod.price, prod.type_negotiation)}
-                          </p>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setItemSelecionado(prod);
-                              setModalContatoAberto(true);
-                            }}
-                            className="rounded-xl border border-gray-200 p-2.5 text-gray-600 hover:bg-gray-50 transition cursor-pointer"
-                            title="Conversar com fornecedor"
-                          >
-                            <MessageSquare className="h-4 w-4 text-emerald-700" />
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => handleCancelarReserva(prod.id)}
-                            className="rounded-xl border border-red-200 p-2.5 text-red-600 hover:bg-red-50 transition cursor-pointer"
-                            title="Cancelar reserva"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -1449,7 +1575,6 @@ export default function DashboardUsuario() {
                             {docValorExibicao}
                           </p>
                         </div>
-                      </div>
 
                       {/* Endereço */}
                       <div>
@@ -1495,139 +1620,85 @@ export default function DashboardUsuario() {
         </main>
       </div>
 
-      {/* MODAL: DETALHES DO PRODUTO */}
-      {itemSelecionado && !modalContatoAberto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
-          <div className="w-full max-w-lg rounded-2xl border border-[#E7E4DA] bg-white p-6 sm:p-8 shadow-2xl animate-in fade-in zoom-in-95">
-            <div className="flex items-start justify-between border-b border-gray-100 pb-3">
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-bold text-emerald-800">
-                    {formatarCategoria(itemSelecionado.category)}
-                  </span>
-                  <span
-                    className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${
-                      itemSelecionado.type_negotiation === "donation"
-                        ? "bg-amber-100 text-amber-800"
-                        : "bg-emerald-100 text-emerald-800"
-                    }`}
-                  >
-                    {itemSelecionado.type_negotiation === "donation" ? "Doação" : "Venda"}
-                  </span>
-                </div>
-                <h3 className="text-xl font-bold text-[#0F3D2E] mt-2">{itemSelecionado.name}</h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setItemSelecionado(null)}
-                className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 cursor-pointer"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
+      {/* ==================================================================== */}
+      {/* MODAIS DO FLUXO COMPLETO DO FIGMA PARA O COMPRADOR / USUÁRIO        */}
+      {/* ==================================================================== */}
 
-            <div className="mt-4 space-y-3 text-sm text-[#4B5A55]">
-              <div className="flex justify-between border-b border-gray-50 pb-2">
-                <span className="font-semibold text-gray-700">Preço / Valor:</span>
-                <span className="font-bold text-lg text-[#0F3D2E]">
-                  {formatarPreco(itemSelecionado.price, itemSelecionado.type_negotiation)}
-                </span>
-              </div>
-              <div className="flex justify-between border-b border-gray-50 pb-2">
-                <span className="font-semibold text-gray-700">Peso Total:</span>
-                <span className="font-semibold text-gray-800">{itemSelecionado.weight} kg</span>
-              </div>
-              <div className="flex justify-between border-b border-gray-50 pb-2">
-                <span className="font-semibold text-gray-700">Quantidade Disponível:</span>
-                <span className="font-semibold text-gray-800">{itemSelecionado.quantity} unidades</span>
-              </div>
-              <div className="flex justify-between border-b border-gray-50 pb-2">
-                <span className="font-semibold text-gray-700">Estado de Conservação:</span>
-                <span className="font-semibold text-gray-800">
-                  {formatarEstadoConservacao(itemSelecionado.conservation_state)}
-                </span>
-              </div>
-              <div className="pt-2">
-                <span className="font-semibold text-gray-700 block mb-1">Descrição do Lote:</span>
-                <p className="rounded-xl bg-[#FAF9F5] p-3 text-xs leading-relaxed text-gray-600 border border-[#ECE8DC]">
-                  {itemSelecionado.description || "Nenhuma descrição detalhada fornecida pelo anunciante."}
-                </p>
-              </div>
-            </div>
+      {/* 1. MODAL DE DETALHES COMPLETOS DO RESÍDUO (FIGMA SCREEN 2) */}
+      <ResiduoDetalheModal
+        aberto={modalDetalhesAberto}
+        aoFechar={() => setModalDetalhesAberto(false)}
+        produto={produtoDetalhes}
+        empresaNome="Curtume & Calçados Franca Ltda"
+        aoIniciarReserva={(prod) => {
+          setModalDetalhesAberto(false);
+          setProdutoParaReserva(prod);
+          setModalSolicitarReservaAberto(true);
+        }}
+        aoAbrirContato={(prod) => {
+          setModalDetalhesAberto(false);
+          setProdutoParaChat(prod);
+          setModalChatAberto(true);
+        }}
+      />
 
-            <div className="mt-6 grid grid-cols-2 gap-3 pt-2">
-              <button
-                type="button"
-                onClick={() => setModalContatoAberto(true)}
-                className="rounded-xl border border-[#D9D5C8] px-4 py-2.5 text-xs sm:text-sm font-semibold text-gray-700 hover:bg-gray-50 flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <MessageSquare className="h-4 w-4" />
-                Falar com Fornecedor
-              </button>
+      {/* 2. MODAL MULTIETAPAS: FORMULÁRIO, REVISÃO/CHECKOUT E SUCESSO (FIGMA SCREENS 3, 4 E 7) */}
+      <SolicitarReservaModal
+        aberto={modalSolicitarReservaAberto}
+        aoFechar={() => setModalSolicitarReservaAberto(false)}
+        produto={produtoParaReserva}
+        usuarioNome={nomeCompletoExibicao || displayName}
+        usuarioDoc={docValorExibicao}
+        usuarioTelefone={telefoneExibicao}
+        fornecedorNome="Curtume & Calçados Franca Ltda"
+        aoConfirmarReserva={handleConfirmarReserva}
+        aoAbrirQrCode={(dados) => {
+          const prod = produtos.find((p) => p.id === dados.produtoId) || produtoParaReserva;
+          if (prod) {
+            setDadosQrCode({
+              produto: prod,
+              codigo: dados.codigo,
+              quantidade: dados.quantidade,
+              dataRetirada: dados.dataRetirada,
+            });
+            setModalQrCodeAberto(true);
+          }
+        }}
+        aoIrParaMinhasReservas={() => setAbaAtiva("reservas")}
+      />
 
-              <button
-                type="button"
-                onClick={() => handleReservarMaterial(itemSelecionado)}
-                className="rounded-xl bg-emerald-600 px-4 py-2.5 text-xs sm:text-sm font-bold text-white hover:bg-emerald-700 shadow-sm flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <ShoppingBag className="h-4 w-4" />
-                Solicitar Reserva
-              </button>
-            </div>
-          </div>
-        </div>
+      {/* 3. MODAL DE QR CODE DE RETIRADA / COMPROVANTE (FIGMA TOP MODAL) */}
+      {dadosQrCode && (
+        <QrCodeRetiradaModal
+          aberto={modalQrCodeAberto}
+          aoFechar={() => setModalQrCodeAberto(false)}
+          produto={dadosQrCode.produto}
+          codigoReserva={dadosQrCode.codigo}
+          quantidade={dadosQrCode.quantidade}
+          dataRetirada={dadosQrCode.dataRetirada}
+          fornecedorNome="Curtume & Calçados Franca Ltda"
+        />
       )}
 
-      {/* MODAL: CONTATO COM FORNECEDOR */}
-      {modalContatoAberto && itemSelecionado && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
-          <div className="w-full max-w-md rounded-2xl border border-[#E7E4DA] bg-white p-6 shadow-2xl animate-in fade-in zoom-in-95">
-            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-              <h3 className="text-lg font-bold text-[#0F3D2E]">Contato com a Fábrica</h3>
-              <button
-                type="button"
-                onClick={() => setModalContatoAberto(false)}
-                className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 cursor-pointer"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
+      {/* 4. MODAL DE AVALIAÇÃO DA COLETA E FORNECEDOR (FIGMA SCREEN 6) */}
+      <AvaliacaoColetaModal
+        aberto={modalAvaliacaoAberto}
+        aoFechar={() => setModalAvaliacaoAberto(false)}
+        produto={produtoParaAvaliar}
+        empresaNome="Curtume & Calçados Franca Ltda"
+        aoAvaliar={(dados) => {
+          exibirToast(`Avaliação de ${dados.estrelas} estrelas registrada com sucesso!`);
+        }}
+      />
 
-            <div className="mt-4 text-sm text-gray-600 space-y-3">
-              <p>
-                Inicie uma conversa direta para combinar a retirada do material{" "}
-                <strong className="text-gray-900 font-semibold">{itemSelecionado.name}</strong>.
-              </p>
-              <textarea
-                rows={3}
-                defaultValue={`Olá! Tenho interesse no lote "${itemSelecionado.name}". Poderia me confirmar se está disponível para retirada em Franca?`}
-                className="w-full rounded-xl border border-[#D9D5C8] p-3 text-xs outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
-              />
-            </div>
-
-            <div className="mt-5 flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setModalContatoAberto(false)}
-                className="rounded-xl border border-[#D9D5C8] px-4 py-2 text-xs font-semibold text-gray-600 cursor-pointer"
-              >
-                Fechar
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setModalContatoAberto(false);
-                  setItemSelecionado(null);
-                  exibirToast("Mensagem enviada com sucesso para a fábrica!");
-                }}
-                className="rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-700 cursor-pointer"
-              >
-                Enviar Mensagem
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* 5. MODAL DE CHAT E CONTATO DIRETO COM A FÁBRICA (FIGMA SCREEN 5) */}
+      <ChatReservaModal
+        aberto={modalChatAberto}
+        aoFechar={() => setModalChatAberto(false)}
+        produto={produtoParaChat}
+        empresaNome="Curtume & Calçados Franca Ltda"
+        usuarioNome={displayName}
+      />
 
       {/* MODAL: EDITAR PERFIL */}
       {modalEditarPerfilAberto && (
@@ -1756,9 +1827,6 @@ export default function DashboardUsuario() {
                   Dados do Usuário / Entidade
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-
-                  </div>
-
                   <div>
                     <label className="text-xs font-semibold text-gray-600 block mb-1">CNPJ ou CPF</label>
                     <input
