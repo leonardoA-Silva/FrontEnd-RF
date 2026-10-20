@@ -1,0 +1,34 @@
+# Reaproveita Franca — Web Frontend
+
+> React/TypeScript web client for a circular-economy marketplace connecting reusable industrial materials with people and organizations in Franca/SP, Brazil.
+
+This repository is only the web frontend. The API and Expo mobile app are separate applications with separate owners. Do not write outside `FrontEnd-RF` during frontend work.
+
+## Agent reading order
+
+1. [AGENTS.md](AGENTS.md) — non-negotiable rules and precedence.
+2. [CLAUDE.md](CLAUDE.md) — session workflow (also useful to other coding agents).
+3. [docs/architecture.md](docs/architecture.md) — stack, routes, code layout, boundaries.
+4. [docs/product.md](docs/product.md) — goals, business rules, requirement status.
+5. [docs/api-contract.md](docs/api-contract.md) — verified endpoints and mismatches.
+6. [docs/ui-guidelines.md](docs/ui-guidelines.md) and [docs/security-privacy.md](docs/security-privacy.md) — UI and data handling.
+7. [docs/quality.md](docs/quality.md) — verification commands and review checklist.
+8. [docs/agent-workflow.md](docs/agent-workflow.md) and [docs/feature-readiness.md](docs/feature-readiness.md) — task lifecycle and honest status reporting.
+9. [docs/localization.md](docs/localization.md) — pt-BR copy and formatting.
+10. [docs/integration-workflow.md](docs/integration-workflow.md), [docs/decisions.md](docs/decisions.md), and [docs/adr/README.md](docs/adr/README.md) — coordination and technical decisions.
+11. [CONTRIBUTING.md](CONTRIBUTING.md) — setup and contributor change hygiene.
+
+## Quick facts
+
+- Stack: React 19, TypeScript, Vite 8, React Router 7, Tailwind CSS 4, MUI 9, Axios, lucide-react.
+- Commands (run here): `npm run dev`, `npm run lint`, `npm run build`, `npm run preview`.
+- App source: `src/`; route table: `src/App.tsx`; HTTP client: `src/axios/Axios.ts`.
+- User-facing copy must be Brazilian Portuguese (pt-BR).
+- API base path: `/api/reaproveitafranca`; inspect [the API contract](docs/api-contract.md) before calling endpoints.
+- Backend currently has one `/user/login` route; the exported web login helpers are known to target a nonexistent `/login` path.
+- Reservation/payment/recovery/social login/environmental impact features are not confirmed in the current API route inventory. Never fake server-side completion.
+- No dedicated frontend test suite is configured. Lint and production build are the automated gates; report failures honestly.
+
+## Source-of-truth rule
+
+Prefer current frontend/backend source over stale README prose, mockups, or aspirational requirements. Never expose CPF/CNPJ, credentials, tokens, or personal data in logs, examples, screenshots, or URLs.
