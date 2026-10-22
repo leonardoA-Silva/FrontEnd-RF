@@ -1,20 +1,25 @@
-import { useCallback, useMemo, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, MapPin, Search, X } from "lucide-react";
+import * as L from "leaflet";
+import "leaflet/dist/leaflet.css";
 import AvisoEmBreve from "../../components/dashboard/AvisoEmBreve";
 import DashboardShell from "../../components/dashboard/DashboardShell";
 import {
   empresasMapaDemo,
   legendaMateriais,
   type CategoriaMaterial,
+  type EmpresaMapa,
 } from "./mapaApi";
 
 // Cor de cada tipo de resíduo (tokens em index.css).
-const COR_MATERIAL: Record<CategoriaMaterial, string> = {
-  Couro: "bg-material-couro",
-  Tecido: "bg-material-tecido",
-  "EVA / Borracha": "bg-material-eva",
-  Outros: "bg-material-outros",
+const MATERIAL: Record<CategoriaMaterial, { classe: string; token: string }> = {
+  Couro: { classe: "bg-material-couro", token: "--color-material-couro" },
+  Tecido: { classe: "bg-material-tecido", token: "--color-material-tecido" },
+  "EVA / Borracha": { classe: "bg-material-eva", token: "--color-material-eva" },
+  Outros: { classe: "bg-material-outros", token: "--color-material-outros" },
 };
+
+const CENTRO_FRANCA: [number, number] = [-20.5386, -47.4008];
 
 const ROTULO_CATEGORIA: Record<CategoriaMaterial, string> = {
   Couro: "Couro",
@@ -23,10 +28,74 @@ const ROTULO_CATEGORIA: Record<CategoriaMaterial, string> = {
   Outros: "Outros",
 };
 
+const CLASSES_POPUP = {
+  card: "rounded-xl border border-linha bg-white p-3",
+  topo: "flex items-start gap-2.5",
+  imagem: "h-11 w-11 shrink-0 rounded-lg object-cover",
+  textos: "min-w-0",
+  titulo: "truncate text-[13px] font-bold leading-snug text-verde-escuro",
+  detalhe: "mt-1 text-[12px] leading-snug text-tinta-suave",
+  rodape: "mt-3 flex items-center justify-between gap-2",
+  gratuito: "text-[12px] font-bold text-ambar",
+  combinar: "text-[12px] font-semibold text-tinta-suave",
+  botao:
+    "shrink-0 rounded-full bg-verde px-3.5 py-1.5 text-[12px] font-semibold text-white transition-colors hover:bg-verde-escuro",
+};
+
+function construirPopupEmpresa(
+  empresa: EmpresaMapa,
+  aoVerDetalhes: () => void
+): HTMLElement {
+  const card = document.createElement("div");
+  card.className = CLASSES_POPUP.card;
+
+  const topo = document.createElement("div");
+  topo.className = CLASSES_POPUP.topo;
+  const imagem = document.createElement("img");
+  imagem.src = empresa.imagem;
+  imagem.alt = "";
+  imagem.width = 44;
+  imagem.height = 44;
+  imagem.loading = "lazy";
+  imagem.className = CLASSES_POPUP.imagem;
+
+  const textos = document.createElement("div");
+  textos.className = CLASSES_POPUP.textos;
+  const titulo = document.createElement("p");
+  titulo.className = CLASSES_POPUP.titulo;
+  titulo.textContent = empresa.nomeCurto;
+  const detalhe = document.createElement("p");
+  detalhe.className = CLASSES_POPUP.detalhe;
+  detalhe.textContent = empresa.detalhe;
+  textos.append(titulo, detalhe);
+  topo.append(imagem, textos);
+
+  const rodape = document.createElement("div");
+  rodape.className = CLASSES_POPUP.rodape;
+  const condicao = document.createElement("span");
+  condicao.className = empresa.gratuito
+    ? CLASSES_POPUP.gratuito
+    : CLASSES_POPUP.combinar;
+  condicao.textContent = empresa.gratuito ? "Gratuito" : "A combinar";
+  const botao = document.createElement("button");
+  botao.type = "button";
+  botao.className = CLASSES_POPUP.botao;
+  botao.setAttribute("aria-label", `Ver detalhes de ${empresa.nomeCurto}`);
+  botao.textContent = "Ver Detalhes";
+  botao.addEventListener("click", aoVerDetalhes);
+  rodape.append(condicao, botao);
+
+  card.append(topo, rodape);
+  return card;
+}
+
 export default function MapaEmpresas() {
   const [busca, setBusca] = useState("");
   const [selecionadaId, setSelecionadaId] = useState(empresasMapaDemo[0].id);
   const [aviso, setAviso] = useState<string | null>(null);
+  const elementoMapaRef = useRef<HTMLDivElement>(null);
+  const mapaRef = useRef<L.Map | null>(null);
+  const marcadoresRef = useRef<L.LayerGroup | null>(null);
 
   const avisar = useCallback((tela: string) => setAviso(tela), []);
   const fecharAviso = useCallback(() => setAviso(null), []);
@@ -46,16 +115,76 @@ export default function MapaEmpresas() {
     filtradas.find((empresa) => empresa.id === selecionadaId) ?? filtradas[0] ?? null;
   const empresaSelecionadaId = selecionada?.id;
 
-  // o balão abre abaixo do marcador quando ele está no terço superior do mapa
-  const topoSelecionado = selecionada?.pos.top ?? "50%";
-  const popupAbaixo = Number.parseFloat(topoSelecionado) < 50;
+  useEffect(() => {
+    if (!elementoMapaRef.current) return;
 
-  const estiloPopup = {
-    "--popup-x": selecionada?.pos.left ?? "50%",
-    "--popup-y": `calc(${topoSelecionado} ${
-      popupAbaixo ? "+ 28px" : "- 124px"
-    })`,
-  } as CSSProperties;
+    const mapa = L.map(elementoMapaRef.current, {
+      center: CENTRO_FRANCA,
+      zoom: 14,
+      minZoom: 11,
+      maxZoom: 19,
+      scrollWheelZoom: true,
+      zoomControl: false,
+    });
+
+    L.control
+      .zoom({
+        zoomInText: "+",
+        zoomInTitle: "Aumentar zoom",
+        zoomOutText: "−",
+        zoomOutTitle: "Diminuir zoom",
+      })
+      .addTo(mapa);
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      maxZoom: 19,
+    }).addTo(mapa);
+
+    mapaRef.current = mapa;
+    marcadoresRef.current = L.layerGroup().addTo(mapa);
+
+    return () => {
+      mapaRef.current = null;
+      marcadoresRef.current = null;
+      mapa.remove();
+    };
+  }, []);
+
+  useEffect(() => {
+    const camada = marcadoresRef.current;
+    if (!camada) return;
+
+    mapaRef.current?.closePopup();
+    camada.clearLayers();
+
+    filtradas.forEach((empresa) => {
+      const ativa = empresa.id === empresaSelecionadaId;
+      const icone = L.divIcon({
+        className: "mapa-marker-icon",
+        html: `<span class="mapa-marker-dot${ativa ? " is-selected" : ""}" style="--marker-color: var(${MATERIAL[empresa.categoria].token})"></span>`,
+        iconSize: [36, 36],
+        iconAnchor: [18, 18],
+        popupAnchor: [0, -16],
+      });
+
+      const marcador = L.marker([empresa.pos.lat, empresa.pos.lng], {
+        icon: icone,
+        title: `${empresa.nome} — localização demonstrativa`,
+        alt: `${empresa.nome}, marcador demonstrativo`,
+        keyboard: true,
+      }).addTo(camada);
+
+      marcador.on("click", () => setSelecionadaId(empresa.id));
+      marcador.bindPopup(
+        construirPopupEmpresa(empresa, () => avisar("Detalhes do resíduo")),
+        { className: "mapa-popup", maxWidth: 280 }
+      );
+
+      if (ativa) marcador.openPopup();
+    });
+  }, [avisar, empresaSelecionadaId, filtradas]);
 
   const styles = {
     /* painel esquerdo */
@@ -101,25 +230,6 @@ export default function MapaEmpresas() {
 
     /* mapa */
     mapa: "relative flex min-h-[560px] flex-1 flex-col overflow-hidden bg-areia-clara",
-    marcador:
-      "group absolute z-10 grid h-11 w-11 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full",
-    marcadorPonto:
-      "block h-4 w-4 rounded-full border-2 border-white shadow transition-transform duration-200 group-hover:scale-110",
-
-    regiaoPopup:
-      "absolute bottom-3 left-3 right-3 z-30 lg:bottom-auto lg:left-[var(--popup-x)] lg:right-auto lg:top-[var(--popup-y)] lg:w-64 lg:-translate-x-1/2",
-    popup: "rounded-xl border border-linha bg-white p-3 shadow-lg",
-    popupTopo: "flex items-start gap-2.5",
-    popupImagem: "h-11 w-11 shrink-0 rounded-lg object-cover",
-    popupTextos: "min-w-0",
-    popupTitulo: "truncate text-[13px] font-bold leading-snug text-verde-escuro",
-    popupSub: "mt-1 text-[12px] leading-snug text-tinta-suave",
-    popupRodape: "mt-3 flex items-center justify-between gap-2",
-    popupGratis: "text-[12px] font-bold text-ambar",
-    popupCombinar: "text-[12px] font-semibold text-tinta-suave",
-    popupBotao:
-      "shrink-0 rounded-full bg-verde px-3.5 py-1.5 text-[12px] font-semibold text-white transition-colors hover:bg-verde-escuro",
-
     legenda:
       "absolute right-3 top-3 z-20 w-[168px] rounded-xl border border-linha bg-white p-3.5 shadow-sm lg:right-5 lg:top-5 lg:w-[176px]",
     legendaTitulo: "text-[13px] font-bold leading-snug text-verde-escuro",
@@ -183,12 +293,16 @@ export default function MapaEmpresas() {
         </div>
       </div>
 
-        <div className="mt-7 flex items-baseline justify-between gap-3">
-          <p className={styles.rotuloLista}>Empresas próximas</p>
-          <span className="text-[12px] tabular-nums text-tinta-suave" aria-live="polite" aria-atomic="true">
+      <div className="mt-7 flex items-baseline justify-between gap-3">
+        <p className={styles.rotuloLista}>Empresas próximas</p>
+        <span
+          className="text-[12px] tabular-nums text-tinta-suave"
+          aria-live="polite"
+          aria-atomic="true"
+        >
             {filtradas.length} {filtradas.length === 1 ? "empresa" : "empresas"}
-          </span>
-        </div>
+        </span>
+      </div>
 
       {filtradas.length === 0 ? (
         <div className={styles.vazio}>
@@ -216,7 +330,7 @@ export default function MapaEmpresas() {
                   <span className={styles.cartaoNome}>{empresa.nome}</span>
                   <span className={styles.selo}>
                     <span
-                      className={`${styles.seloPonto} ${COR_MATERIAL[empresa.categoria]}`}
+                      className={`${styles.seloPonto} ${MATERIAL[empresa.categoria].classe}`}
                       aria-hidden="true"
                     />
                     {ROTULO_CATEGORIA[empresa.categoria]}
@@ -235,8 +349,9 @@ export default function MapaEmpresas() {
       )}
 
       <p className={styles.nota}>
-        Empresas, distâncias e lotes são exemplos ilustrativos enquanto a API não
-        fornecer nome, endereço e localização das empresas.
+        Empresas, distâncias, lotes e pontos no mapa são demonstrativos. O mapa
+        mostra as ruas reais de Franca, mas os marcadores não indicam endereços
+        reais.
       </p>
     </div>
   );
@@ -250,155 +365,53 @@ export default function MapaEmpresas() {
           Mapa das empresas próximas
         </h2>
 
-        <svg
-          viewBox="0 0 800 560"
-          preserveAspectRatio="xMidYMid slice"
-          className="absolute inset-0 h-full w-full"
-          aria-hidden="true"
-          focusable="false"
-        >
-          {/* fundo bege da cidade */}
-          <rect width="800" height="560" fill="#F0EDE3" />
+        <div
+          ref={elementoMapaRef}
+          className="mapa-real absolute inset-0 z-0 h-full w-full"
+          role="region"
+          aria-label="Mapa interativo de Franca, São Paulo"
+        />
 
-          {/* quarteirões */}
-          <g fill="#E6E1D2">
-            <rect x="262" y="16" width="270" height="176" rx="2" />
-            <rect x="16" y="222" width="228" height="200" rx="2" />
-            <rect x="556" y="24" width="230" height="160" rx="2" />
-            <rect x="588" y="404" width="200" height="120" rx="2" />
-            <rect x="286" y="452" width="250" height="92" rx="2" />
-          </g>
-
-          {/* parques */}
-          <g fill="#DDE8CF">
-            <path d="M28 34 C 66 12, 148 18, 172 58 C 194 96, 164 142, 112 148 C 62 154, 22 126, 22 88 C 22 62, 24 44, 28 34 Z" />
-            <path d="M604 228 C 646 206, 706 216, 736 252 C 764 288, 742 350, 692 366 C 640 382, 596 348, 592 300 C 590 268, 590 240, 604 228 Z" />
-          </g>
-          <g fill="#D9E8D2">
-            <path d="M58 442 C 94 420, 158 430, 174 466 C 190 502, 150 532, 104 528 C 64 524, 40 500, 42 470 C 44 456, 50 448, 58 442 Z" />
-            <path d="M418 24 C 456 10, 502 20, 512 48 C 522 76, 494 100, 460 96 C 428 92, 406 70, 408 46 C 410 36, 412 28, 418 24 Z" />
-          </g>
-
-          {/* vegetação dentro dos parques */}
-          <g fill="#C6DAB2">
-            <circle cx="60" cy="70" r="3.5" />
-            <circle cx="94" cy="56" r="3" />
-            <circle cx="128" cy="92" r="3.5" />
-            <circle cx="86" cy="118" r="2.5" />
-            <circle cx="640" cy="270" r="3.5" />
-            <circle cx="684" cy="300" r="3" />
-            <circle cx="670" cy="342" r="3.5" />
-            <circle cx="120" cy="478" r="3" />
-            <circle cx="82" cy="502" r="3.5" />
-            <circle cx="446" cy="50" r="3" />
-            <circle cx="480" cy="70" r="2.5" />
-          </g>
-
-          {/* rio principal e braço secundário */}
-          <g fill="none" stroke="#A9C9E8" strokeLinecap="round" strokeLinejoin="round">
-            <path
-              d="M-20 468 C 110 452, 168 404, 252 382 C 336 360, 372 330, 456 300 C 540 270, 584 232, 648 192 C 712 152, 764 128, 820 112"
-              strokeWidth="16"
-            />
-            <path
-              d="M456 300 C 428 342, 412 384, 396 430 C 380 476, 348 520, 332 580"
-              strokeWidth="10"
-            />
-          </g>
-
-          {/* ruas secundárias */}
-          <g stroke="#DCD7C7" strokeWidth="2.5">
-            <path d="M46 0 V560" />
-            <path d="M176 0 V560" />
-            <path d="M214 0 V560" />
-            <path d="M322 0 V560" />
-            <path d="M386 0 V560" />
-            <path d="M448 0 V560" />
-            <path d="M512 0 V560" />
-            <path d="M610 0 V560" />
-            <path d="M730 0 V560" />
-            <path d="M0 40 H800" />
-            <path d="M0 148 H800" />
-            <path d="M0 262 H800" />
-            <path d="M0 292 H800" />
-            <path d="M0 336 H800" />
-            <path d="M0 440 H800" />
-            <path d="M0 532 H800" />
-          </g>
-
-          {/* avenidas */}
-          <g stroke="#FFFFFF" strokeLinecap="square">
-            <path d="M0 96 H800" strokeWidth="6" />
-            <path d="M100 0 V560" strokeWidth="6" />
-            <path d="M764 0 V560" strokeWidth="6" />
-            <path d="M0 500 H800" strokeWidth="6" />
-            <path d="M0 208 H800" strokeWidth="9" />
-            <path d="M0 396 H800" strokeWidth="9" />
-            <path d="M262 0 V560" strokeWidth="9" />
-            <path d="M556 0 V560" strokeWidth="9" />
-            <path d="M-20 118 L820 466" strokeWidth="7" />
-            <path d="M820 52 L40 560" strokeWidth="5" />
-          </g>
-        </svg>
-
-        {filtradas.map((empresa) => {
-              const ativa = empresa.id === empresaSelecionadaId;
-
-          return (
-            <button
-              key={empresa.id}
-              type="button"
-              aria-label={empresa.nome}
-              aria-pressed={ativa}
-              onClick={() => setSelecionadaId(empresa.id)}
-              className={styles.marcador}
-              style={{ left: empresa.pos.left, top: empresa.pos.top, zIndex: ativa ? 20 : 10 }}
-            >
-              <span
-                className={`${styles.marcadorPonto} ${COR_MATERIAL[empresa.categoria]}`}
-                style={ativa ? { transform: "scale(1.35)" } : undefined}
+        {selecionada && (
+          <div
+            className="absolute bottom-4 left-3 right-3 z-[1000] lg:hidden"
+            aria-live="polite"
+          >
+            <div className="flex items-center gap-3 rounded-xl border border-linha bg-white p-3 shadow-lg">
+              <img
+                src={selecionada.imagem}
+                alt=""
+                width={44}
+                height={44}
+                loading="lazy"
+                className="h-11 w-11 shrink-0 rounded-lg object-cover"
               />
-            </button>
-          );
-        })}
-
-        <div className={styles.regiaoPopup} style={estiloPopup} aria-live="polite">
-          {selecionada && (
-            <div className={styles.popup}>
-              <div className={styles.popupTopo}>
-                <img
-                  src={selecionada.imagem}
-                  alt=""
-                  width={44}
-                  height={44}
-                  loading="lazy"
-                  className={styles.popupImagem}
-                />
-                <div className={styles.popupTextos}>
-                  <p className={styles.popupTitulo}>{selecionada.nomeCurto}</p>
-                  <p className={styles.popupSub}>{selecionada.detalhe}</p>
-                </div>
-              </div>
-              <div className={styles.popupRodape}>
-                <span
-                  className={
-                    selecionada.gratuito ? styles.popupGratis : styles.popupCombinar
-                  }
-                >
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-[13px] font-bold leading-snug text-verde-escuro">
+                  {selecionada.nomeCurto}
+                </p>
+                <p className="mt-1 text-[12px] leading-snug text-tinta-suave">
+                  {selecionada.detalhe}
+                </p>
+                <p className="mt-1 text-[12px] font-semibold text-ambar">
                   {selecionada.gratuito ? "Gratuito" : "A combinar"}
-                </span>
-                <button
-                  type="button"
-                  className={styles.popupBotao}
-                  aria-label={`Ver detalhes de ${selecionada.nomeCurto}`}
-                  onClick={() => avisar("Detalhes do resíduo")}
-                >
-                  Ver Detalhes
-                </button>
+                </p>
               </div>
+              <button
+                type="button"
+                className="min-h-11 shrink-0 rounded-full bg-verde px-3.5 text-[12px] font-semibold text-white transition-colors hover:bg-verde-escuro"
+                aria-label={`Ver detalhes de ${selecionada.nomeCurto}`}
+                onClick={() => avisar("Detalhes do resíduo")}
+              >
+                Ver Detalhes
+              </button>
             </div>
-          )}
-        </div>
+          </div>
+        )}
+
+        <p className="pointer-events-none absolute bottom-3 left-3 z-[1000] hidden max-w-[min(28rem,calc(100%-1.5rem))] rounded-lg bg-white/95 px-3 py-2 text-[11px] leading-relaxed text-tinta-suave lg:block">
+          Mapa real de Franca · pontos e informações de empresas são demonstrativos
+        </p>
 
         <div className={styles.legenda}>
           <h3 className={styles.legendaTitulo}>Legenda de Resíduos</h3>
@@ -406,7 +419,7 @@ export default function MapaEmpresas() {
             {legendaMateriais.map(({ categoria, rotulo }) => (
               <li key={categoria} className={styles.legendaItem}>
                 <span
-                  className={`${styles.legendaPonto} ${COR_MATERIAL[categoria]}`}
+                  className={`${styles.legendaPonto} ${MATERIAL[categoria].classe}`}
                   aria-hidden="true"
                 />
                 {rotulo}

@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { lazy, Suspense } from "react";
 import Home from "./pages/home/Home";
 import RegisterType from "./pages/register/RegisterType";
 import RegisterCompany from "./pages/register/RegisterCompany";
@@ -6,8 +7,9 @@ import RegisterUser from "./pages/register/RegisterUser";
 import Login from "./pages/login/Login";
 import DashboardUsuario from "./pages/dashboard/DashboardUsuario";
 import DashboardEmpresa from "./pages/dashboard/DashboardEmpresa";
-import MapaEmpresas from "./pages/dashboard/MapaEmpresas";
 import ProtectedRoute from "./components/ProtectedRoute";
+
+const MapaEmpresas = lazy(() => import("./pages/dashboard/MapaEmpresas"));
 
 function App() {
   return (
@@ -43,7 +45,18 @@ function App() {
             path="/mapaEmpresas"
             element={
               <ProtectedRoute allowedRoles={["company"]}>
-                <MapaEmpresas/>
+                <Suspense
+                  fallback={
+                    <main
+                      role="status"
+                      className="grid min-h-screen place-items-center bg-bruma px-6 text-sm text-tinta-suave"
+                    >
+                      Carregando mapa...
+                    </main>
+                  }
+                >
+                  <MapaEmpresas />
+                </Suspense>
               </ProtectedRoute>
             }
           />

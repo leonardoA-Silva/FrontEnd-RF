@@ -2,10 +2,10 @@
 //
 // Lacuna da API (conferida no backend): GET /product devolve os produtos com
 // id_user e id_localization, mas sem nome da empresa, sem endereço e sem
-// coordenadas; e não existe GET /localization. Um mapa real precisa de um
-// endpoint que devolva produto + localização + nome da empresa (por exemplo
-// GET /product/mapa). Até lá esta tela usa apenas os exemplos abaixo e filtra
-// a busca no próprio navegador — nenhuma chamada de rede é feita aqui.
+// coordenadas; e não existe GET /localization. Para posicionar empresas reais,
+// a API precisa fornecer nome público, anúncios e coordenadas. Até lá, a tela
+// filtra os exemplos abaixo no navegador. O fundo cartográfico é carregado
+// publicamente do OpenStreetMap; as coordenadas são apenas demonstrativas.
 
 export type CategoriaMaterial = "Couro" | "Tecido" | "EVA / Borracha" | "Outros";
 
@@ -21,8 +21,8 @@ export interface EmpresaMapa {
   detalhe: string;
   gratuito: boolean;
   imagem: string;
-  /** posição do marcador no mapa, em porcentagem */
-  pos: { left: string; top: string };
+  /** coordenada demonstrativa; não representa o endereço real da empresa */
+  pos: { lat: number; lng: number };
 }
 
 export const empresasMapaDemo: EmpresaMapa[] = [
@@ -36,7 +36,7 @@ export const empresasMapaDemo: EmpresaMapa[] = [
     detalhe: "150 kg de Couro Bovino",
     gratuito: true,
     imagem: "/retalho-couro-nobre.png",
-    pos: { left: "62%", top: "26%" },
+    pos: { lat: -20.5353, lng: -47.3956 },
   },
   {
     id: 2,
@@ -48,7 +48,7 @@ export const empresasMapaDemo: EmpresaMapa[] = [
     detalhe: "40 kg de Rebarbas de EVA",
     gratuito: true,
     imagem: "/eva-camurca-premium.png",
-    pos: { left: "30%", top: "62%" },
+    pos: { lat: -20.55, lng: -47.4135 },
   },
   {
     id: 3,
@@ -60,7 +60,7 @@ export const empresasMapaDemo: EmpresaMapa[] = [
     detalhe: "90 kg de Tecido Sintético",
     gratuito: false,
     imagem: "/retalho-nobuck-macio.png",
-    pos: { left: "78%", top: "40%" },
+    pos: { lat: -20.527, lng: -47.382 },
   },
   {
     id: 4,
@@ -72,7 +72,7 @@ export const empresasMapaDemo: EmpresaMapa[] = [
     detalhe: "200 unid. de Solados",
     gratuito: true,
     imagem: "/hero-leather-scraps.jpg",
-    pos: { left: "58%", top: "78%" },
+    pos: { lat: -20.55, lng: -47.386 },
   },
   {
     id: 5,
@@ -84,7 +84,7 @@ export const empresasMapaDemo: EmpresaMapa[] = [
     detalhe: "25 kg de Couro Nobre",
     gratuito: false,
     imagem: "/retalho-couro-nobre.png",
-    pos: { left: "24%", top: "34%" },
+    pos: { lat: -20.526, lng: -47.416 },
   },
 ];
 
