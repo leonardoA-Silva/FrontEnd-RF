@@ -10,6 +10,8 @@ import DashboardEmpresa from "./pages/dashboard/DashboardEmpresa";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 const MapaEmpresas = lazy(() => import("./pages/dashboard/MapaEmpresas"));
+const MeusMateriais = lazy(() => import("./pages/dashboard/MeusMateriais"));
+const NovoMaterial = lazy(() => import("./pages/dashboard/NovoMaterial"));
 
 function App() {
   return (
@@ -38,6 +40,26 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={["company"]}>
                 <DashboardEmpresa/>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboardEmpresa/materiais"
+            element={
+              <ProtectedRoute allowedRoles={["company"]}>
+                <Suspense fallback={<main role="status" className="grid min-h-screen place-items-center bg-bruma px-6 text-sm text-tinta-suave">Carregando materiais…</main>}>
+                  <MeusMateriais />
+                </Suspense>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboardEmpresa/materiais/novo"
+            element={
+              <ProtectedRoute allowedRoles={["company"]}>
+                <Suspense fallback={<main role="status" className="grid min-h-screen place-items-center bg-bruma px-6 text-sm text-tinta-suave">Carregando cadastro…</main>}>
+                  <NovoMaterial />
+                </Suspense>
               </ProtectedRoute>
             }
           />

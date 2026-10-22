@@ -32,8 +32,8 @@ interface SecaoNavegacao {
 }
 
 const secoes: SecaoNavegacao[] = [
-  { id: "materiais", rotulo: "Meus Materiais", icone: Folder, to: "/dashboardEmpresa" },
-  { id: "publicar", rotulo: "Publicar Novo", icone: PlusCircle },
+  { id: "materiais", rotulo: "Meus Materiais", icone: Folder, to: "/dashboardEmpresa/materiais" },
+  { id: "publicar", rotulo: "Publicar Novo", icone: PlusCircle, to: "/dashboardEmpresa/materiais/novo" },
   { id: "perfil", rotulo: "Perfil", icone: UserRound },
 ];
 

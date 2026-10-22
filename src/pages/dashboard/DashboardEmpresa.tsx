@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   AlarmClock,
   Bookmark,
@@ -74,6 +75,7 @@ function formatarPeso(produto: ProdutoApi) {
 }
 
 export default function DashboardEmpresa() {
+  const navigate = useNavigate();
   const { displayName, userId } = useLoggedUser({ fallbackName: "Minha Empresa" });
   const [produtos, setProdutos] = useState<ProdutoApi[]>([]);
   const [estado, setEstado] = useState<EstadoCarga>("carregando");
@@ -243,7 +245,7 @@ export default function DashboardEmpresa() {
         <button
           type="button"
           className={styles.botaoPrincipal}
-          onClick={() => avisar("Publicar Novo Material")}
+          onClick={() => navigate("/dashboardEmpresa/materiais/novo")}
         >
           <Plus size={18} strokeWidth={2.4} aria-hidden="true" />
           Publicar Novo Material
@@ -327,7 +329,7 @@ export default function DashboardEmpresa() {
               <button
                 type="button"
                 className={`${styles.botaoPrincipal} mt-5`}
-                onClick={() => avisar("Publicar Novo Material")}
+                onClick={() => navigate("/dashboardEmpresa/materiais/novo")}
               >
                 <Plus size={18} strokeWidth={2.4} aria-hidden="true" />
                 Publicar primeiro material
