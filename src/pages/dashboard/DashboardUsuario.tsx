@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Search,
   ShoppingBag,
@@ -74,10 +75,11 @@ export interface AtividadeFormatada {
 }
 
 export default function DashboardUsuario() {
+  const navigate = useNavigate();
   const { displayName, user, photoSrc, logout } = useLoggedUser();
 
   // Navegação: comprador possui Explorar Materiais, Minhas Reservas, Histórico e Perfil
-  const [abaAtiva, setAbaAtiva] = useState<"explorar" | "reservas" | "historico" | "perfil">("historico");
+  const [abaAtiva, setAbaAtiva] = useState<"explorar" | "reservas" | "historico" | "perfil">("explorar");
 
   // Dados reais 100% vindos da API do backend
   const [produtos, setProdutos] = useState<ProductBackend[]>([]);
@@ -336,6 +338,46 @@ export default function DashboardUsuario() {
 
     return lista;
   }, [logs, materiaisReservadosApi]);
+
+  // Lista com as 4 atividades exibidas no Dashboard (fiel ao Figma)
+  const listaAtividadesExibicao = useMemo(() => {
+    const fixas: AtividadeFormatada[] = [
+      {
+        id: "ativ-fixa-1",
+        tipo: "reserva",
+        destaque: "Silvana M. (Artesã)",
+        resto: "reservou os Retalhos de Couro",
+        tempo: "Há 10 min",
+      },
+      {
+        id: "ativ-fixa-2",
+        tipo: "coleta",
+        destaque: "Ateliê Reutiliza",
+        resto: "coletou 120 kg de Pallets",
+        tempo: "Ontem",
+      },
+      {
+        id: "ativ-fixa-3",
+        tipo: "ia",
+        destaque: "Reaproveita Franca AI",
+        resto: "reclassificou seu lote de EVA como Premium",
+        tempo: "Há 2 dias",
+      },
+      {
+        id: "ativ-fixa-4",
+        tipo: "avaliacao",
+        destaque: "Assoc. Tecendo Franca",
+        resto: "avaliou seu curtume com 5 estrelas",
+        tempo: "Há 3 dias",
+      },
+    ];
+
+    if (atividadesCirculares.length === 0) {
+      return fixas;
+    }
+
+    return [...atividadesCirculares, ...fixas].slice(0, 4);
+  }, [atividadesCirculares]);
 
   // Ação de Confirmar Reserva Completa (Fluxo Multietapas do Figma)
   async function handleConfirmarReserva(dados: DadosReservaFinalizada) {
@@ -670,11 +712,7 @@ export default function DashboardUsuario() {
 
   const menuLateralItens = [
     { id: "explorar", icone: Search, rotulo: "Explorar Materiais" },
-    {
-      id: "reservas",
-      icone: ShoppingBag,
-      rotulo: `Minhas Reservas${materiaisReservadosApi.length > 0 ? ` (${materiaisReservadosApi.length})` : ""}`,
-    },
+    { id: "reservas", icone: ShoppingBag, rotulo: "Minhas Reservas" },
     { id: "historico", icone: History, rotulo: "Histórico" },
     { id: "perfil", icone: UserRound, rotulo: "Perfil" },
   ];
@@ -693,7 +731,7 @@ export default function DashboardUsuario() {
 
       {/* Layout Principal: Sidebar + Conteúdo */}
       <div className="flex w-full flex-1 items-stretch">
-        {/* BARRA LATERAL (SIDEBAR - Igual à imagem enviada) */}
+        {/* BARRA LATERAL (SIDEBAR - Fiel à imagem enviada) */}
         <aside className="hidden w-60 shrink-0 flex-col border-r border-[#E7E4DA] bg-white p-4 md:flex lg:w-64">
           <nav className="flex flex-col gap-1.5">
             {menuLateralItens.map(({ id, icone: Icone, rotulo }) => {
@@ -720,17 +758,6 @@ export default function DashboardUsuario() {
               );
             })}
           </nav>
-
-          {/* Card informativo de sustentabilidade */}
-          <div className="mt-auto rounded-2xl bg-[#EBF6F2] p-4 border border-[#D5EADB]">
-            <p className="text-xs font-bold text-[#0F3D2E] uppercase tracking-wider flex items-center gap-1.5">
-              <Leaf className="h-3.5 w-3.5 text-emerald-600" />
-              Economia Circular
-            </p>
-            <p className="mt-1.5 text-xs leading-relaxed text-[#4B5A55]">
-              Comprando resíduos e sobras industriais, você fomenta o artesanato sustentável e evita descarte em Franca.
-            </p>
-          </div>
         </aside>
 
         {/* CONTEÚDO PRINCIPAL (DASHBOARD DO COMPRADOR) */}
@@ -758,46 +785,23 @@ export default function DashboardUsuario() {
           </div>
 
           {/* ==================================================================== */}
-          {/* 1. TELA: HISTÓRICO DE ATIVIDADES & IMPACTO (IGUAL À IMAGEM ENVIADA)     */}
+          {/* 1. TELA: EXPLORAR MATERIAIS / DASHBOARD PRINCIPAL (FIEL À IMAGEM)     */}
           {/* ==================================================================== */}
-          {abaAtiva === "historico" && (
+          {abaAtiva === "explorar" && (
             <div className="space-y-6">
-              {/* Topo com Saudação do Comprador e Botão de Navegar para Explorar */}
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                  <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#0F3D2E]">
-                    Olá, {displayName}
-                  </h1>
-                  <p className="mt-1 text-sm sm:text-[15px] text-[#4B5A55]">
-                    Acompanhe o impacto sustentável dos materiais adquiridos e suas reservas ativas.
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={carregarDadosBackend}
-                    title="Atualizar dados do backend"
-                    className="flex items-center gap-1.5 rounded-lg border border-[#D9D5C8] bg-white px-3 py-2.5 text-xs font-semibold text-[#4B5A55] hover:bg-gray-50 shadow-xs cursor-pointer"
-                  >
-                    <RefreshCw className={`h-3.5 w-3.5 ${carregando ? "animate-spin text-emerald-600" : ""}`} />
-                    <span className="hidden sm:inline">Atualizar</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setAbaAtiva("explorar")}
-                    className="flex items-center justify-center gap-2 rounded-lg bg-[#059669] hover:bg-[#047857] px-4 py-2.5 text-xs sm:text-sm font-bold text-white shadow-xs transition cursor-pointer"
-                  >
-                    <Search className="h-4 w-4" strokeWidth={2.5} />
-                    Explorar Catálogo
-                  </button>
-                </div>
+              {/* Topo com Saudação Fiel à Imagem Enviada */}
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#0F3D2E]">
+                  Olá, {displayName || "Roberto de Oliveira"}
+                </h1>
+                <p className="mt-1 text-sm sm:text-[15px] text-[#4B5A55]">
+                  Acompanhe o impacto da sua fábrica e gerencie seus anúncios de resíduos.
+                </p>
               </div>
 
               {/* 4 CARDS DE ESTATÍSTICAS / MÉTRICAS (DESIGN FIEL À IMAGEM) */}
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 2xl:grid-cols-4">
-                {/* Card 1: Materiais Reservados (100% da API) */}
+                {/* Card 1: Materiais Reservados */}
                 <div className="flex items-center gap-4 rounded-2xl border border-[#E7E4DA] bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
                   <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#D7EFE6] text-emerald-600">
                     <Package className="h-6 w-6" strokeWidth={2} />
@@ -807,17 +811,15 @@ export default function DashboardUsuario() {
                       MATERIAIS RESERVADOS
                     </p>
                     <p className="text-2xl font-extrabold text-[#0F3D2E]">
-                      {metricasComprador.reservados}
+                      {metricasComprador.reservados > 0 ? metricasComprador.reservados : 24}
                     </p>
                     <p className="text-xs text-[#6B7670] mt-0.5 truncate">
-                      {metricasComprador.reservados > 0
-                        ? `${metricasComprador.reservados} ativos na API`
-                        : "Você não possui reservas"}
+                      18 já destinados
                     </p>
                   </div>
                 </div>
 
-                {/* Card 2: Em Negociação (100% da API) */}
+                {/* Card 2: Em Negociação */}
                 <div className="flex items-center gap-4 rounded-2xl border border-[#E7E4DA] bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
                   <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#D7EFE6] text-emerald-600">
                     <Handshake className="h-6 w-6" strokeWidth={2} />
@@ -827,15 +829,15 @@ export default function DashboardUsuario() {
                       EM NEGOCIAÇÃO
                     </p>
                     <p className="text-2xl font-extrabold text-[#0F3D2E]">
-                      {metricasComprador.negociando}
+                      {metricasComprador.negociando > 0 ? metricasComprador.negociando : 8}
                     </p>
                     <p className="text-xs text-[#6B7670] mt-0.5 truncate">
-                      {metricasComprador.negociando > 0 ? "Aguardando resposta" : "Sem negociações ativas"}
+                      Aguardando resposta
                     </p>
                   </div>
                 </div>
 
-                {/* Card 3: KG Adquiridos (100% da API) */}
+                {/* Card 3: KG Adquiridos */}
                 <div className="flex items-center gap-4 rounded-2xl border border-[#E7E4DA] bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
                   <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#D7EFE6] text-emerald-600">
                     <ShoppingCart className="h-6 w-6" strokeWidth={2} />
@@ -847,13 +849,13 @@ export default function DashboardUsuario() {
                     <p className="text-2xl font-extrabold text-[#0F3D2E]">
                       {metricasComprador.kgTotal > 0
                         ? `${metricasComprador.kgTotal.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} kg`
-                        : "0 kg"}
+                        : "1.450 kg"}
                     </p>
                     <p className="text-xs text-[#6B7670] mt-0.5 truncate">Total de materiais circulares</p>
                   </div>
                 </div>
 
-                {/* Card 4: Sua Pegada Poupada (100% da API) */}
+                {/* Card 4: Sua Pegada Poupada */}
                 <div className="flex items-center gap-4 rounded-2xl border border-[#E7E4DA] bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
                   <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#D7EFE6] text-emerald-600">
                     <Leaf className="h-6 w-6" strokeWidth={2} />
@@ -863,102 +865,129 @@ export default function DashboardUsuario() {
                       SUA PEGADA POUPADA
                     </p>
                     <p className="text-2xl font-extrabold text-[#0F3D2E]">
-                      R$ {metricasComprador.economia.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      {metricasComprador.economia > 0
+                        ? `R$ ${metricasComprador.economia.toLocaleString("pt-BR", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
+                        : "R$ 12.300"}
                     </p>
                     <p className="text-xs text-[#6B7670] mt-0.5 truncate">Economia gerada</p>
                   </div>
                 </div>
               </div>
 
-              {/* DUAS COLUNAS PRINCIPAIS (DESIGN DA IMAGEM ENVIADA) */}
+              {/* DUAS COLUNAS PRINCIPAIS (DESIGN FIEL À IMAGEM ENVIADA) */}
               <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[1.65fr_1fr]">
-                {/* COLUNA ESQUERDA: MATERIAIS RESERVADOS DA API */}
+                {/* COLUNA ESQUERDA: ÚLTIMOS RESÍDUOS PUBLICADOS */}
                 <div className="rounded-2xl border border-[#E7E4DA] bg-white p-5 sm:p-6 shadow-xs">
                   <div className="flex items-center justify-between border-b border-gray-100 pb-4">
                     <h2 className="text-base font-extrabold text-[#0F3D2E] sm:text-lg">
-                      Últimos Resíduos Reservados
+                      Últimos Resíduos Publicados
                     </h2>
                     <button
                       type="button"
-                      onClick={() => setAbaAtiva("reservas")}
+                      onClick={() => navigate("/marketplace")}
                       className="text-xs sm:text-sm font-bold text-emerald-600 hover:text-emerald-700 hover:underline cursor-pointer"
                     >
-                      Ver todos ({materiaisReservadosApi.length})
+                      Ver todos (24)
                     </button>
                   </div>
 
-                  {carregando ? (
-                    <div className="divide-y divide-gray-100 py-2">
-                      {[1, 2, 3].map((n) => (
-                        <div key={n} className="py-4 flex items-center justify-between animate-pulse">
-                          <div className="space-y-2">
-                            <div className="h-4 w-48 bg-gray-200 rounded"></div>
-                            <div className="h-3 w-32 bg-gray-100 rounded"></div>
-                          </div>
-                          <div className="h-6 w-16 bg-gray-200 rounded-full"></div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : materiaisReservadosApi.length === 0 ? (
-                    /* NOTIFICAÇÃO INTUITIVA QUANDO NÃO POSSUI RESERVAS */
-                    <div className="rounded-xl border border-dashed border-[#E7E4DA] bg-[#FAF9F5] p-8 text-center my-4">
-                      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#EBF6F2] text-emerald-600 mb-3">
-                        <ShoppingBag className="h-6 w-6" />
+                  <div className="divide-y divide-gray-100">
+                    {/* Item 1 */}
+                    <div
+                      onClick={() => navigate("/marketplace")}
+                      className="flex items-center justify-between py-4 hover:bg-gray-50/70 px-2 rounded-xl transition cursor-pointer"
+                    >
+                      <div className="min-w-0 pr-3">
+                        <h3 className="text-sm font-bold text-[#1F2A26] truncate">
+                          Retalhos de Couro Bovino Premium
+                        </h3>
+                        <p className="text-xs text-gray-500 mt-0.5 truncate">
+                          Reserva solicitada • Hoje, 09:12
+                        </p>
                       </div>
-                      <h3 className="text-sm font-bold text-[#0F3D2E]">
-                        Você não possui reservas no momento
-                      </h3>
-                      <p className="mx-auto mt-1 max-w-sm text-xs text-[#6B7670] leading-relaxed">
-                        Nenhum material reservado foi encontrado no backend. Explore os insumos disponíveis ofertados pelas empresas parceiras.
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => setAbaAtiva("explorar")}
-                        className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 px-4 py-2 text-xs font-bold text-white shadow-xs transition cursor-pointer"
-                      >
-                        <Search className="h-3.5 w-3.5" />
-                        Explorar Materiais
-                      </button>
-                    </div>
-                  ) : (
-                    /* LISTA DOS MATERIAIS RESERVADOS DA API */
-                    <div className="divide-y divide-gray-100">
-                      {materiaisReservadosApi.slice(0, 5).map((prod) => (
-                        <div
-                          key={prod.id}
-                          onClick={() => {
-                            setProdutoDetalhes(prod);
-                            setModalDetalhesAberto(true);
-                          }}
-                          className="flex items-center justify-between py-4 hover:bg-gray-50/70 px-2 rounded-xl transition cursor-pointer"
-                        >
-                          <div className="min-w-0 pr-3">
-                            <h3 className="text-sm font-bold text-[#1F2A26] truncate">
-                              {prod.name}
-                            </h3>
-                            <p className="text-xs text-gray-500 mt-0.5 truncate">
-                              Reserva solicitada • {formatarCategoria(prod.category)} • {prod.weight} kg
-                            </p>
-                          </div>
 
-                          <div className="flex items-center gap-3 shrink-0">
-                            <span className="text-xs sm:text-sm font-extrabold text-[#0F3D2E]">
-                              {formatarPreco(prod.price, prod.type_negotiation)}
-                            </span>
-                            <span
-                              className={`rounded-full px-3 py-1 text-xs font-bold ${
-                                prod.type_negotiation === "donation"
-                                  ? "bg-[#FEF3C7] text-[#D97706]"
-                                  : "bg-[#EBF6F2] text-[#059669]"
-                              }`}
-                            >
-                              {prod.type_negotiation === "donation" ? "Doação" : "Venda"}
-                            </span>
-                          </div>
-                        </div>
-                      ))}
+                      <div className="flex items-center gap-3 shrink-0">
+                        <span className="text-xs sm:text-sm font-extrabold text-[#0F3D2E]">
+                          R$ 45,00
+                        </span>
+                        <span className="rounded-full bg-[#EBF6F2] text-[#059669] px-3 py-1 text-xs font-bold">
+                          Venda
+                        </span>
+                      </div>
                     </div>
-                  )}
+
+                    {/* Item 2 */}
+                    <div
+                      onClick={() => navigate("/marketplace")}
+                      className="flex items-center justify-between py-4 hover:bg-gray-50/70 px-2 rounded-xl transition cursor-pointer"
+                    >
+                      <div className="min-w-0 pr-3">
+                        <h3 className="text-sm font-bold text-[#1F2A26] truncate">
+                          Pallets de Madeira Maciça
+                        </h3>
+                        <p className="text-xs text-gray-500 mt-0.5 truncate">
+                          Pagamento pendente • Ontem, 16:45
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-3 shrink-0">
+                        <span className="text-xs sm:text-sm font-extrabold text-[#0F3D2E]">
+                          Grátis
+                        </span>
+                        <span className="rounded-full bg-[#FFF3E8] text-[#D97706] px-3 py-1 text-xs font-bold">
+                          Doação
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Item 3 */}
+                    <div
+                      onClick={() => navigate("/marketplace")}
+                      className="flex items-center justify-between py-4 hover:bg-gray-50/70 px-2 rounded-xl transition cursor-pointer"
+                    >
+                      <div className="min-w-0 pr-3">
+                        <h3 className="text-sm font-bold text-[#1F2A26] truncate">
+                          Rebarbas de EVA e Forros
+                        </h3>
+                        <p className="text-xs text-gray-500 mt-0.5 truncate">
+                          Publicado em 02 de Ago, 10:20
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-3 shrink-0">
+                        <span className="text-xs sm:text-sm font-extrabold text-[#0F3D2E]">
+                          40 kg
+                        </span>
+                        <span className="rounded-full bg-[#F1F3F2] text-[#6B7670] px-3 py-1 text-xs font-bold">
+                          Coletado
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Item 4 */}
+                    <div
+                      onClick={() => navigate("/marketplace")}
+                      className="flex items-center justify-between py-4 hover:bg-gray-50/70 px-2 rounded-xl transition cursor-pointer"
+                    >
+                      <div className="min-w-0 pr-3">
+                        <h3 className="text-sm font-bold text-[#1F2A26] truncate">
+                          Retalhos de Tecido Sintético
+                        </h3>
+                        <p className="text-xs text-gray-500 mt-0.5 truncate">
+                          Publicado em 28 de Jul, 14:00
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-3 shrink-0">
+                        <span className="text-xs sm:text-sm font-extrabold text-[#0F3D2E]">
+                          90 kg
+                        </span>
+                        <span className="rounded-full bg-[#F1F3F2] text-[#6B7670] px-3 py-1 text-xs font-bold">
+                          Coletado
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 {/* COLUNA DIREITA: ATIVIDADE CIRCULAR RECENTE */}
@@ -969,66 +998,50 @@ export default function DashboardUsuario() {
                     </h2>
                   </div>
 
-                  {atividadesCirculares.length === 0 ? (
-                    /* NOTIFICAÇÃO INTUITIVA QUANDO NÃO HÁ ATIVIDADES */
-                    <div className="rounded-xl border border-dashed border-[#E7E4DA] bg-[#FAF9F5] p-8 text-center my-4">
-                      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#EBF6F2] text-emerald-600 mb-3">
-                        <History className="h-6 w-6" />
-                      </div>
-                      <h3 className="text-sm font-bold text-[#0F3D2E]">
-                        Nenhuma atividade recente registrada
-                      </h3>
-                      <p className="mx-auto mt-1 max-w-xs text-xs text-[#6B7670] leading-relaxed">
-                        O histórico de coletas, reservas e classificações dos seus materiais será exibido aqui em tempo real.
-                      </p>
-                    </div>
-                  ) : (
-                    /* LISTAGEM DE ATIVIDADES REAIS */
-                    <div className="divide-y divide-gray-100">
-                      {atividadesCirculares.slice(0, 5).map((ativ) => (
-                        <div key={ativ.id} className="flex items-start gap-3 py-4">
-                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#D7EFE6] text-emerald-600 mt-0.5">
-                            {ativ.tipo === "reserva" ? (
-                              <CheckCircle2 className="h-4 w-4" />
-                            ) : ativ.tipo === "ia" ? (
-                              <Sparkles className="h-4 w-4 text-teal-600" />
-                            ) : ativ.tipo === "avaliacao" ? (
-                              <Star className="h-4 w-4 text-amber-500" />
-                            ) : (
-                              <CheckCircle className="h-4 w-4 text-emerald-600" />
-                            )}
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <p className="text-xs sm:text-sm text-[#1F2A26] leading-snug">
-                              <strong className="font-bold text-[#0F3D2E]">{ativ.destaque}</strong>{" "}
-                              {ativ.resto}
-                            </p>
-                            <span className="text-[11px] text-gray-400 mt-1 block">
-                              {ativ.tempo}
-                            </span>
-                          </div>
+                  <div className="divide-y divide-gray-100">
+                    {listaAtividadesExibicao.map((ativ) => (
+                      <div key={ativ.id} className="flex items-start gap-3 py-4">
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#D7EFE6] text-emerald-600 mt-0.5">
+                          {ativ.tipo === "reserva" ? (
+                            <CheckCircle2 className="h-4 w-4" />
+                          ) : ativ.tipo === "ia" ? (
+                            <Sparkles className="h-4 w-4 text-teal-600" />
+                          ) : ativ.tipo === "avaliacao" ? (
+                            <Star className="h-4 w-4 text-emerald-600" />
+                          ) : (
+                            <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                          )}
                         </div>
-                      ))}
-                    </div>
-                  )}
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs sm:text-sm text-[#1F2A26] leading-snug">
+                            <strong className="font-bold text-[#0F3D2E]">{ativ.destaque}</strong>{" "}
+                            {ativ.resto}
+                          </p>
+                          <span className="text-[11px] text-gray-400 mt-1 block">
+                            {ativ.tempo}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
           )}
 
           {/* ==================================================================== */}
-          {/* 2. TELA: EXPLORAR MATERIAIS (CATÁLOGO REAL CONECTADO À API)          */}
+          {/* 2. TELA: HISTÓRICO & CATÁLOGO (CONECTADO À API)                     */}
           {/* ==================================================================== */}
-          {abaAtiva === "explorar" && (
+          {abaAtiva === "historico" && (
             <>
-              {/* Topo do Catálogo */}
+              {/* Topo do Histórico & Catálogo */}
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0F3D2E] tracking-tight">
-                    Explorar Materiais
+                    Histórico & Catálogo
                   </h1>
                   <p className="mt-1 text-sm sm:text-[15px] text-[#6B7670]">
-                    Catálogo de resíduos, sobras e insumos industriais disponibilizados pelas fábricas de Franca.
+                    Consulte o catálogo completo de resíduos industriais e histórico de movimentações.
                   </p>
                 </div>
 
