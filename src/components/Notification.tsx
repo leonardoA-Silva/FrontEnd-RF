@@ -36,35 +36,35 @@ function NotificationItem({ notification, onClose }: NotificationItemProps) {
     };
   }, [handleClose]);
 
-  // Paleta "mesa de corte": musgo = sucesso, canela = aviso, carvão = informativo.
+  // Estados usam os tokens semânticos compartilhados da marca.
   const colors = {
     success: {
-      bg: "#EDF1E1",
-      border: "#C4D3AC",
-      icon: "#44603A",
-      title: "#2E4427",
-      bar: "#44603A",
+      bg: "color-mix(in srgb, var(--color-success) 10%, var(--color-surface))",
+      border: "color-mix(in srgb, var(--color-success) 35%, var(--color-surface))",
+      icon: "var(--color-success)",
+      title: "var(--color-ink)",
+      bar: "var(--color-success)",
     },
     error: {
-      bg: "#FDF2F0",
-      border: "#F0C6BD",
-      icon: "#B3361D",
-      title: "#7C2214",
-      bar: "#C2402A",
+      bg: "color-mix(in srgb, var(--color-danger) 10%, var(--color-surface))",
+      border: "color-mix(in srgb, var(--color-danger) 35%, var(--color-surface))",
+      icon: "var(--color-danger)",
+      title: "var(--color-ink)",
+      bar: "var(--color-danger)",
     },
     info: {
-      bg: "#F1EFE7",
-      border: "#DCD2BC",
-      icon: "#4A4239",
-      title: "#33291F",
-      bar: "#6B5F4E",
+      bg: "color-mix(in srgb, var(--color-primary) 8%, var(--color-surface))",
+      border: "color-mix(in srgb, var(--color-primary) 30%, var(--color-surface))",
+      icon: "var(--color-primary)",
+      title: "var(--color-ink)",
+      bar: "var(--color-primary)",
     },
     warning: {
-      bg: "#F9EAD9",
-      border: "#E8C79B",
-      icon: "#A6511E",
-      title: "#7C3D14",
-      bar: "#C46A2E",
+      bg: "color-mix(in srgb, var(--color-warning) 10%, var(--color-surface))",
+      border: "color-mix(in srgb, var(--color-warning) 35%, var(--color-surface))",
+      icon: "var(--color-warning)",
+      title: "var(--color-ink)",
+      bar: "var(--color-warning)",
     },
   };
 
@@ -89,7 +89,7 @@ function NotificationItem({ notification, onClose }: NotificationItemProps) {
         boxShadow: "0 4px 20px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.08)",
         overflow: "hidden",
         position: "relative",
-        transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+        transition: "transform 220ms cubic-bezier(0.23, 1, 0.32, 1), opacity 220ms ease-out",
         opacity: visible && !leaving ? 1 : 0,
         transform: visible && !leaving ? "translateX(0)" : "translateX(-110%)",
         marginBottom: 10,
@@ -138,7 +138,7 @@ function NotificationItem({ notification, onClose }: NotificationItemProps) {
             style={{
               margin: "3px 0 0",
               fontSize: 12,
-              color: "#3E372E",
+              color: "var(--color-ink)",
               lineHeight: 1.5,
               wordBreak: "break-word",
             }}
@@ -156,14 +156,14 @@ function NotificationItem({ notification, onClose }: NotificationItemProps) {
             cursor: "pointer",
             padding: 2,
             flexShrink: 0,
-            color: "#9CA3AF",
+            color: "var(--color-muted)",
             display: "flex",
             alignItems: "center",
             borderRadius: 4,
             transition: "color 0.15s",
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.color = "#374151")}
-          onMouseLeave={(e) => (e.currentTarget.style.color = "#9CA3AF")}
+          onMouseEnter={(e) => (e.currentTarget.style.color = "var(--color-ink)")}
+          onMouseLeave={(e) => (e.currentTarget.style.color = "var(--color-muted)")}
         >
           <X size={14} />
         </button>

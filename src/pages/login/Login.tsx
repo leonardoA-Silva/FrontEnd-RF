@@ -1,9 +1,10 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Eye, EyeOff, Repeat2 } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import axios from "axios";
 import api from "../../axios/Axios";
+import BrandIcon from "../../components/BrandIcon";
 
 type TipoUsuario = "empresa" | "comprador";
 
@@ -37,7 +38,6 @@ export default function Login() {
         painelVeu: "absolute inset-0 bg-carvao/60",
         painelConteudo: "relative flex h-full flex-col justify-between p-10",
         painelMarca: "flex items-center gap-3 no-underline",
-        painelMarcaIcone: "flex h-10 w-10 items-center justify-center rounded-lg bg-cru text-carvao",
         painelMarcaTitulo: "font-display text-lg font-semibold text-cru",
         painelFrase:
             "mt-auto font-display text-4xl font-medium italic leading-tight tracking-[-0.01em] text-cru",
@@ -46,7 +46,6 @@ export default function Login() {
         areaFormulario: "flex flex-1 flex-col px-5 py-6 sm:px-10",
         barraTopo: "flex items-center justify-between lg:hidden",
         barraMarca: "flex items-center gap-3 no-underline",
-        barraMarcaIcone: "flex h-10 w-10 items-center justify-center rounded-lg bg-carvao text-cru",
         barraMarcaTitulo: "font-display text-lg font-semibold text-carvao",
         barraVoltar:
             "text-sm font-semibold text-carvao-suave no-underline transition hover:text-carvao",
@@ -252,9 +251,7 @@ export default function Login() {
                 <div className={styles.painelVeu} />
                 <div className={styles.painelConteudo}>
                     <Link to="/" className={styles.painelMarca}>
-                        <span className={styles.painelMarcaIcone}>
-                            <Repeat2 className="h-5 w-5" strokeWidth={2.4} />
-                        </span>
+                        <BrandIcon />
                         <span className={styles.painelMarcaTitulo}>
                             Reaproveita Franca
                         </span>
@@ -275,9 +272,7 @@ export default function Login() {
             <main className={styles.areaFormulario}>
                 <div className={styles.barraTopo}>
                     <Link to="/" className={styles.barraMarca}>
-                        <span className={styles.barraMarcaIcone}>
-                            <Repeat2 className="h-5 w-5" strokeWidth={2.4} />
-                        </span>
+                        <BrandIcon />
                         <span className={styles.barraMarcaTitulo}>
                             Reaproveita Franca
                         </span>

@@ -199,7 +199,7 @@ export default function EmailVerificationModal({
     digito:
       "h-14 min-w-0 flex-1 rounded-xl border-2 bg-cru text-center font-display text-2xl font-semibold text-carvao outline-none transition [border-color:var(--color-areia)] focus:[border-color:var(--color-canela)] focus:ring-4 focus:ring-canela/15 disabled:opacity-60 sm:h-16",
     digitoPreenchido: "[border-color:var(--color-canela)] bg-papel",
-    digitoErro: "[border-color:#f87171] bg-red-50",
+    digitoErro: "[border-color:var(--color-danger)] bg-danger/10",
     botaoVerificar:
       "mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-canela py-3.5 text-sm font-bold text-cru transition hover:bg-canela-escura disabled:cursor-not-allowed disabled:bg-areia disabled:text-carvao-suave",
     reenvio:

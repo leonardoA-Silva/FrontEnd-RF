@@ -1,5 +1,5 @@
-import { Repeat2 } from "lucide-react";
 import { Link } from "react-router-dom";
+import BrandIcon from "./BrandIcon";
 
 const navegacao = [
   { rotulo: "Início", href: "/" },
@@ -10,27 +10,23 @@ const navegacao = [
 export default function Header() {
   const styles = {
     cabecalho: "sticky top-0 z-40 border-b border-areia bg-cru/95 backdrop-blur-sm",
-    conteudo: "mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-3 sm:px-8",
-    marca: "flex shrink-0 items-center gap-3 no-underline",
-    marcaIcone: "flex h-10 w-10 items-center justify-center rounded-lg bg-carvao text-cru",
-    marcaIconeSvg: "h-5 w-5",
-    marcaTitulo: "font-display text-lg font-semibold leading-none text-carvao",
+    conteudo: "mx-auto flex max-w-6xl items-center justify-between gap-2 px-4 py-3 sm:gap-4 sm:px-8",
+    marca: "flex shrink-0 items-center gap-2 no-underline sm:gap-3",
+    marcaTitulo: "font-display text-base font-semibold leading-none text-carvao sm:text-lg",
     menu: "hidden items-center gap-7 md:flex",
     menuLink: "text-sm font-medium text-carvao-suave no-underline transition hover:text-carvao",
     acoes: "flex items-center gap-2.5",
     botaoEntrar:
-      "rounded-lg border border-areia px-4 py-2 text-sm font-semibold text-carvao no-underline transition hover:border-carvao-suave hover:bg-areia-clara",
+      "rounded-lg border border-areia px-3 py-2 text-xs font-semibold text-carvao no-underline transition hover:border-carvao-suave hover:bg-areia-clara sm:px-4 sm:text-sm",
     botaoCadastrar:
-      "rounded-lg bg-canela px-4 py-2 text-sm font-semibold text-cru no-underline transition hover:bg-canela-escura",
+      "rounded-lg bg-canela px-3 py-2 text-xs font-semibold text-cru no-underline transition hover:bg-canela-escura sm:px-4 sm:text-sm",
   };
 
   return (
     <header className={styles.cabecalho}>
       <div className={styles.conteudo}>
         <Link to="/" className={styles.marca}>
-          <span className={styles.marcaIcone}>
-            <Repeat2 className={styles.marcaIconeSvg} strokeWidth={2.4} />
-          </span>
+          <BrandIcon />
           <span className={styles.marcaTitulo}>Reaproveita Franca</span>
         </Link>
 

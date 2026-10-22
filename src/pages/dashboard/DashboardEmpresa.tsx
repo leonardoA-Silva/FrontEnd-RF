@@ -38,7 +38,7 @@ const CONSERVACAO: Record<string, string> = {
 const SELOS: Record<string, { rotulo: string; classe: string }> = {
   available: { rotulo: "Ativo", classe: "bg-verde-claro text-verde-escuro" },
   reserved: { rotulo: "Reservado", classe: "bg-ambar-fundo text-ambar" },
-  unavailable: { rotulo: "Indisponível", classe: "bg-[#f1f4f2] text-tinta-suave" },
+  unavailable: { rotulo: "Indisponível", classe: "bg-bruma text-tinta-suave" },
 };
 
 // Atividade ainda não tem rota na API. São exemplos de demonstração,
@@ -340,7 +340,7 @@ export default function DashboardEmpresa() {
               {visiveis.map((produto) => {
                 const selo = SELOS[produto.status] ?? {
                   rotulo: produto.status,
-                  classe: "bg-[#f1f4f2] text-tinta-suave",
+                  classe: "bg-bruma text-tinta-suave",
                 };
 
                 return (

@@ -7,12 +7,12 @@ import {
   LogOut,
   Menu,
   Package,
-  Repeat2,
   UserRound,
   X,
 } from "lucide-react";
 import Footer from "../../components/Footer";
 import { useLoggedUser } from "../../hooks/useLoggedUser";
+import BrandIcon from "../../components/BrandIcon";
 
 const estatisticas = [
   {
@@ -117,7 +117,6 @@ export default function DashboardUsuario() {
     cabecalhoConteudo:
       "flex w-full items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8",
     marca: "flex min-w-0 shrink-0 items-center gap-2.5",
-    marcaIcone: "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-carvao text-cru",
     marcaTitulo: "font-display text-base font-semibold text-carvao sm:text-lg",
     menuTopo: "hidden min-w-0 flex-1 items-center justify-center gap-8 lg:flex",
     menuTopoLink:
@@ -217,9 +216,7 @@ export default function DashboardUsuario() {
       <header className={styles.cabecalho}>
         <div className={styles.cabecalhoConteudo}>
           <div className={styles.marca}>
-            <span className={styles.marcaIcone}>
-              <Repeat2 className="h-5 w-5" strokeWidth={2.4} />
-            </span>
+            <BrandIcon className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-verde-escuro text-white" />
             <p className={styles.marcaTitulo}>Reaproveita Franca</p>
           </div>
 

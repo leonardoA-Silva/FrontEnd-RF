@@ -6,11 +6,11 @@ import {
   LogOut,
   Menu,
   PlusCircle,
-  Recycle,
   UserRound,
   X,
 } from "lucide-react";
 import { useLoggedUser } from "../../hooks/useLoggedUser";
+import BrandIcon from "../BrandIcon";
 
 type SecaoPainel = "materiais" | "publicar" | "perfil";
 
@@ -52,9 +52,7 @@ function Marca() {
       className="flex shrink-0 items-center gap-3 no-underline"
       aria-label="Reaproveita Franca — painel"
     >
-      <span className="grid h-11 w-11 place-items-center rounded-full bg-verde-escuro text-white">
-        <Recycle size={24} strokeWidth={2.2} aria-hidden="true" />
-      </span>
+      <BrandIcon className="grid h-11 w-11 place-items-center rounded-lg bg-verde-escuro text-white" iconClassName="h-6 w-6" />
       <span className="leading-none">
         <span className="block text-[19px] font-bold tracking-tight text-verde-escuro">
           Reaproveita
@@ -110,7 +108,7 @@ export default function DashboardShell({
     acoes: "flex shrink-0 items-center gap-2",
     usuarioDetalhes: "relative",
     usuarioPilha:
-      "flex cursor-pointer list-none items-center gap-2.5 rounded-full bg-verde-claro py-1.5 pl-1.5 pr-3 transition-colors hover:bg-[#dff1e7] [&::-webkit-details-marker]:hidden",
+      "flex cursor-pointer list-none items-center gap-2.5 rounded-full bg-verde-claro py-1.5 pl-1.5 pr-3 transition-colors hover:bg-musgo-claro [&::-webkit-details-marker]:hidden",
     avatar:
       "grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-full bg-white text-[13px] font-bold text-verde-escuro",
     avatarImg: "h-8 w-8 rounded-full object-cover",
@@ -157,6 +155,7 @@ export default function DashboardShell({
     rodapeConteudo:
       "mx-auto flex max-w-[1700px] flex-col gap-6 px-5 py-9 sm:px-8 lg:flex-row lg:items-start lg:justify-between lg:px-10",
     rodapeMarca: "max-w-sm",
+    rodapeMarcaCabecalho: "flex items-center gap-3",
     rodapeTitulo: "text-[17px] font-bold",
     rodapeTexto: "mt-2 text-[13px] leading-relaxed text-white/70",
     rodapeLinks: "flex flex-wrap gap-x-8 gap-y-2 text-[14px]",
@@ -380,7 +379,10 @@ export default function DashboardShell({
       <footer className={styles.rodape}>
         <div className={styles.rodapeConteudo}>
           <div className={styles.rodapeMarca}>
-            <p className={styles.rodapeTitulo}>Reaproveita Franca</p>
+            <div className={styles.rodapeMarcaCabecalho}>
+              <BrandIcon className="grid h-9 w-9 place-items-center rounded-lg bg-white text-verde-escuro" iconClassName="h-5 w-5" />
+              <p className={styles.rodapeTitulo}>Reaproveita Franca</p>
+            </div>
             <p className={styles.rodapeTexto}>
               Conectando a indústria calçadista de Franca à economia circular e ao
               artesanato local.

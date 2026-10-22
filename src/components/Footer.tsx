@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import BrandIcon from "./BrandIcon";
 
 export default function Footer() {
   const styles = {
@@ -6,6 +7,7 @@ export default function Footer() {
     conteudo:
       "mx-auto flex max-w-6xl flex-col gap-10 px-5 py-12 sm:px-8 lg:flex-row lg:justify-between",
     marca: "max-w-sm",
+    marcaCabecalho: "flex items-center gap-3",
     marcaTitulo: "font-display text-xl font-semibold",
     marcaTexto: "mt-3 text-sm leading-relaxed text-cru/70",
     colunas: "flex flex-col gap-10 sm:flex-row sm:gap-16",
@@ -19,7 +21,10 @@ export default function Footer() {
     <footer className={styles.rodape}>
       <div className={styles.conteudo}>
         <div className={styles.marca}>
-          <p className={styles.marcaTitulo}>Reaproveita Franca</p>
+          <div className={styles.marcaCabecalho}>
+            <BrandIcon className="grid h-10 w-10 place-items-center rounded-lg bg-white text-verde-escuro" />
+            <p className={styles.marcaTitulo}>Reaproveita Franca</p>
+          </div>
           <p className={styles.marcaTexto}>
             Economia circular para o polo calçadista de Franca · SP. Empresas
             publicam o que sobra da produção; artesãos, cooperativas e escolas
