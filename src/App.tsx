@@ -4,6 +4,7 @@ import RegisterType from "./pages/register/RegisterType";
 import RegisterCompany from "./pages/register/RegisterCompany";
 import RegisterUser from "./pages/register/RegisterUser";
 import Login from "./pages/login/Login";
+import Marketplace from "./pages/marketplace/Marketplace";
 import DashboardUsuario from "./pages/dashboard/DashboardUsuario";
 import DashboardEmpresa from "./pages/dashboard/DashboardEmpresa";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -15,6 +16,7 @@ function App() {
         <Routes>
           {/* rotas publicas */}
           <Route path="/" element={<Home />} />
+          <Route path="/marketplace" element={<Marketplace />} />
           <Route path="/cadastro" element={<RegisterType />} />
           <Route path="/cadastro-empresa" element={<RegisterCompany />} />
           <Route path="/cadastro-pessoal" element={<RegisterUser />} />

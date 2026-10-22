@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Repeat2, UserRound, LogOut, ChevronDown, Menu, X } from "lucide-react";
 import { useLoggedUser } from "../hooks/useLoggedUser";
 
 export default function Header() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { isLoggedIn, role, displayName, photoSrc, logout } = useLoggedUser();
 
   const [menuUsuarioAberto, setMenuUsuarioAberto] = useState(false);
@@ -60,13 +61,21 @@ export default function Header() {
             <nav className="hidden md:flex items-center gap-8">
               <Link
                 to={role === "company" ? "/dashboardEmpresa" : "/dashboardUsuario"}
-                className="text-sm font-medium text-[#4B5A55] hover:text-[#1B4B3A] transition"
+                className={`text-sm font-medium transition ${
+                  location.pathname === "/dashboardUsuario" || location.pathname === "/dashboardEmpresa"
+                    ? "text-[#059669] font-bold"
+                    : "text-[#4B5A55] hover:text-[#1B4B3A]"
+                }`}
               >
                 Início
               </Link>
               <Link
-                to="/dashboardUsuario"
-                className="text-sm font-medium text-[#4B5A55] hover:text-[#1B4B3A] transition"
+                to="/marketplace"
+                className={`text-sm font-medium transition ${
+                  location.pathname === "/marketplace"
+                    ? "text-[#059669] font-bold"
+                    : "text-[#4B5A55] hover:text-[#1B4B3A]"
+                }`}
               >
                 Marketplace
               </Link>
@@ -146,13 +155,27 @@ export default function Header() {
           /* 2. HEADER PÚBLICO (NÃO LOGADO / VISITANTE EM TODAS AS PÁGINAS)*/
           /* ============================================================ */
           <>
-            {/* Links Centrais Públicos: Início | Sobre Nós */}
+            {/* Links Centrais Públicos: Início | Marketplace | Sobre Nós */}
             <nav className="hidden md:flex items-center gap-8">
               <Link
                 to="/"
-                className="text-sm font-bold text-emerald-600 hover:text-emerald-700 transition"
+                className={`text-sm transition ${
+                  location.pathname === "/"
+                    ? "font-bold text-emerald-600"
+                    : "font-medium text-[#6B7670] hover:text-[#1B4B3A]"
+                }`}
               >
                 Início
+              </Link>
+              <Link
+                to="/marketplace"
+                className={`text-sm transition ${
+                  location.pathname === "/marketplace"
+                    ? "font-bold text-emerald-600"
+                    : "font-medium text-[#6B7670] hover:text-[#1B4B3A]"
+                }`}
+              >
+                Marketplace
               </Link>
               <Link
                 to="/#sobre"
@@ -192,9 +215,13 @@ export default function Header() {
             Início
           </Link>
           <Link
-            to="/dashboardUsuario"
+            to="/marketplace"
             onClick={() => setMenuMovelAberto(false)}
-            className="block rounded-lg px-3 py-2 text-sm font-medium text-[#4B5A55] hover:bg-[#F3F1EA] hover:text-[#1B4B3A]"
+            className={`block rounded-lg px-3 py-2 text-sm font-medium transition ${
+              location.pathname === "/marketplace"
+                ? "bg-[#EBF6F2] font-bold text-emerald-800"
+                : "text-[#4B5A55] hover:bg-[#F3F1EA] hover:text-[#1B4B3A]"
+            }`}
           >
             Marketplace
           </Link>
