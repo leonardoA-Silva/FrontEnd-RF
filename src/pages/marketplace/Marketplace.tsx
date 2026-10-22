@@ -10,6 +10,7 @@ import {
   Package,
   ArrowRight,
   ShieldCheck,
+  CreditCard,
 } from "lucide-react";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
@@ -32,18 +33,18 @@ interface MaterialMarketplace extends ProductBackend {
   disponibilidadeTipo: "imediata" | "encomenda" | "doacao";
 }
 
-// 4 materiais estáticos baseados estritamente na imagem do Figma
+// Materiais do Marketplace: Exemplos de Doação e Venda (com PIX / Cartão)
 const MATERIAIS_INICIAIS: MaterialMarketplace[] = [
   {
     id: "mkt-1",
     name: "Retalhos de Couro Premium",
     description:
       "Sobras de corte limpo de couro nobre automotivo e calçadista. Ideais para confecção de carteiras, chaveiros, calçados artesanais e revestimentos manuais.",
-    price: 0,
+    price: 45.0,
     quantity: 150,
     status: "available",
     category: "couro",
-    type_negotiation: "donation",
+    type_negotiation: "sale",
     weight: "150",
     conservation_state: "good",
     distanciaKm: 3.2,
@@ -79,11 +80,11 @@ const MATERIAIS_INICIAIS: MaterialMarketplace[] = [
     name: "Borracha Triturada de Sola",
     description:
       "Composto de borracha vulcanizada moída oriunda do processo de lixamento de solados industriais. Granulometria uniforme para reciclagem ou piso de absorção.",
-    price: 0,
+    price: 18.5,
     quantity: 450,
     status: "available",
     category: "borracha",
-    type_negotiation: "donation",
+    type_negotiation: "sale",
     weight: "450",
     conservation_state: "regular",
     distanciaKm: 5.0,
@@ -114,6 +115,46 @@ const MATERIAIS_INICIAIS: MaterialMarketplace[] = [
     imagemUrl:
       "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?auto=format&fit=crop&w=800&q=80",
   },
+  {
+    id: "mkt-5",
+    name: "Sobra de Solados TR Injetados",
+    description:
+      "Lote de solados termoplásticos (TR) virgens provenientes de excedentes de produção industrial. Alto poder de reaproveitamento e excelente durabilidade.",
+    price: 85.0,
+    quantity: 120,
+    status: "available",
+    category: "plastico",
+    type_negotiation: "sale",
+    weight: "95",
+    conservation_state: "new",
+    distanciaKm: 4.1,
+    empresaNome: "Injetados Franca Indústria",
+    estadoVisual: "Excelente",
+    tagCategoria: "EVA",
+    disponibilidadeTipo: "imediata",
+    imagemUrl:
+      "https://images.unsplash.com/photo-1558769132-cb1aea458c5e?auto=format&fit=crop&w=800&q=80",
+  },
+  {
+    id: "mkt-6",
+    name: "Retalhos de Forro Têxtil e Espuma",
+    description:
+      "Aparas têxteis e tecidos sintéticos dublados com espuma para forração de calçados, bolsas, almofadas e artesanato criativo.",
+    price: 0,
+    quantity: 60,
+    status: "available",
+    category: "tecido",
+    type_negotiation: "donation",
+    weight: "60",
+    conservation_state: "good",
+    distanciaKm: 1.8,
+    empresaNome: "Têxtil Francana S.A.",
+    estadoVisual: "Bom estado",
+    tagCategoria: "Têxteis",
+    disponibilidadeTipo: "imediata",
+    imagemUrl:
+      "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?auto=format&fit=crop&w=800&q=80",
+  },
 ];
 
 const CATEGORIAS_PILLS = [
@@ -133,10 +174,11 @@ export default function Marketplace() {
   // Estados de busca e filtros
   const [buscaTexto, setBuscaTexto] = useState("");
   const [categoriaAtiva, setCategoriaAtiva] = useState("todos");
-  const [distanciaMaxima, setDistanciaMaxima] = useState<number>(5);
+  const [distanciaMaxima, setDistanciaMaxima] = useState<number>(10);
   const [filtroRetiradaImediata, setFiltroRetiradaImediata] = useState(true);
   const [filtroSobEncomenda, setFiltroSobEncomenda] = useState(false);
   const [filtroDoacao, setFiltroDoacao] = useState(false);
+  const [filtroVenda, setFiltroVenda] = useState(false);
   const [ordenacao, setOrdenacao] = useState<"recentes" | "distancia" | "quantidade">("recentes");
 
   // Tags ativas visíveis no topo da sidebar
@@ -179,13 +221,16 @@ export default function Marketplace() {
         if (categoriaAtiva === "madeira" && item.category !== "madeira") return false;
       }
 
+      // Filtro de doação vs venda
+      if (filtroDoacao && !filtroVenda && item.type_negotiation !== "donation") {
+        return false;
+      }
+      if (filtroVenda && !filtroDoacao && item.type_negotiation !== "sale") {
+        return false;
+      }
+
       // Filtro de distância máxima
       if (item.distanciaKm > distanciaMaxima) return false;
-
-      // Filtro de tag ativa "Couros" na sidebar se ativado
-      if (filtroCourosAtivo && categoriaAtiva === "todos") {
-        // Mostra prioritariamente ou mantém os selecionados
-      }
 
       return true;
     }).sort((a, b) => {
@@ -193,7 +238,7 @@ export default function Marketplace() {
       if (ordenacao === "quantidade") return Number(b.quantity) - Number(a.quantity);
       return 0; // "recentes" mantém a ordem inicial
     });
-  }, [buscaTexto, categoriaAtiva, distanciaMaxima, filtroCourosAtivo, ordenacao]);
+  }, [buscaTexto, categoriaAtiva, distanciaMaxima, filtroDoacao, filtroVenda, ordenacao]);
 
   // Abertura dos modais
   const handleAbrirDetalhes = (material: MaterialMarketplace) => {
@@ -371,10 +416,10 @@ export default function Marketplace() {
               </div>
             )}
 
-            {/* Seção: Disponibilidade */}
+            {/* Seção: Modalidade e Disponibilidade */}
             <div className="py-4 border-b border-gray-100">
               <h3 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-3">
-                Disponibilidade
+                Modalidade & Disponibilidade
               </h3>
               <div className="space-y-2.5">
                 <label className="flex items-center gap-2.5 text-sm text-[#3D4D46] cursor-pointer hover:text-emerald-800">
@@ -389,20 +434,29 @@ export default function Marketplace() {
                 <label className="flex items-center gap-2.5 text-sm text-[#3D4D46] cursor-pointer hover:text-emerald-800">
                   <input
                     type="checkbox"
+                    checked={filtroDoacao}
+                    onChange={(e) => setFiltroDoacao(e.target.checked)}
+                    className="h-4 w-4 rounded-sm border-gray-300 text-emerald-600 focus:ring-emerald-500 accent-emerald-600 cursor-pointer"
+                  />
+                  <span>Apenas Doações (Gratuitos)</span>
+                </label>
+                <label className="flex items-center gap-2.5 text-sm text-[#3D4D46] cursor-pointer hover:text-emerald-800">
+                  <input
+                    type="checkbox"
+                    checked={filtroVenda}
+                    onChange={(e) => setFiltroVenda(e.target.checked)}
+                    className="h-4 w-4 rounded-sm border-gray-300 text-emerald-600 focus:ring-emerald-500 accent-emerald-600 cursor-pointer"
+                  />
+                  <span>Materiais à Venda (PIX / Cartão)</span>
+                </label>
+                <label className="flex items-center gap-2.5 text-sm text-[#3D4D46] cursor-pointer hover:text-emerald-800">
+                  <input
+                    type="checkbox"
                     checked={filtroSobEncomenda}
                     onChange={(e) => setFiltroSobEncomenda(e.target.checked)}
                     className="h-4 w-4 rounded-sm border-gray-300 text-emerald-600 focus:ring-emerald-500 accent-emerald-600 cursor-pointer"
                   />
                   <span>Sob Encomenda</span>
-                </label>
-                <label className="flex items-center gap-2.5 text-sm text-[#3D4D46] cursor-pointer hover:text-emerald-800">
-                  <input
-                    type="checkbox"
-                    checked={filtroDoacao}
-                    onChange={(e) => setFiltroDoacao(e.target.checked)}
-                    className="h-4 w-4 rounded-sm border-gray-300 text-emerald-600 focus:ring-emerald-500 accent-emerald-600 cursor-pointer"
-                  />
-                  <span>Doação Voluntária</span>
                 </label>
               </div>
             </div>
@@ -430,11 +484,11 @@ export default function Marketplace() {
               </div>
             </div>
 
-            {/* Dica de Sustentabilidade */}
-            <div className="mt-6 rounded-xl bg-emerald-50/70 p-3.5 border border-emerald-100 flex items-start gap-2.5">
-              <ShieldCheck className="h-4 w-4 text-emerald-700 shrink-0 mt-0.5" />
-              <p className="text-xs text-emerald-800 leading-relaxed">
-                Todos os materiais do polo calçadista são verificados e prontos para fomento da economia circular.
+            {/* Aviso Institucional: Pagamento 100% Digital / Proibição de Dinheiro */}
+            <div className="mt-6 rounded-xl bg-amber-50/80 p-3.5 border border-amber-200 flex items-start gap-2.5">
+              <ShieldCheck className="h-4 w-4 text-amber-700 shrink-0 mt-0.5" />
+              <p className="text-xs text-amber-900 leading-relaxed">
+                <strong>Pagamento Seguro:</strong> Todas as compras são pagas exclusivamente por <strong>PIX ou Cartão</strong>. <u>É terminantemente proibido o pagamento com dinheiro em espécie</u>.
               </p>
             </div>
           </aside>
@@ -508,10 +562,22 @@ export default function Marketplace() {
                         className="h-full w-full object-cover group-hover:scale-105 transition duration-300"
                         loading="lazy"
                       />
-                      {/* Pílula de Categoria no topo da imagem */}
+                      {/* Pílula de Categoria no topo esquerdo */}
                       <span className="absolute top-3 left-3 rounded-full bg-white/95 backdrop-blur-xs px-3 py-1 text-xs font-bold text-emerald-800 shadow-sm border border-emerald-100">
                         {item.tagCategoria}
                       </span>
+
+                      {/* Pílula de Modalidade no topo direito */}
+                      {item.type_negotiation === "donation" ? (
+                        <span className="absolute top-3 right-3 rounded-full bg-emerald-700/90 backdrop-blur-xs px-3 py-1 text-xs font-bold text-white shadow-sm">
+                          Doação Gratuita
+                        </span>
+                      ) : (
+                        <span className="absolute top-3 right-3 rounded-full bg-[#0F3D2E]/90 backdrop-blur-xs px-3 py-1 text-xs font-bold text-white shadow-sm flex items-center gap-1">
+                          <CreditCard className="h-3 w-3 text-emerald-300" />
+                          <span>R$ {Number(item.price).toFixed(2)}</span>
+                        </span>
+                      )}
                     </div>
 
                     {/* Informações do Material */}
@@ -552,16 +618,46 @@ export default function Marketplace() {
                             </span>
                           </div>
                         </div>
+
+                        {/* Bloco de Valor e Meio de Pagamento Digital (Sem Dinheiro) */}
+                        <div className="mt-3.5 p-3 rounded-xl bg-[#F8FAF7] border border-[#E7E4DA] flex items-center justify-between">
+                          <div>
+                            <span className="text-[11px] text-gray-500 font-medium block">
+                              {item.type_negotiation === "donation" ? "Modalidade:" : "Valor do Lote:"}
+                            </span>
+                            <span className="text-sm font-extrabold text-[#0F3D2E]">
+                              {item.type_negotiation === "donation"
+                                ? "Gratuito (R$ 0,00)"
+                                : `R$ ${Number(item.price).toFixed(2)}`}
+                            </span>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-[10px] text-gray-400 block">Meio de Pagamento:</span>
+                            <span className="text-[11px] font-semibold text-emerald-800 flex items-center gap-1 justify-end">
+                              {item.type_negotiation === "donation" ? (
+                                "Sem cobrança"
+                              ) : (
+                                <>
+                                  <CreditCard className="h-3 w-3 text-emerald-600" /> PIX ou Cartão
+                                </>
+                              )}
+                            </span>
+                          </div>
+                        </div>
                       </div>
 
-                      {/* Botão de Ação: Reservar Material */}
+                      {/* Botão de Ação: Reservar / Comprar */}
                       <div className="mt-5 pt-3 border-t border-gray-100">
                         <button
                           type="button"
                           onClick={() => handleIniciarReserva(item)}
                           className="w-full rounded-xl bg-[#00A86B] hover:bg-[#008f5b] text-white py-3 px-4 text-sm font-bold tracking-wide transition shadow-sm flex items-center justify-center gap-2 cursor-pointer"
                         >
-                          <span>Reservar Material</span>
+                          <span>
+                            {item.type_negotiation === "sale"
+                              ? "Comprar e Reservar"
+                              : "Reservar Material"}
+                          </span>
                           <ArrowRight className="h-4 w-4" />
                         </button>
                       </div>

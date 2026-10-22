@@ -12,8 +12,14 @@ import {
   Info,
   QrCode,
   Package,
+  CreditCard,
+  ShieldCheck,
+  Copy,
+  Check,
 } from "lucide-react";
 import type { ProductBackend } from "../../../axios/Axios";
+
+export type MetodoPagamento = "pix" | "cartao_credito" | "cartao_debito" | "doacao";
 
 export interface DadosReservaFinalizada {
   id: string;
@@ -24,6 +30,7 @@ export interface DadosReservaFinalizada {
   quantidade: number;
   tipoNegociacao: string;
   valorTotal: number;
+  metodoPagamento?: MetodoPagamento;
   finalidade: string;
   dataRetirada: string;
   turnoRetirada: "manha" | "tarde";
@@ -55,6 +62,11 @@ const FINALIDADES_USO = [
   "Outra finalidade circular",
 ];
 
+function gerarChavePix(produtoId: string, valor: number): string {
+  const refId = produtoId.replace(/\D/g, "") || "9988";
+  return `00020126580014br.gov.bcb.pix0136rf-pagamento-lote-${refId}520400005303986540${valor.toFixed(2)}5802BR5925Reaproveita Franca Hub6009FRANCA62070503***6304`;
+}
+
 export const SolicitarReservaModal: React.FC<SolicitarReservaModalProps> = ({
   aberto,
   aoFechar,
@@ -81,6 +93,15 @@ export const SolicitarReservaModal: React.FC<SolicitarReservaModalProps> = ({
   const [turnoRetirada, setTurnoRetirada] = useState<"manha" | "tarde">("manha");
   const [observacoes, setObservacoes] = useState<string>("");
 
+  // Pagamento Digital (Apenas PIX e Cartões - Sem dinheiro físico)
+  const [metodoPagamento, setMetodoPagamento] = useState<MetodoPagamento>("pix");
+  const [pixCopiado, setPixCopiado] = useState<boolean>(false);
+  const [cartaoNumero, setCartaoNumero] = useState<string>("4532 •••• •••• 8841");
+  const [cartaoNome, setCartaoNome] = useState<string>("");
+  const [cartaoValidade, setCartaoValidade] = useState<string>("12/28");
+  const [cartaoCvv, setCartaoCvv] = useState<string>("789");
+  const [parcelas, setParcelas] = useState<string>("1");
+
   // Estado de envio
   const [processando, setProcessando] = useState<boolean>(false);
   const [reservaGerada, setReservaGerada] = useState<DadosReservaFinalizada | null>(null);
@@ -91,6 +112,7 @@ export const SolicitarReservaModal: React.FC<SolicitarReservaModalProps> = ({
   const valorTotal = precoUnitario * quantidade;
 
   const maxQtd = Math.max(1, produto.quantity || 1);
+  const chavePixSimulada = gerarChavePix(produto.id, valorTotal);
 
   const handleIncrementarQtd = () => {
     if (quantidade < maxQtd) setQuantidade((q) => q + 1);
@@ -103,6 +125,12 @@ export const SolicitarReservaModal: React.FC<SolicitarReservaModalProps> = ({
   const handleAvancarParaRevisao = (e: React.FormEvent) => {
     e.preventDefault();
     setEtapa(2);
+  };
+
+  const handleCopiarChavePix = () => {
+    navigator.clipboard.writeText(chavePixSimulada);
+    setPixCopiado(true);
+    setTimeout(() => setPixCopiado(false), 2500);
   };
 
   const handleFinalizarReserva = async () => {
@@ -118,6 +146,7 @@ export const SolicitarReservaModal: React.FC<SolicitarReservaModalProps> = ({
         quantidade,
         tipoNegociacao: produto.type_negotiation,
         valorTotal,
+        metodoPagamento: produto.type_negotiation === "donation" ? "doacao" : metodoPagamento,
         finalidade,
         dataRetirada,
         turnoRetirada,
@@ -434,8 +463,232 @@ export const SolicitarReservaModal: React.FC<SolicitarReservaModalProps> = ({
               </div>
             </div>
 
-            {/* Card 3: Resumo Financeiro */}
-            <div className="rounded-2xl border border-emerald-200 bg-emerald-50/50 p-4">
+            {/* Card 3: Forma de Pagamento Digital (Apenas PIX e Cartão - Sem Dinheiro em Espécie) */}
+            {produto.type_negotiation === "sale" && valorTotal > 0 ? (
+              <div className="rounded-2xl border border-[#D5EADB] bg-white p-4 shadow-2xs space-y-4">
+                <div className="flex items-center justify-between border-b border-gray-100 pb-2">
+                  <div className="flex items-center gap-2">
+                    <CreditCard className="h-4 w-4 text-emerald-700" />
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-[#1B4B3A]">
+                      Forma de Pagamento Digital
+                    </h4>
+                  </div>
+                  <span className="text-[11px] font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full">
+                    Ambiente 100% Seguro
+                  </span>
+                </div>
+
+                {/* Seleção do Meio de Pagamento */}
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setMetodoPagamento("pix")}
+                    className={`flex flex-col items-center justify-center p-3 rounded-xl border text-xs font-bold transition cursor-pointer ${
+                      metodoPagamento === "pix"
+                        ? "border-emerald-600 bg-emerald-50 text-emerald-900 ring-2 ring-emerald-200"
+                        : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+                    }`}
+                  >
+                    <QrCode className="h-5 w-5 mb-1 text-emerald-600" />
+                    <span>PIX Instantâneo</span>
+                    <span className="text-[10px] font-normal text-emerald-700">Aprovação imediata</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setMetodoPagamento("cartao_credito")}
+                    className={`flex flex-col items-center justify-center p-3 rounded-xl border text-xs font-bold transition cursor-pointer ${
+                      metodoPagamento === "cartao_credito"
+                        ? "border-emerald-600 bg-emerald-50 text-emerald-900 ring-2 ring-emerald-200"
+                        : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+                    }`}
+                  >
+                    <CreditCard className="h-5 w-5 mb-1 text-emerald-600" />
+                    <span>Cartão de Crédito</span>
+                    <span className="text-[10px] font-normal text-gray-500">Até 3x sem juros</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setMetodoPagamento("cartao_debito")}
+                    className={`flex flex-col items-center justify-center p-3 rounded-xl border text-xs font-bold transition cursor-pointer ${
+                      metodoPagamento === "cartao_debito"
+                        ? "border-emerald-600 bg-emerald-50 text-emerald-900 ring-2 ring-emerald-200"
+                        : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+                    }`}
+                  >
+                    <CreditCard className="h-5 w-5 mb-1 text-emerald-600" />
+                    <span>Cartão de Débito</span>
+                    <span className="text-[10px] font-normal text-gray-500">Débito em conta</span>
+                  </button>
+                </div>
+
+                {/* Bloco Detalhado: PIX */}
+                {metodoPagamento === "pix" && (
+                  <div className="rounded-xl bg-[#F4F9F6] border border-emerald-200 p-3.5 space-y-2.5">
+                    <div className="flex items-center justify-between text-xs text-emerald-900 font-semibold">
+                      <span>Código PIX Copia e Cola:</span>
+                      <span className="text-[11px] text-emerald-700">Expira em 15 minutos</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        readOnly
+                        value={chavePixSimulada}
+                        className="w-full bg-white border border-[#D5EADB] rounded-lg px-2.5 py-1.5 text-xs text-gray-600 font-mono select-all truncate"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleCopiarChavePix}
+                        className="shrink-0 flex items-center gap-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 text-xs font-semibold shadow-2xs transition cursor-pointer"
+                      >
+                        {pixCopiado ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                        <span>{pixCopiado ? "Copiado!" : "Copiar"}</span>
+                      </button>
+                    </div>
+                    <p className="text-[11px] text-gray-500 leading-tight">
+                      Abra o aplicativo do seu banco, escolha <strong>Pix Copia e Cola</strong> e efetue a confirmação no valor de <strong>R$ {valorTotal.toFixed(2)}</strong>.
+                    </p>
+                  </div>
+                )}
+
+                {/* Bloco Detalhado: Cartão de Crédito */}
+                {metodoPagamento === "cartao_credito" && (
+                  <div className="rounded-xl bg-[#FAF9F5] border border-[#ECE8DC] p-3.5 space-y-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                      <div>
+                        <label className="text-[11px] font-bold text-gray-600 block mb-1">
+                          Número do Cartão de Crédito
+                        </label>
+                        <input
+                          type="text"
+                          value={cartaoNumero}
+                          onChange={(e) => setCartaoNumero(e.target.value)}
+                          placeholder="0000 0000 0000 0000"
+                          className="w-full bg-white border border-gray-300 rounded-lg p-2 text-xs text-gray-800"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[11px] font-bold text-gray-600 block mb-1">
+                          Nome Impresso no Cartão
+                        </label>
+                        <input
+                          type="text"
+                          value={cartaoNome}
+                          onChange={(e) => setCartaoNome(e.target.value)}
+                          placeholder={usuarioNome || "Nome do Titular"}
+                          className="w-full bg-white border border-gray-300 rounded-lg p-2 text-xs text-gray-800"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[11px] font-bold text-gray-600 block mb-1">
+                          Validade (MM/AA)
+                        </label>
+                        <input
+                          type="text"
+                          value={cartaoValidade}
+                          onChange={(e) => setCartaoValidade(e.target.value)}
+                          placeholder="MM/AA"
+                          className="w-full bg-white border border-gray-300 rounded-lg p-2 text-xs text-gray-800"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[11px] font-bold text-gray-600 block mb-1">
+                          Código de Segurança (CVV)
+                        </label>
+                        <input
+                          type="password"
+                          maxLength={4}
+                          value={cartaoCvv}
+                          onChange={(e) => setCartaoCvv(e.target.value)}
+                          placeholder="•••"
+                          className="w-full bg-white border border-gray-300 rounded-lg p-2 text-xs text-gray-800"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-bold text-gray-600 block mb-1">
+                        Opções de Parcelamento
+                      </label>
+                      <select
+                        value={parcelas}
+                        onChange={(e) => setParcelas(e.target.value)}
+                        className="w-full bg-white border border-gray-300 rounded-lg p-2 text-xs text-gray-800 cursor-pointer"
+                      >
+                        <option value="1">1x de R$ {valorTotal.toFixed(2)} (à vista sem juros)</option>
+                        {valorTotal >= 30 && (
+                          <option value="2">
+                            2x de R$ {(valorTotal / 2).toFixed(2)} sem juros
+                          </option>
+                        )}
+                        {valorTotal >= 60 && (
+                          <option value="3">
+                            3x de R$ {(valorTotal / 3).toFixed(2)} sem juros
+                          </option>
+                        )}
+                      </select>
+                    </div>
+                  </div>
+                )}
+
+                {/* Bloco Detalhado: Cartão de Débito */}
+                {metodoPagamento === "cartao_debito" && (
+                  <div className="rounded-xl bg-[#FAF9F5] border border-[#ECE8DC] p-3.5 space-y-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                      <div>
+                        <label className="text-[11px] font-bold text-gray-600 block mb-1">
+                          Número do Cartão de Débito
+                        </label>
+                        <input
+                          type="text"
+                          value={cartaoNumero}
+                          onChange={(e) => setCartaoNumero(e.target.value)}
+                          placeholder="0000 0000 0000 0000"
+                          className="w-full bg-white border border-gray-300 rounded-lg p-2 text-xs text-gray-800"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[11px] font-bold text-gray-600 block mb-1">
+                          Validade (MM/AA)
+                        </label>
+                        <input
+                          type="text"
+                          value={cartaoValidade}
+                          onChange={(e) => setCartaoValidade(e.target.value)}
+                          placeholder="MM/AA"
+                          className="w-full bg-white border border-gray-300 rounded-lg p-2 text-xs text-gray-800"
+                        />
+                      </div>
+                    </div>
+                    <p className="text-[11px] text-gray-500">
+                      O débito será processado instantaneamente através da conexão bancária autenticada.
+                    </p>
+                  </div>
+                )}
+
+                {/* Aviso Restritivo Obrigatório: Proibição de Pagamento em Dinheiro */}
+                <div className="rounded-xl bg-amber-50/80 border border-amber-200 p-2.5 flex items-start gap-2">
+                  <ShieldCheck className="h-4 w-4 text-amber-700 shrink-0 mt-0.5" />
+                  <p className="text-[11px] text-amber-900 leading-snug">
+                    <strong>Atenção:</strong> Por política de segurança e rastreabilidade da economia circular, <u>não é aceito pagamento com dinheiro em espécie em nenhuma hipótese ou local de retirada</u>. As transações devem ocorrer estritamente via PIX ou Cartão.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              /* Caso seja Doação Gratuita */
+              <div className="rounded-2xl border border-emerald-200 bg-emerald-50/60 p-4 text-xs">
+                <div className="flex items-center gap-2 text-emerald-900 font-bold mb-1">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                  <span>Doação Voluntária e Gratuita</span>
+                </div>
+                <p className="text-emerald-800 text-[11px] leading-relaxed">
+                  Este lote de resíduos está disponível sem custos financeiros para apoiar artesãos e a economia circular da nossa região.
+                </p>
+              </div>
+            )}
+
+            {/* Card 4: Resumo Financeiro */}
+            <div className="rounded-2xl border border-emerald-200 bg-emerald-50/40 p-4">
               <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
                 <span>Subtotal dos Resíduos:</span>
                 <span className="font-semibold text-gray-800">
@@ -447,13 +700,25 @@ export const SolicitarReservaModal: React.FC<SolicitarReservaModalProps> = ({
                 <span className="font-semibold text-emerald-700">R$ 0,00 (Isento)</span>
               </div>
               <div className="flex items-center justify-between border-t border-emerald-200 pt-2 text-sm sm:text-base font-extrabold text-[#0F3D2E]">
-                <span>Total a Pagar na Retirada:</span>
+                <span>Total do Pedido:</span>
                 <span>
                   {produto.type_negotiation === "donation"
                     ? "Gratuito (Doação)"
                     : `R$ ${valorTotal.toFixed(2)}`}
                 </span>
               </div>
+              {produto.type_negotiation === "sale" && valorTotal > 0 && (
+                <div className="mt-2 text-right text-[11px] text-gray-500 font-medium">
+                  Meio escolhido:{" "}
+                  <strong className="text-emerald-800 uppercase">
+                    {metodoPagamento === "pix"
+                      ? "PIX Instantâneo"
+                      : metodoPagamento === "cartao_credito"
+                      ? `Cartão de Crédito (${parcelas}x)`
+                      : "Cartão de Débito"}
+                  </strong>
+                </div>
+              )}
             </div>
 
             {/* Botões de Ação */}
@@ -474,7 +739,13 @@ export const SolicitarReservaModal: React.FC<SolicitarReservaModalProps> = ({
                 className="rounded-xl bg-[#059669] hover:bg-[#047857] px-6 py-2.5 text-xs sm:text-sm font-bold text-white shadow-sm flex items-center gap-2 transition cursor-pointer disabled:opacity-50"
               >
                 <ShoppingBag className="h-4 w-4" />
-                <span>{processando ? "Processando Solicitação..." : "Confirmar Solicitação de Reserva"}</span>
+                <span>
+                  {processando
+                    ? "Processando..."
+                    : produto.type_negotiation === "sale" && valorTotal > 0
+                    ? "Confirmar Pagamento e Reserva"
+                    : "Confirmar Solicitação de Reserva"}
+                </span>
               </button>
             </div>
           </div>
@@ -537,6 +808,18 @@ export const SolicitarReservaModal: React.FC<SolicitarReservaModalProps> = ({
                     {reservaGerada.tipoNegociacao === "donation"
                       ? "Gratuito (Doação)"
                       : `R$ ${reservaGerada.valorTotal.toFixed(2)}`}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-gray-400 block font-medium">Meio de Pagamento:</span>
+                  <span className="font-bold text-gray-900">
+                    {reservaGerada.metodoPagamento === "pix"
+                      ? "PIX (Aprovado)"
+                      : reservaGerada.metodoPagamento === "cartao_credito"
+                      ? "Cartão de Crédito (Aprovado)"
+                      : reservaGerada.metodoPagamento === "cartao_debito"
+                      ? "Cartão de Débito (Aprovado)"
+                      : "Doação Gratuita"}
                   </span>
                 </div>
               </div>
