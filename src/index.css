@@ -1,1 +1,66 @@
 @import "tailwindcss";
+
+@font-face {
+  font-family: "RF About Gabarito";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/gabarito-semibold.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "RF About Gabarito";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/gabarito-bold.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "RF About Gabarito";
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url("/fonts/gabarito-extrabold.ttf") format("truetype");
+}
+
+/* Font families scoped to the Figma About page; other pages keep their stack. */
+@font-face {
+  font-family: "RF About Instrument Serif";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/instrument-serif-regular.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "RF About Manrope";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/manrope-regular.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "RF About Manrope";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("/fonts/manrope-medium.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "RF About Manrope";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/manrope-semibold.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "RF About Manrope";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/manrope-bold.ttf") format("truetype");
+}

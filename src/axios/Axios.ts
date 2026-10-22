@@ -1,4 +1,5 @@
 import axios from "axios";
+import { clearSession, type SessionUser } from "../auth/session";
 
 // ─── Instância base ────────────────────────────────────────────────────────────
 // Base da API (hospedada localmente na porta 5000 ou configurada via VITE_API_URL)
@@ -19,6 +20,11 @@ api.interceptors.request.use((config) => {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
+});
+
+api.interceptors.response.use(response => response, error => {
+  if (axios.isAxiosError(error) && error.response?.status === 401 && error.response.data?.auth === false) clearSession();
+  return Promise.reject(error);
 });
 
 export default api;
@@ -68,14 +74,13 @@ export interface OtpResponse {
 }
 
 export interface LoginEmpresaPayload {
-  cnpj: string;
-  cpfResponsavel: string;
-  senha: string;
+  email: string;
+  password: string;
 }
 
 export interface LoginUsuarioPayload {
-  cpf: string;
-  senha: string;
+  email: string;
+  password: string;
 }
 
 // ─── Tipos de Produtos (Banco de Dados) ────────────────────────────────────────
@@ -111,6 +116,7 @@ export interface ProductBackend {
   conservation_state: EstadoConservacao;
   id_user?: string;
   id_localization?: string;
+  photos?: { id: string; photo: string | null }[];
 }
 
 export interface CreateProductPayload {
@@ -173,13 +179,13 @@ export const verificarCodigoOtp = (id: string, code: string) =>
 
 // ─── Serviços de Login ────────────────────────────────────────────────────────
 
-/** POST /api/reaproveitafranca/login/empresa */
+/** POST /api/reaproveitafranca/user/login */
 export const loginEmpresa = (payload: LoginEmpresaPayload) =>
-  api.post("/login", payload);
+  api.post<LoginResponse>("/user/login", payload);
 
-/** POST /api/reaproveitafranca/login */
+/** POST /api/reaproveitafranca/user/login */
 export const loginUsuario = (payload: LoginUsuarioPayload) =>
-  api.post("/login", payload);
+  api.post<LoginResponse>("/user/login", payload);
 
 // ─── Serviços de Perfil de Usuário ────────────────────────────────────────────
 
@@ -192,6 +198,7 @@ export interface UsuarioPerfil {
   status: string;
   birthday?: string | null;
   created_in?: string;
+  createdIn?: string;
   photo?: string | null;
   cpf?: string | null;
   cnpj?: string | null;
@@ -206,32 +213,28 @@ export interface UsuarioPerfil {
   state?: string;
 }
 
-/** GET /api/reaproveitafranca/user/me */
-export const obterMeuPerfil = () =>
-  api.get<UsuarioPerfil>("/user/me");
-
-/** GET /api/reaproveitafranca/user/profile ou /user/profile/:id */
-export const obterPerfilUsuario = (id?: string) =>
-  api.get<UsuarioPerfil>(id ? `/user/profile/${id}` : "/user/profile");
-
-/** PUT /api/reaproveitafranca/user/me ou /user/profile/:id */
-export const atualizarPerfilUsuario = (payload: FormData | Record<string, unknown>, id?: string) => {
-  const url = id ? `/user/profile/${id}` : "/user/me";
-  const isFormData = payload instanceof FormData;
-  return api.put<{ message: string }>(url, payload, {
-    headers: isFormData ? { "Content-Type": "multipart/form-data" } : undefined,
-  });
-};
+/** Rotas autenticadas; a API confere titularidade. */
+export const obterPerfilUsuario = (id: string, signal?: AbortSignal) =>
+  api.get<UsuarioPerfil>(`/user/${encodeURIComponent(id)}`, { signal });
+export const atualizarPerfilUsuario = (id: string, payload: FormData) =>
+  api.put<{ message: string; user: UsuarioPerfil }>(`/user/${encodeURIComponent(id)}`, payload);
+export const excluirMinhaConta = (id: string) => api.delete<{ message: string }>(`/user/${encodeURIComponent(id)}`);
+export const alterarSenha = (currentPassword: string, newPassword: string, firstAccess = false) =>
+  api.patch<{ message: string }>(firstAccess ? "/user/password/first-access" : "/user/password", { currentPassword, newPassword });
+export const solicitarRedefinicao = (email: string) => api.post<{ message: string }>("/user/password/forgot", { email });
+export const redefinirSenha = (token: string, newPassword: string) => api.post<{ message: string }>("/user/password/reset", { token, newPassword });
+export interface LoginResponse { token: string; user: SessionUser; mustChangePassword: boolean }
+export const entrarComGoogle = (idToken: string) => api.post<LoginResponse>("/user/login/google", { idToken });
 
 // ─── Serviços de Produtos (Banco de Dados) ────────────────────────────────────
 
 /** GET /api/reaproveitafranca/product */
-export const listarProdutos = () =>
-  api.get<ProductBackend[]>("/product");
+export const listarProdutos = (signal?: AbortSignal) =>
+  api.get<ProductBackend[]>("/product", { signal });
 
 /** GET /api/reaproveitafranca/product/:id */
-export const obterProdutoPorId = (id: string) =>
-  api.get<ProductBackend>(`/product/${id}`);
+export const obterProdutoPorId = (id: string, signal?: AbortSignal) =>
+  api.get<ProductBackend>(`/product/${encodeURIComponent(id)}`, { signal });
 
 /** POST /api/reaproveitafranca/product/create */
 export const cadastrarProduto = (payload: CreateProductPayload) =>

@@ -3,7 +3,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Repeat2, UserRound, LogOut, ChevronDown, Menu, X } from "lucide-react";
 import { useLoggedUser } from "../hooks/useLoggedUser";
 
-export default function Header() {
+export default function Header({ variant = "default" }: { variant?: "default" | "marketplace" | "about" }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { isLoggedIn, role, displayName, photoSrc, logout } = useLoggedUser();
@@ -33,19 +33,19 @@ export default function Header() {
   const isUsuarioLogado = isLoggedIn || Boolean(role);
 
   return (
-    <header className="w-full border-b border-[#E7E4DA] bg-white sticky top-0 z-40">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-8">
+    <header className={`w-full border-b border-[#E7E4DA] bg-white z-40 ${variant !== "default" ? "relative" : "sticky top-0"}`}>
+      <div className={variant !== "default" ? "mx-auto flex min-h-20 w-full items-center justify-between gap-3 px-5 py-3 lg:px-[clamp(24px,4vw,64px)]" : "mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-8"}>
         {/* Marca / Logo */}
         <Link
           to={isUsuarioLogado ? (role === "company" ? "/dashboardEmpresa" : "/dashboardUsuario") : "/"}
           className="flex items-center gap-3 no-underline shrink-0"
         >
-          <span className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-full bg-emerald-500 text-white shadow-sm">
-            <Repeat2 className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={2.4} />
+          <span className={variant !== "default" ? "flex h-9 w-9 items-center justify-center rounded-full bg-emerald-500 text-white" : "flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-full bg-emerald-500 text-white shadow-sm"}>
+            {variant === "about" ? <img src="/about/repeat.svg" alt="" width={22} height={22} /> : <Repeat2 className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={2.4} />}
           </span>
-          <div className="leading-tight">
-            <p className="text-base sm:text-lg font-bold text-[#1B4B3A]">Reaproveita</p>
-            <p className="text-xs sm:text-sm font-bold tracking-wide text-orange-500">FRANCA</p>
+          <div className={`leading-tight ${variant === "about" ? "font-['RF_About_Gabarito',sans-serif]" : ""}`}>
+            <p className={variant === "about" ? "text-base font-extrabold text-[#064e3b] sm:text-lg" : "text-base sm:text-lg font-bold text-[#1B4B3A]"}>Reaproveita</p>
+            <p className={variant === "about" ? "text-xs font-semibold text-[#d97706] sm:text-sm" : "text-xs sm:text-sm font-bold tracking-wide text-orange-500"}>FRANCA</p>
           </div>
         </Link>
 
@@ -72,7 +72,7 @@ export default function Header() {
               <Link
                 to="/marketplace"
                 className={`text-sm font-medium transition ${
-                  location.pathname === "/marketplace"
+                  location.pathname.startsWith("/marketplace")
                     ? "text-[#059669] font-bold"
                     : "text-[#4B5A55] hover:text-[#1B4B3A]"
                 }`}
@@ -80,8 +80,9 @@ export default function Header() {
                 Marketplace
               </Link>
               <Link
-                to="/#sobre"
-                className="text-sm font-medium text-[#4B5A55] hover:text-[#1B4B3A] transition"
+                to="/sobre-nos"
+                aria-current={location.pathname === "/sobre-nos" ? "page" : undefined}
+                className={`text-sm transition ${location.pathname === "/sobre-nos" ? "font-bold text-emerald-600" : "font-medium text-[#4B5A55] hover:text-[#1B4B3A]"}`}
               >
                 Sobre Nós
               </Link>
@@ -93,28 +94,31 @@ export default function Header() {
                 <button
                   type="button"
                   onClick={() => setMenuUsuarioAberto((prev) => !prev)}
-                  className="flex items-center gap-2.5 rounded-full bg-[#EBF6F2] hover:bg-[#E0F0EA] border border-[#D5EADB] py-1.5 pl-1.5 pr-3.5 transition cursor-pointer"
+                  aria-label="Abrir menu da conta"
+                  aria-expanded={menuUsuarioAberto}
+                  aria-controls="menu-conta"
+                  className={variant === "about" ? "flex cursor-pointer items-center gap-2 rounded-[20px] bg-[#ecfdf5] px-3 py-1.5 transition hover:bg-emerald-100" : variant === "marketplace" ? "flex items-center gap-3 rounded-full border border-[#bbcac0]/30 bg-[#f3f4f5] py-1.5 pl-1.5 pr-3.5 transition hover:bg-gray-200 cursor-pointer" : "flex items-center gap-2.5 rounded-full bg-[#EBF6F2] hover:bg-[#E0F0EA] border border-[#D5EADB] py-1.5 pl-1.5 pr-3.5 transition cursor-pointer"}
                 >
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-300">
+                  <span className={`flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-300 ${variant === "about" ? "h-6 w-6" : "h-7 w-7"}`}>
                     {photoSrc ? (
                       <img
                         src={photoSrc}
                         alt={`Foto de ${displayName}`}
-                        className="h-7 w-7 rounded-full object-cover"
+                        className={variant === "about" ? "h-6 w-6 rounded-full object-cover" : "h-7 w-7 rounded-full object-cover"}
                       />
                     ) : (
                       <UserRound className="h-4 w-4 text-[#1B4B3A]" strokeWidth={2.2} />
                     )}
                   </span>
-                  <span className="text-sm font-semibold text-[#1B4B3A] max-w-[160px] truncate">
+                  <span className={`font-semibold text-[#1B4B3A] max-w-[160px] truncate ${variant === "about" ? "text-[13px]" : "text-sm"} ${variant !== "default" ? "hidden sm:inline" : ""}`}>
                     {displayName}
                   </span>
-                  <ChevronDown className="h-3.5 w-3.5 text-[#1B4B3A] opacity-70" />
+                  {variant !== "about" && <ChevronDown className="h-3.5 w-3.5 text-[#1B4B3A] opacity-70" />}
                 </button>
 
                 {/* Dropdown do Usuário */}
                 {menuUsuarioAberto && (
-                  <div className="absolute right-0 mt-2 w-52 rounded-xl border border-[#E7E4DA] bg-white p-2 shadow-lg z-50 animate-in fade-in zoom-in-95">
+                  <div id="menu-conta" className="absolute right-0 mt-2 w-52 rounded-xl border border-[#E7E4DA] bg-white p-2 shadow-lg z-50 animate-in fade-in zoom-in-95">
                     <div className="px-3 py-2 border-b border-gray-100">
                       <p className="text-xs text-gray-500">Logado como</p>
                       <p className="text-sm font-bold text-[#1B4B3A] truncate">{displayName}</p>
@@ -170,7 +174,7 @@ export default function Header() {
               <Link
                 to="/marketplace"
                 className={`text-sm transition ${
-                  location.pathname === "/marketplace"
+                  location.pathname.startsWith("/marketplace")
                     ? "font-bold text-emerald-600"
                     : "font-medium text-[#6B7670] hover:text-[#1B4B3A]"
                 }`}
@@ -178,8 +182,9 @@ export default function Header() {
                 Marketplace
               </Link>
               <Link
-                to="/#sobre"
-                className="text-sm font-medium text-[#6B7670] hover:text-[#1B4B3A] transition"
+                to="/sobre-nos"
+                aria-current={location.pathname === "/sobre-nos" ? "page" : undefined}
+                className={`text-sm transition ${location.pathname === "/sobre-nos" ? "font-bold text-emerald-600" : "font-medium text-[#6B7670] hover:text-[#1B4B3A]"}`}
               >
                 Sobre Nós
               </Link>
@@ -226,9 +231,10 @@ export default function Header() {
             Marketplace
           </Link>
           <Link
-            to="/#sobre"
+            to="/sobre-nos"
             onClick={() => setMenuMovelAberto(false)}
-            className="block rounded-lg px-3 py-2 text-sm font-medium text-[#4B5A55] hover:bg-[#F3F1EA] hover:text-[#1B4B3A]"
+            aria-current={location.pathname === "/sobre-nos" ? "page" : undefined}
+            className={`block rounded-lg px-3 py-2 text-sm ${location.pathname === "/sobre-nos" ? "bg-[#ecfdf5] font-bold text-emerald-800" : "font-medium text-[#4B5A55] hover:bg-[#F3F1EA] hover:text-[#1B4B3A]"}`}
           >
             Sobre Nós
           </Link>

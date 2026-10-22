@@ -1,30 +1,23 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import type { FormEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Repeat2, Eye, EyeOff } from "lucide-react";
-import axios from "axios";
-import api from "../../axios/Axios";
+import api, { type LoginResponse } from "../../axios/Axios";
+import { apiError, apiStatus } from "../../axios/apiError";
+import { saveSession } from "../../auth/session";
+import GoogleSignIn from "./GoogleSignIn";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 
 type TipoUsuario = "empresa" | "comprador";
 
-const REMEMBERED_EMAIL_KEY = "rememberedEmail";
-
-function readRememberedEmail(): string {
-    try {
-        return localStorage.getItem(REMEMBERED_EMAIL_KEY) ?? "";
-    } catch {
-        return "";
-    }
-}
-
 export default function Login() {
     const navigate = useNavigate();
+    const location = useLocation();
     const [tipoUsuario, setTipoUsuario] = useState<TipoUsuario>("empresa");
-    const [email, setEmail] = useState(readRememberedEmail);
+    const [email, setEmail] = useState("");
     const [senha, setSenha] = useState("");
-    const [lembrarDeMim, setLembrarDeMim] = useState(() => readRememberedEmail() !== "");
+    const [lembrarDeMim, setLembrarDeMim] = useState(false);
     const [mostrarSenha, setMostrarSenha] = useState(false);
     const [carregando, setCarregando] = useState(false);
     const [erro, setErro] = useState("");
@@ -94,142 +87,29 @@ export default function Login() {
         setErro("");
     }
 
-    // Lê a resposta da API aceitando os vários nomes que ela pode usar.
-    function lerRespostaLogin(resposta: Record<string, unknown>) {
-        const token =
-            resposta["token"] ??
-            resposta["accessToken"] ??
-            resposta["access_token"] ??
-            resposta["jwt"];
-        const usuario =
-            resposta["user"] ??
-            resposta["usuario"] ??
-            resposta;
-        return {
-            token: typeof token === "string" ? token : null,
-            usuario,
-        };
-    }
-
-    // Tenta guardar o usuário; se a foto estourar o limite do navegador,
-    // guarda de novo sem a foto para não perder o resto.
-    function guardarUsuario(storage: Storage, usuario: unknown) {
-        try {
-            storage.setItem("user", JSON.stringify(usuario));
+    const handleLoginSuccess = useCallback((data: LoginResponse, remember: boolean) => {
+        if (!data.token || !data.user?.id) throw new Error("Resposta de login inválida.");
+        const expected = tipoUsuario === "empresa" ? "company" : "user";
+        if (data.user.role !== expected && data.user.role !== "admin") {
+            setErro(expected === "user" ? "Esta conta é de empresa. Selecione Empresa Geradora." : "Esta conta é de comprador. Selecione Comprador / Artesão.");
             return;
-        } catch {
-            // Cai aqui quando o storage está cheio (foto grande em base64).
         }
-        if (usuario !== null && typeof usuario === "object") {
-            const copia = { ...(usuario as Record<string, unknown>) };
-            delete copia["photo"];
-            storage.setItem("user", JSON.stringify(copia));
-        }
-    }
+        saveSession(data.token, { ...data.user, mustChangePassword: data.mustChangePassword === true }, remember);
+        navigate(data.mustChangePassword ? "/primeiro-acesso" : data.user.role === "company" ? "/dashboardEmpresa" : "/dashboardUsuario", { replace: true });
+    }, [navigate, tipoUsuario]);
 
-    // Guarda token + usuário + perfil no lugar certo:
-    // "Lembrar de mim" marcado -> localStorage (continua após fechar o navegador).
-    // Desmarcado -> sessionStorage (apaga ao fechar a aba).
-    function salvarSessao(token: string | null, usuario: unknown) {
-        const principal = lembrarDeMim ? localStorage : sessionStorage;
-        const outro = lembrarDeMim ? sessionStorage : localStorage;
-
-        if (token) {
-            principal.setItem("token", token);
-            outro.removeItem("token");
-        }
-        if (usuario !== null && usuario !== undefined) {
-            guardarUsuario(principal, usuario);
-            outro.removeItem("user");
-        }
-        principal.setItem("tipoUsuario", tipoUsuario);
-        try {
-            if (lembrarDeMim && email.trim()) {
-                localStorage.setItem(REMEMBERED_EMAIL_KEY, email.trim());
-            } else if (!lembrarDeMim) {
-                localStorage.removeItem(REMEMBERED_EMAIL_KEY);
-            }
-        } catch {
-            // storage indisponível: login continua funcionando
-        }
-    }
-
-    // Leva para o dashboard conforme a aba escolhida na tela.
-    function irParaDashboard() {
-        if (tipoUsuario === "empresa") {
-            navigate("/dashboardEmpresa");
-        } else {
-            navigate("/dashboardUsuario");
-        }
-    }
-
-    // Transforma o erro em frase pronta para mostrar na tela.
-    function mensagemDeErroLogin(err: unknown): string {
-        if (!axios.isAxiosError(err)) {
-            return "Erro inesperado ao fazer login. Tente novamente.";
-        }
-        if (!err.response) {
-            return "Não foi possível conectar à API. Verifique sua conexão e se a API está rodando.";
-        }
-        const resposta = err.response.data as Record<string, unknown> | undefined;
-        console.error("[login] erro da API", err.response.status, resposta);
-        // A API pode chamar o texto de 4 jeitos: procura em todos.
-        for (const chave of ["error", "message", "msg", "erros"]) {
-            const valor = resposta?.[chave];
-            if (valor) {
-                return Array.isArray(valor) ? valor.join(" ") : String(valor);
-            }
-        }
-        if (err.response.status === 401 || err.response.status === 404) {
-            return "E-mail ou senha inválidos.";
-        }
-        return "Erro ao fazer login. Tente novamente.";
-    }
-
-    async function handleSubmit(e: FormEvent) {
-        e.preventDefault();
+    async function handleSubmit(event: FormEvent) {
+        event.preventDefault();
+        if (carregando) return;
         setErro("");
-
-        // Passo 1: valida os campos antes de chamar a API.
-        if (!email.trim() || !senha) {
-            setErro("Informe e-mail e senha para continuar.");
-            return;
-        }
-
+        if (!email.trim() || !senha) { setErro("Informe e-mail e senha para continuar."); return; }
         setCarregando(true);
         try {
-            // Passo 2: envia e-mail + senha para a API.
-            const { data } = await api.post("/user/login", {
-                email: email.trim(),
-                password: senha,
-            });
-            const resposta = data as Record<string, unknown>;
-
-            // Passo 3: confere se o perfil da conta bate com a aba escolhida.
-            // O back retorna role "company" | "user" | "admin".
-            const { token, usuario } = lerRespostaLogin(resposta);
-            const role = (usuario as Record<string, unknown> | null)?.["role"];
-            const esperado = tipoUsuario === "empresa" ? "company" : "user";
-            if (typeof role === "string" && role !== esperado && role !== "admin") {
-                setErro(
-                    tipoUsuario === "empresa"
-                        ? "Esta conta é de comprador/artesão. Troque para a aba Comprador / Artesão."
-                        : "Esta conta é de empresa. Troque para a aba Empresa Geradora."
-                );
-                return;
-            }
-
-            // Passo 4: salva token + usuário no navegador.
-            salvarSessao(token, usuario);
-
-            // Passo 5: entra no dashboard do perfil escolhido.
-            irParaDashboard();
-        } catch (err) {
-            // Passo 6: algo deu errado -> mostra a mensagem na tela.
-            setErro(mensagemDeErroLogin(err));
-        } finally {
-            setCarregando(false);
-        }
+            const response = await api.post<LoginResponse>("/user/login", { email: email.trim(), password: senha });
+            handleLoginSuccess(response.data, lembrarDeMim);
+        } catch (error) {
+            setErro(apiStatus(error) === 401 ? "E-mail ou senha inválidos. Se você usa login social, entre com o provedor." : apiStatus(error) === 403 ? "Sua conta ainda não está ativa ou não tem acesso. Confira a confirmação por e-mail." : apiError(error, "Não foi possível entrar. Tente novamente."));
+        } finally { setCarregando(false); }
     }
 
     return (
@@ -250,6 +130,7 @@ export default function Login() {
                     </div>
 
                     <h1 className={styles.titulo}>Acesse sua conta</h1>
+                    {location.state?.accountDeleted && <p role="status" className="mt-5 rounded-xl bg-emerald-50 p-4 text-sm text-emerald-900">Sua conta foi excluída e sua sessão foi encerrada.</p>}
 
                     {/* Alternador de perfil */}
                     <div className={styles.abasContainer} role="tablist">
@@ -361,45 +242,11 @@ export default function Login() {
                         </button>
                     </form>
 
-                    <div className={`${styles.divisor} mt-7`}>
-                        <span className={styles.divisorLinha} />
-                        <span className={styles.divisorTexto}>OU ENTRAR COM</span>
-                        <span className={styles.divisorLinha} />
-                    </div>
-
-                    <div className={`${styles.sociais} mt-6`}>
-                        <button type="button" className={styles.botaoSocial}>
-                            <svg viewBox="0 0 24 24" className={styles.iconeSocial} aria-hidden="true">
-                                <path
-                                    fill="#4285F4"
-                                    d="M23.5 12.27c0-.85-.08-1.66-.22-2.45H12v4.64h6.45a5.52 5.52 0 0 1-2.39 3.62v3h3.87c2.26-2.09 3.57-5.16 3.57-8.81Z"
-                                />
-                                <path
-                                    fill="#34A853"
-                                    d="M12 24c3.24 0 5.96-1.07 7.94-2.91l-3.87-3c-1.07.72-2.45 1.15-4.07 1.15-3.13 0-5.78-2.11-6.73-4.96H1.29v3.1A12 12 0 0 0 12 24Z"
-                                />
-                                <path
-                                    fill="#FBBC05"
-                                    d="M5.27 14.28A7.2 7.2 0 0 1 4.89 12c0-.79.14-1.56.38-2.28v-3.1H1.29a12 12 0 0 0 0 10.76l3.98-3.1Z"
-                                />
-                                <path
-                                    fill="#EA4335"
-                                    d="M12 4.77c1.76 0 3.35.61 4.6 1.8l3.42-3.42A11.97 11.97 0 0 0 12 0 12 12 0 0 0 1.29 6.62l3.98 3.1c.95-2.84 3.6-4.95 6.73-4.95Z"
-                                />
-                            </svg>
-                            Google
-                        </button>
-                        <button type="button" className={styles.botaoSocial}>
-                            <svg viewBox="0 0 24 24" className={styles.iconeSocial} aria-hidden="true">
-                                <rect width="24" height="24" rx="4" fill="#2B2BEB" />
-                                <path
-                                    fill="#fff"
-                                    d="M6.94 8.5H4.06V20h2.88V8.5ZM5.5 7.3a1.67 1.67 0 1 0 0-3.34 1.67 1.67 0 0 0 0 3.34Zm6.14 6.13c0-1.06.57-1.92 1.9-1.92 1.27 0 1.8.86 1.8 1.92V20h2.88v-7.04c0-2.68-1.43-3.93-3.34-3.93-1.54 0-2.23.85-2.62 1.45V8.5H8.78c.04.82 0 11.5 0 11.5h2.86v-6.57Z"
-                                />
-                            </svg>
-                            LinkedIn
-                        </button>
-                    </div>
+                    {!ehEmpresa && <div className="mt-7 space-y-5">
+                        <div className={styles.divisor}><span className={styles.divisorLinha} /><span>OU ENTRAR COM</span><span className={styles.divisorLinha} /></div>
+                        <GoogleSignIn onSuccess={handleLoginSuccess} remember={lembrarDeMim} />
+                        <p className="text-xs text-gray-600">A entrada com LinkedIn ainda está indisponível. Use e-mail e senha ou Google.</p>
+                    </div>}
 
                     <p className={styles.rodapeCartao}>
                         Ainda não tem conta?{" "}

@@ -8,7 +8,8 @@ This is a frontend integration reference, not a promise that the API will remain
 - Vite `/api` proxy target: `process.env.VITE_BACKEND_URL || "http://localhost:5000"`.
 - Request interceptor attaches `Authorization: Bearer <token>` from browser storage key `token`.
 - Do not invent refresh-token behavior, cookie auth, or token shape. Inspect login controller and existing login UI before changing session handling.
-- Backend has `POST /user/login`; there are not separate `/login/empresa` and `/login` paths under the API prefix. The currently exported `loginEmpresa` and `loginUsuario` helpers in `Axios.ts` both post to `/login` and are unused/broken; login page calls the actual route inline. Do not use those helpers as-is.
+- Backend has `POST /user/login` with `{ email, password }`; there are not separate company/buyer endpoints. The page and helper exports now use this route. The response contains `token`, `user` and `mustChangePassword`.
+- Snapshot refreshed against backend commit `83575fc` on 2026-10-22. Buyer frontend implementation and verification limits: [buyer API integration](buyer-api-integration.md).
 
 ## Confirmed routes
 
@@ -17,6 +18,13 @@ This is a frontend integration reference, not a promise that the API will remain
 | POST | `/user/create` | Public | Individual account creation; accepts multipart upload field `photo`; requires name, CPF, email, password, cellphone, birthday and address fields; returns `message`, `id`, `emailSent` on success. |
 | POST | `/user/create/empresa` | Public | Company account creation; accepts `photo`; requires personal and company documents plus account/address fields; returns `message`, `id`, `emailSent`. |
 | POST | `/user/login` | Public + auth rate limiter | Single login route; inspect controller and current page payload before relying on credential/response details. |
+| POST | `/user/login/google` | Public + auth rate limiter | Accepts `idToken` (or `credential`); Google ID token verified against backend `GOOGLE_CLIENT_ID`. Public browser client ID is not configured locally. |
+| GET / GET or POST | `/user/login/linkedin` / `/user/login/linkedin/callback` | Public + auth rate limiter | Authorization URL and callback exist. Frontend activation is blocked by missing callback state verification and an unverified-token fallback in the reviewed backend. |
+| POST | `/user/password/forgot` | Public + auth rate limiter | `{ email }`; generic success response, emailed reset link. Delivery depends on mail and frontend URL configuration. |
+| POST | `/user/password/reset` | Public | `{ token, newPassword }`; invalid/expired token returns 401. |
+| GET / PUT / DELETE | `/user/:id` | JWT, owner/admin in controller | Read own profile; multipart update of `name`, `cellphone`, `birthday`, `photo`; delete own account (409 for dependencies). GET/PUT responses do not return the photo. |
+| PATCH | `/user/password` | JWT | `{ currentPassword, newPassword }`; wrong current password returns 401 without `auth: false`. |
+| PATCH | `/user/password/first-access` | JWT | Same fields; only `firstLogin` accounts, updates status to active. |
 | POST | `/otp/enviar` | No route-level JWT middleware | Sends/re-sends verification code; inspect OTP service for semantics and limits. |
 | POST | `/otp/verificar` | No route-level JWT middleware | Verifies code. Current frontend helper posts `{ id, code }`. |
 | GET | `/product/` | Public | Returns product list. Controller returns an array on success. |
@@ -35,8 +43,8 @@ Auth middleware placement can be route-specific or router-level. Do not infer au
 - API registration expects cellphone as 11 numeric digits and password minimum length 6 according to current controller. Keep client validation aligned but server remains authoritative.
 - Backend user/company create routes call the same user controller with different document requirements and roles. Company login is not a separate API route.
 - CPF/CNPJ are encrypted/stored server-side using backend helpers. The browser must send them only as required for the flow, never log them or persist them.
-- Product responses and image-upload behavior must be inspected from product service/schema before designing a complete listing editor; current create controller does not read an uploaded product photo field.
-- Backend route list does not currently expose reservation, payment, user profile, password recovery, social login, or environmental impact endpoints.
+- Product list/detail include `photos: [{ id, photo }]`, with raw base64. No MIME is supplied; the frontend recognizes JPEG/PNG/GIF/WebP signatures and rejects unsupported image types. Product create/edit support multipart photos, but seller ownership/company authorization must be addressed in the API before calling that flow ready.
+- Backend route list does not expose reservation, payment, negotiation history, notifications or environmental impact endpoints. Profile, password and social endpoints are listed above; route existence alone does not prove deployment/configuration works.
 - Backend Socket.IO chat code exists, but handshake/events, persistence, authorization, and CORS must be verified before connecting a web chat client. Current socket CORS in `server.js` is hardcoded to `http://localhost:3000`, which may not match Vite's development origin.
 
 ## Error and response handling

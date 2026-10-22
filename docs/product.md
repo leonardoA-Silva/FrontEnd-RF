@@ -32,12 +32,14 @@ Based on frontend project context and current API code; reconfirm against approv
 | RF08 Logout | End session | Implement according to actual current token storage/session hook; clear all relevant session state. |
 | RF09 Chat | Buyer/company conversation | Socket.IO chat code exists in backend; web protocol and authorization need verification. |
 | RF10 Negotiation history | Status/history view | No negotiation route found in API route inventory. |
-| RF11 Account recovery | Email recovery | No recovery route found in API route inventory. |
-| RF12 External identity | Google/Apple | Not confirmed in current web/API routes. |
+| RF11 Account recovery | Email recovery | Forgot/reset routes and frontend screens implemented; browser verified with contract mocks. Mail delivery and live API flow remain unverified. |
+| RF12 External identity | Google/Apple | Google API and optional frontend button implemented; disabled without public Client ID. LinkedIn API exists but has unresolved callback verification. Apple route not found. |
 | RF13 Promoted listings | Paid prioritization | Product schema has `priority`; business rules and payment integration are not confirmed. |
 | RF14 Map | Locate seller | Localization API exists; map frontend/provider integration is not confirmed. |
 
 This table is a snapshot, not a project roadmap. Update it only after checking implementation and recording evidence. Do not call a feature “done” because a screen, requirement, model field, or route exists independently.
+
+Buyer snapshot, 2026-10-22: real product list/detail/photos, own profile edit/upload, password change/first access, recovery/reset and account deletion are wired to verified API contracts. No live API server was available during this verification; see [implementation evidence](buyer-api-integration.md). The single marketplace example remains explicitly separated from API records.
 
 ## Quality requirements
 
