@@ -1,4 +1,5 @@
 import { MapPin, BarChart3 } from "lucide-react";
+import { Link } from "react-router-dom";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 
@@ -92,9 +93,9 @@ export default function Home() {
               <button className={styles.botaoPublicar}>
                 Publicar Material
               </button>
-              <button className={styles.botaoExplorar}>
+              <Link to="/marketplace" className={styles.botaoExplorar}>
                 Explorar Materiais
-              </button>
+              </Link>
             </div>
           </div>
 

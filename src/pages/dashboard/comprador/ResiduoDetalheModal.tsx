@@ -1,16 +1,8 @@
-import React, { useState } from "react";
-import {
-  X,
-  MapPin,
-  Building2,
-  ShieldCheck,
-  Star,
-  MessageSquare,
-  ShoppingBag,
-  Sparkles,
-  Info,
-} from "lucide-react";
+import { useState } from "react";
+import { X, MapPin, Building2, MessageSquare, ShoppingBag, Info, Package } from "lucide-react";
 import type { ProductBackend } from "../../../axios/Axios";
+import { COMPRA_EXEMPLO, estadoMaterial, imagensMaterial, precoMaterial } from "../../marketplace/catalogo";
+import { DialogoComprador } from "./DialogoComprador";
 
 interface ResiduoDetalheModalProps {
   aberto: boolean;
@@ -19,272 +11,42 @@ interface ResiduoDetalheModalProps {
   aoIniciarReserva: (produto: ProductBackend) => void;
   aoAbrirContato: (produto: ProductBackend) => void;
   empresaNome?: string;
+  pagina?: boolean;
 }
 
-// Imagens ilustrativas de resíduos industriais por categoria para exibição de alta fidelidade
-const IMAGENS_EXEMPLO: Record<string, string[]> = {
-  couro: [
-    "https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80",
-    "https://images.unsplash.com/photo-1558769132-cb1aea458c5e?auto=format&fit=crop&w=800&q=80",
-    "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=800&q=80",
-  ],
-  madeira: [
-    "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=800&q=80",
-    "https://images.unsplash.com/photo-1546484396-fb3fc6f95f98?auto=format&fit=crop&w=800&q=80",
-    "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?auto=format&fit=crop&w=800&q=80",
-  ],
-  metal: [
-    "https://images.unsplash.com/photo-1530982011887-3ce11ab8212a?auto=format&fit=crop&w=800&q=80",
-    "https://images.unsplash.com/photo-1504917599217-d4dc5ebe6122?auto=format&fit=crop&w=800&q=80",
-  ],
-  tecido: [
-    "https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=800&q=80",
-    "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?auto=format&fit=crop&w=800&q=80",
-  ],
-  padrao: [
-    "https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80",
-    "https://images.unsplash.com/photo-1586075010923-2dd4570fb338?auto=format&fit=crop&w=800&q=80",
-  ],
-};
-
-export const ResiduoDetalheModal: React.FC<ResiduoDetalheModalProps> = ({
-  aberto,
-  aoFechar,
-  produto,
-  aoIniciarReserva,
-  aoAbrirContato,
-  empresaNome = "Curtume & Calçados Franca Ltda",
-}) => {
-  const [fotoSelecionadaIdx, setFotoSelecionadaIdx] = useState<number>(0);
-
+export function ResiduoDetalheModal({ aberto, aoFechar, produto, aoIniciarReserva, aoAbrirContato, empresaNome, pagina = false }: ResiduoDetalheModalProps) {
+  const [fotoSelecionada, setFotoSelecionada] = useState(0);
+  const [imagemFalhou, setImagemFalhou] = useState(false);
   if (!aberto || !produto) return null;
-
-  // Obtém imagens correspondentes
-  const categoriaKey = (produto.category || "").toLowerCase();
-  const fotosGaleria =
-    IMAGENS_EXEMPLO[categoriaKey] ||
-    (categoriaKey.includes("couro") ? IMAGENS_EXEMPLO.couro : null) ||
-    (categoriaKey.includes("madeira") ? IMAGENS_EXEMPLO.madeira : null) ||
-    (categoriaKey.includes("tecido") ? IMAGENS_EXEMPLO.tecido : null) ||
-    IMAGENS_EXEMPLO.padrao;
-
-  const fotoPrincipal = fotosGaleria[fotoSelecionadaIdx] || fotosGaleria[0];
-
-  const formatarPreco = (preco: number | string | null, tipo: string) => {
-    if (tipo === "donation" || preco === 0 || preco === "0") {
-      return "Gratuito (Doação)";
-    }
-    const val = Number(preco) || 0;
-    return `R$ ${val.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  };
-
-  const formatarEstadoConservacao = (estado: string) => {
-    switch (estado) {
-      case "new":
-        return "Novo / Sobra de Linha";
-      case "good":
-        return "Bom Estado";
-      case "regular":
-        return "Regular / Aproveitável";
-      case "poor":
-        return "Sucata / Para Reciclagem";
-      default:
-        return "Bom Estado";
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-3 sm:p-5 overflow-y-auto animate-in fade-in duration-200">
-      <div className="relative w-full max-w-4xl max-h-[92vh] overflow-y-auto rounded-3xl border border-[#E7E4DA] bg-white p-5 sm:p-8 shadow-2xl animate-in zoom-in-95">
-        {/* Botão Fechar Flutuante */}
-        <button
-          type="button"
-          onClick={aoFechar}
-          className="absolute right-4 top-4 z-10 rounded-full bg-white/90 p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-800 shadow-sm border border-gray-100 transition cursor-pointer"
-          aria-label="Fechar modal"
-        >
-          <X className="h-5 w-5" />
-        </button>
-
-        {/* Grade Principal: Fotos à esquerda, Informações à direita */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
-          {/* COLUNA ESQUERDA: GALERIA DE FOTOS */}
-          <div className="lg:col-span-6 flex flex-col gap-3">
-            {/* Foto Grande Principal */}
-            <div className="relative aspect-4/3 w-full overflow-hidden rounded-2xl bg-gray-100 border border-[#ECE8DC] shadow-inner">
-              <img
-                src={fotoPrincipal}
-                alt={produto.name}
-                className="h-full w-full object-cover transition duration-300 hover:scale-105"
-              />
-              <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
-                <span className="rounded-full bg-white/95 px-3 py-1 text-xs font-bold text-[#0F3D2E] shadow-xs backdrop-blur-xs">
-                  {produto.category.toUpperCase()}
-                </span>
-                <span
-                  className={`rounded-full px-3 py-1 text-xs font-bold shadow-xs ${
-                    produto.type_negotiation === "donation"
-                      ? "bg-amber-500 text-white"
-                      : "bg-[#059669] text-white"
-                  }`}
-                >
-                  {produto.type_negotiation === "donation" ? "Doação" : "Venda"}
-                </span>
-              </div>
-            </div>
-
-            {/* Miniaturas Clicáveis */}
-            <div className="grid grid-cols-4 gap-2">
-              {fotosGaleria.map((img, idx) => {
-                const ativo = fotoSelecionadaIdx === idx;
-                return (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => setFotoSelecionadaIdx(idx)}
-                    className={`relative aspect-square overflow-hidden rounded-xl border-2 transition cursor-pointer ${
-                      ativo
-                        ? "border-[#059669] ring-2 ring-emerald-200"
-                        : "border-[#ECE8DC] opacity-70 hover:opacity-100"
-                    }`}
-                  >
-                    <img src={img} alt={`Miniatura ${idx + 1}`} className="h-full w-full object-cover" />
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Card Informativo de Sustentabilidade Circular */}
-            <div className="rounded-2xl bg-[#EBF6F2] p-4 border border-[#D5EADB] text-xs text-[#0F3D2E] flex items-start gap-3 mt-1">
-              <Sparkles className="h-4 w-4 shrink-0 text-emerald-600 mt-0.5" />
-              <div>
-                <p className="font-bold">Impacto Sustentável Garantido</p>
-                <p className="text-gray-600 mt-0.5 leading-relaxed">
-                  Ao reservar este lote, você reduz o envio de sobras para aterros e economiza matéria-prima na produção artesanal ou industrial de Franca.
-                </p>
-              </div>
-            </div>
+  const fotos = imagensMaterial(produto);
+  const conteudo = <div className={`relative w-full bg-white ${pagina ? "border border-[#E2E9E5] p-5 sm:p-7 rounded-md" : "max-w-4xl rounded border border-[#E7E4DA] p-5 sm:p-8 shadow-xl"}`}>
+      {!pagina && <button type="button" onClick={aoFechar} aria-label="Fechar detalhes" className="absolute right-4 top-4 z-10 rounded-full border border-gray-100 bg-white/90 p-2 text-gray-500 shadow-sm hover:bg-gray-100"><X className="h-5 w-5" /></button>}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+        <div className="lg:col-span-6 flex flex-col gap-3">
+          <div className="relative aspect-4/3 w-full overflow-hidden rounded-md bg-gray-100 border border-[#E2E9E5]">
+            {fotos.length > 0 && !imagemFalhou ? <img src={fotos[fotoSelecionada] || fotos[0]} alt={`Imagem ilustrativa de ${produto.name}`} onError={() => setImagemFalhou(true)} className="h-full w-full object-cover" /> : <div className="flex h-full flex-col items-center justify-center gap-2 text-sm text-gray-500"><Package className="h-12 w-12" />Sem imagem disponível</div>}
+            <div className="absolute top-3 left-3 flex flex-wrap gap-1.5"><span className="rounded-full bg-white/95 px-3 py-1 text-xs font-bold">{produto.category}</span><span className="rounded-full bg-[#00875B] px-3 py-1 text-xs font-bold text-white">{produto.type_negotiation === "donation" ? "Doação" : "Venda"}</span></div>
           </div>
-
-          {/* COLUNA DIREITA: INFORMAÇÕES DETALHADAS */}
-          <div className="lg:col-span-6 flex flex-col justify-between">
-            <div>
-              {/* Localização e Badges */}
-              <div className="flex items-center gap-2 text-xs font-medium text-gray-500">
-                <MapPin className="h-3.5 w-3.5 text-emerald-600" />
-                <span>Distrito Industrial • Franca - SP</span>
-              </div>
-
-              {/* Título Principal */}
-              <h2 className="mt-2 text-2xl sm:text-3xl font-extrabold text-[#0F3D2E] tracking-tight leading-tight">
-                {produto.name}
-              </h2>
-
-              {/* Box de Preço e Quantidade */}
-              <div className="mt-4 flex flex-wrap items-baseline justify-between gap-2 rounded-2xl bg-[#FAF9F5] p-4 border border-[#ECE8DC]">
-                <div>
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-gray-400">
-                    VALOR DO LOTE
-                  </span>
-                  <div className="text-2xl sm:text-3xl font-extrabold text-[#0F3D2E]">
-                    {formatarPreco(produto.price, produto.type_negotiation)}
-                  </div>
-                </div>
-
-                <div className="text-right">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-gray-400">
-                    DISPONIBILIDADE
-                  </span>
-                  <div className="text-base font-extrabold text-gray-800">
-                    {produto.quantity} {Number(produto.weight) > 0 ? `unid. (${produto.weight} kg)` : "unidades"}
-                  </div>
-                </div>
-              </div>
-
-              {/* Especificações Rápidas */}
-              <div className="mt-4 grid grid-cols-2 gap-3 text-xs">
-                <div className="rounded-xl border border-gray-100 bg-white p-3 shadow-2xs">
-                  <span className="text-gray-400 font-semibold block text-[11px] uppercase">
-                    ESTADO DE CONSERVAÇÃO
-                  </span>
-                  <span className="font-bold text-gray-800 mt-1 block">
-                    {formatarEstadoConservacao(produto.conservation_state)}
-                  </span>
-                </div>
-
-                <div className="rounded-xl border border-gray-100 bg-white p-3 shadow-2xs">
-                  <span className="text-gray-400 font-semibold block text-[11px] uppercase">
-                    PESO TOTAL ESTIMADO
-                  </span>
-                  <span className="font-bold text-gray-800 mt-1 block">
-                    {produto.weight} kg
-                  </span>
-                </div>
-              </div>
-
-              {/* Descrição Detalhada */}
-              <div className="mt-5">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1.5 flex items-center gap-1.5">
-                  <Info className="h-3.5 w-3.5 text-emerald-600" />
-                  Descrição do Material
-                </h4>
-                <p className="text-xs sm:text-sm text-gray-600 leading-relaxed rounded-2xl bg-[#FAF9F5] p-3.5 border border-[#ECE8DC]">
-                  {produto.description ||
-                    "Material recolhido de linhas produtivas de alta qualidade de Franca. Lote limpo, embalado e pronto para coleta presencial na sede da fábrica."}
-                </p>
-              </div>
-
-              {/* Card da Empresa Anunciante */}
-              <div className="mt-5 rounded-2xl border border-[#E7E4DA] bg-white p-4 shadow-2xs">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-100 text-[#0B4D34] font-bold text-lg">
-                      <Building2 className="h-6 w-6" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-1.5">
-                        <h4 className="text-sm font-bold text-[#1F2A26]">{empresaNome}</h4>
-                        <span title="Empresa Verificada">
-                          <ShieldCheck className="h-4 w-4 text-emerald-600" />
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1 mt-0.5 text-xs text-gray-500">
-                        <div className="flex items-center text-amber-500">
-                          <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-                          <span className="font-bold ml-1 text-gray-700">4.9</span>
-                        </div>
-                        <span>• Indústria Parceira Certificada</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* BOTÕES DE AÇÃO (Conforme design do Figma) */}
-            <div className="mt-6 flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-100">
-              <button
-                type="button"
-                onClick={() => aoAbrirContato(produto)}
-                className="flex items-center justify-center gap-2 rounded-2xl border border-[#D9D5C8] bg-white px-5 py-3 text-xs sm:text-sm font-semibold text-gray-700 hover:bg-gray-50 transition cursor-pointer shadow-xs"
-              >
-                <MessageSquare className="h-4 w-4 text-emerald-700" />
-                <span>Falar com a Fábrica</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => aoIniciarReserva(produto)}
-                className="flex-1 flex items-center justify-center gap-2 rounded-2xl bg-[#059669] hover:bg-[#047857] px-6 py-3 text-xs sm:text-sm font-bold text-white shadow-sm transition cursor-pointer"
-              >
-                <ShoppingBag className="h-4 w-4" />
-                <span>Solicitar Reserva</span>
-              </button>
-            </div>
+          {fotos.length > 0 && <p className="text-xs text-gray-500">Imagem ilustrativa. Não há fotos do anúncio disponíveis.</p>}
+          {fotos.length > 1 && <div className="grid grid-cols-4 gap-2">{fotos.map((foto, index) => <button key={foto} type="button" aria-label={`Ver imagem ilustrativa ${index + 1}`} aria-pressed={index === fotoSelecionada} onClick={() => { setFotoSelecionada(index); setImagemFalhou(false); }} className={`aspect-4/3 overflow-hidden rounded-sm border-2 ${fotoSelecionada === index ? "border-emerald-600" : "border-gray-100"}`}><img src={foto} alt="" className="h-full w-full object-cover" /></button>)}</div>}
+        </div>
+        <div className="lg:col-span-6">
+          <p className="pr-8 flex items-center gap-2 text-xs text-gray-500"><MapPin className="h-4 w-4 shrink-0" />Localização não informada</p>
+          <h2 className="mt-2 text-xl sm:text-2xl font-bold text-[#0F3D2E] tracking-tight">{produto.name}</h2>
+          <div className="mt-4 flex flex-wrap items-baseline justify-between gap-3 rounded-md border border-[#ECE8DC] bg-[#F7F9F8] p-4">
+            <div><span className="text-[11px] font-bold uppercase text-gray-400">Valor informado</span><p className="text-2xl font-extrabold">{precoMaterial(produto)}</p></div>
+            <div><span className="text-[11px] font-bold uppercase text-gray-400">Disponibilidade</span><p className="font-bold">{produto.status === "available" ? `${produto.quantity} unidades` : "Indisponível"}</p></div>
+          </div>
+          <div className="mt-4 grid grid-cols-2 gap-3 text-xs"><div className="rounded border border-gray-100 p-3"><span className="block text-gray-400 uppercase">Conservação</span><strong className="mt-1 block">{estadoMaterial(produto.conservation_state)}</strong></div><div className="rounded border border-gray-100 p-3"><span className="block text-gray-400 uppercase">Peso informado</span><strong className="mt-1 block">{Number.isFinite(Number(produto.weight)) && Number(produto.weight) > 0 ? `${produto.weight} kg` : "Não informado"}</strong></div></div>
+          <div className="mt-5"><h3 className="mb-2 flex items-center gap-2 text-xs font-bold uppercase text-gray-500"><Info className="h-4 w-4" />Descrição do material</h3><p className="rounded-md border border-[#ECE8DC] bg-[#F7F9F8] p-3.5 text-sm text-gray-600">{produto.description?.trim() || "Não há descrição disponível para este material."}</p></div>
+          <div className="mt-5 flex items-center gap-3 rounded-md border border-[#E7E4DA] p-4"><Building2 className="h-8 w-8 text-emerald-700" /><div><h3 className="text-sm font-bold">{empresaNome || "Fornecedor não informado"}</h3><p className="mt-1 text-xs text-gray-500">Não há avaliações disponíveis.</p></div></div>
+          <div className="mt-6 flex flex-col sm:flex-row gap-3 border-t border-gray-100 pt-4">
+            <button type="button" onClick={() => aoAbrirContato(produto)} className="flex items-center justify-center gap-2 rounded-md border border-[#D9D5C8] px-4 py-3 text-sm font-semibold"><MessageSquare className="h-4 w-4" />Contato</button>
+            <button type="button" disabled={produto.status !== "available" || produto.quantity < 1} onClick={() => aoIniciarReserva(produto)} className="flex flex-1 items-center justify-center gap-2 rounded-md bg-[#00875B] px-5 py-3 text-sm font-bold text-white disabled:opacity-50"><ShoppingBag className="h-4 w-4" />{produto.id === COMPRA_EXEMPLO.id ? "Simular compra" : "Solicitar reserva"}</button>
           </div>
         </div>
       </div>
-    </div>
-  );
-};
+    </div>;
+  return pagina ? conteudo : <DialogoComprador titulo={`Detalhes de ${produto.name}`} aoFechar={aoFechar}>{conteudo}</DialogoComprador>;
+}
 export default ResiduoDetalheModal;

@@ -14,7 +14,9 @@ type TipoUsuario = "empresa" | "comprador";
 export default function Login() {
     const navigate = useNavigate();
     const location = useLocation();
-    const [tipoUsuario, setTipoUsuario] = useState<TipoUsuario>("empresa");
+    const origem = location.state?.from;
+    const voltarAoMarketplace = typeof origem === "string" && /^\/marketplace(?:\/[A-Za-z0-9_-]+){0,3}$/.test(origem);
+    const [tipoUsuario, setTipoUsuario] = useState<TipoUsuario>(() => voltarAoMarketplace ? "comprador" : "empresa");
     const [email, setEmail] = useState("");
     const [senha, setSenha] = useState("");
     const [lembrarDeMim, setLembrarDeMim] = useState(false);
@@ -95,8 +97,8 @@ export default function Login() {
             return;
         }
         saveSession(data.token, { ...data.user, mustChangePassword: data.mustChangePassword === true }, remember);
-        navigate(data.mustChangePassword ? "/primeiro-acesso" : data.user.role === "company" ? "/dashboardEmpresa" : "/dashboardUsuario", { replace: true });
-    }, [navigate, tipoUsuario]);
+        navigate(data.mustChangePassword ? "/primeiro-acesso" : data.user.role === "company" ? "/dashboardEmpresa" : voltarAoMarketplace ? origem : "/dashboardUsuario", { replace: true });
+    }, [navigate, tipoUsuario, voltarAoMarketplace, origem]);
 
     async function handleSubmit(event: FormEvent) {
         event.preventDefault();

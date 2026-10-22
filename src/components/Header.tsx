@@ -148,7 +148,9 @@ export default function Header({ variant = "default" }: { variant?: "default" | 
                 type="button"
                 onClick={() => setMenuMovelAberto((prev) => !prev)}
                 className="md:hidden flex h-10 w-10 items-center justify-center rounded-lg border border-[#E7E4DA] text-[#1B4B3A] hover:bg-[#F3F1EA]"
-                aria-label="Abrir menu"
+                aria-label={menuMovelAberto ? "Fechar menu" : "Abrir menu"}
+                aria-expanded={menuMovelAberto}
+                aria-controls="menu-navegacao-movel"
               >
                 {menuMovelAberto ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </button>
@@ -200,20 +202,23 @@ export default function Header({ variant = "default" }: { variant?: "default" | 
               </Link>
               <Link
                 to="/cadastro"
-                className="rounded-lg bg-emerald-500 px-4 sm:px-5 py-2 sm:py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-600 no-underline shadow-sm"
+                className="hidden md:inline-flex rounded-lg bg-emerald-500 px-4 sm:px-5 py-2 sm:py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-600 no-underline shadow-sm"
               >
                 Cadastrar
               </Link>
+              <button type="button" onClick={() => setMenuMovelAberto(prev => !prev)} className="md:hidden flex h-10 w-10 items-center justify-center rounded-lg border border-[#E7E4DA] text-[#1B4B3A] hover:bg-[#F3F1EA]" aria-label={menuMovelAberto ? "Fechar menu" : "Abrir menu"} aria-expanded={menuMovelAberto} aria-controls="menu-navegacao-movel">
+                {menuMovelAberto ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              </button>
             </div>
           </>
         )}
       </div>
 
       {/* Menu Mobile quando logado */}
-      {isUsuarioLogado && menuMovelAberto && (
-        <div className="md:hidden border-t border-[#E7E4DA] bg-white px-4 py-3 space-y-2">
+      {menuMovelAberto && (
+        <div id="menu-navegacao-movel" className="md:hidden border-t border-[#E7E4DA] bg-white px-4 py-3 space-y-2">
           <Link
-            to={role === "company" ? "/dashboardEmpresa" : "/dashboardUsuario"}
+            to={isUsuarioLogado ? (role === "company" ? "/dashboardEmpresa" : "/dashboardUsuario") : "/"}
             onClick={() => setMenuMovelAberto(false)}
             className="block rounded-lg px-3 py-2 text-sm font-medium text-[#4B5A55] hover:bg-[#F3F1EA] hover:text-[#1B4B3A]"
           >
@@ -223,7 +228,7 @@ export default function Header({ variant = "default" }: { variant?: "default" | 
             to="/marketplace"
             onClick={() => setMenuMovelAberto(false)}
             className={`block rounded-lg px-3 py-2 text-sm font-medium transition ${
-              location.pathname === "/marketplace"
+              location.pathname.startsWith("/marketplace")
                 ? "bg-[#EBF6F2] font-bold text-emerald-800"
                 : "text-[#4B5A55] hover:bg-[#F3F1EA] hover:text-[#1B4B3A]"
             }`}
@@ -238,14 +243,14 @@ export default function Header({ variant = "default" }: { variant?: "default" | 
           >
             Sobre Nós
           </Link>
-          <button
+          {isUsuarioLogado ? <button
             type="button"
             onClick={handleLogout}
             className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-red-600 hover:bg-red-50"
           >
             <LogOut className="h-4 w-4" />
             Sair
-          </button>
+          </button> : <Link to="/cadastro" onClick={() => setMenuMovelAberto(false)} className="block rounded-lg px-3 py-2 text-sm font-semibold text-emerald-700 hover:bg-emerald-50">Cadastrar</Link>}
         </div>
       )}
     </header>

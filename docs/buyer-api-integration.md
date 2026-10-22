@@ -36,8 +36,10 @@ Para ativação futura, configurar o ID **público** em `VITE_GOOGLE_CLIENT_ID`,
 
 - `npm run build`: aprovado; aviso de tamanho do bundle existente.
 - ESLint direcionado a sessão, Axios, hooks, rotas, login, marketplace e novas telas do comprador: aprovado.
-- `npm run lint`: 18 erros e 1 aviso preexistentes em verificação de e-mail, notificações, painel de empresa, chat legado e cadastro. Nenhum desses arquivos foi alterado nesta integração.
+- `npm run lint`: após incorporar a atualização remota `34c9047`, restam 17 erros e 1 aviso preexistentes em verificação de e-mail, notificações, painel de empresa e cadastro. A correção do chat legado veio dessa atualização remota.
 - `node .verification.local/verify-buyer.cjs`: verificação local com Playwright/Edge e API interceptada conforme os contratos. Exercita catálogo/filtros/fotos/paginação, perfil multipart e validação de upload, preservação após falha, troca de senha, primeiro acesso, exclusão/cancelamento/409, recuperação, link expirado, proteção e expiração da sessão, ausência de dados de contato no armazenamento e Google indisponível sem ID.
 - Inspeção visual em 375, 768, 1280 e 1440 px; correções do tema do catálogo no painel, busca móvel e cabeçalho compacto. Nenhum erro de execução do navegador no roteiro. Os arquivos de verificação e imagens usam dados artificiais e ficam na pasta ignorada `.verification.local/`.
 
 Não há suíte de testes configurada no repositório. Esta evidência não certifica integração ponta a ponta: ainda é necessário exercitar os mesmos fluxos com a API/banco/e-mail configurados e uma conta de desenvolvimento autorizada. Backend sem alterações locais; nenhum commit ou push realizado.
+
+Reverificação antes do push autorizado: build, roteiros do comprador e Sobre Nós aprovados após o merge. `node .verification.local/verify-merge.cjs` confirmou os links antigos do exemplo e a navegação móvel pública. URLs antigas de materiais apontam para os detalhes atuais; o exemplo antigo aponta para o mesmo único material demonstrativo.

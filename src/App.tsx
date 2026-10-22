@@ -9,6 +9,7 @@ import PasswordRecovery from "./pages/login/PasswordRecovery";
 import ResetPassword from "./pages/login/ResetPassword";
 import FirstAccess from "./pages/login/FirstAccess";
 import Marketplace from "./pages/marketplace/Marketplace";
+import PaginaMaterial from "./pages/marketplace/PaginaMaterial";
 import LiveProductDetails from "./pages/marketplace/LiveProductDetails";
 import MarketplaceLayout from "./pages/marketplace/MarketplaceLayout";
 import MaterialDetails from "./pages/marketplace/MaterialDetails";
@@ -38,6 +39,8 @@ function App() {
             <Route path="pagamento/:materialId/:metodo" element={<ReservationPayment />} />
             <Route path="confirmacao/:materialId" element={<ReservationConfirmation />} />
             <Route path="minhas-reservas" element={<DemoReservations />} />
+            <Route path=":produtoId" element={<PaginaMaterial />} />
+            <Route path=":produtoId/compra" element={<PaginaMaterial compra />} />
             <Route path="*" element={<FlowUnavailable />} />
           </Route>
           <Route path="/cadastro" element={<RegisterType />} />
