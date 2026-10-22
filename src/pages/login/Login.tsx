@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Repeat2, Eye, EyeOff } from "lucide-react";
 import axios from "axios";
 import api from "../../axios/Axios";
@@ -21,7 +21,10 @@ function readRememberedEmail(): string {
 
 export default function Login() {
     const navigate = useNavigate();
-    const [tipoUsuario, setTipoUsuario] = useState<TipoUsuario>("empresa");
+    const location = useLocation();
+    const origem = location.state?.from;
+    const voltarAoMarketplace = typeof origem === "string" && /^\/marketplace(?:\/[A-Za-z0-9_-]+(?:\/compra)?)?$/.test(origem);
+    const [tipoUsuario, setTipoUsuario] = useState<TipoUsuario>(() => voltarAoMarketplace ? "comprador" : "empresa");
     const [email, setEmail] = useState(readRememberedEmail);
     const [senha, setSenha] = useState("");
     const [lembrarDeMim, setLembrarDeMim] = useState(() => readRememberedEmail() !== "");
@@ -159,7 +162,7 @@ export default function Login() {
         if (tipoUsuario === "empresa") {
             navigate("/dashboardEmpresa");
         } else {
-            navigate("/dashboardUsuario");
+            navigate(voltarAoMarketplace ? origem : "/dashboardUsuario", { replace: true });
         }
     }
 
@@ -172,7 +175,6 @@ export default function Login() {
             return "Não foi possível conectar à API. Verifique sua conexão e se a API está rodando.";
         }
         const resposta = err.response.data as Record<string, unknown> | undefined;
-        console.error("[login] erro da API", err.response.status, resposta);
         // A API pode chamar o texto de 4 jeitos: procura em todos.
         for (const chave of ["error", "message", "msg", "erros"]) {
             const valor = resposta?.[chave];

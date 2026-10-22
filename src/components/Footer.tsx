@@ -1,5 +1,14 @@
-export default function Footer() {
-  const styles = {
+export default function Footer({ compacto = false }: { compacto?: boolean }) {
+  const styles = compacto ? {
+    rodape: "bg-[#005846] text-emerald-50",
+    rodapeConteudo: "mx-auto grid w-full gap-5 px-4 py-5 md:min-h-[90px] md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] md:items-center md:gap-7 md:px-[4.1vw] md:py-4",
+    rodapeMarca: "max-w-[280px]",
+    rodapeMarcaTitulo: "text-[13px] font-semibold text-white",
+    rodapeMarcaTexto: "mt-1 text-[10px] leading-[1.45] text-emerald-100/65",
+    rodapeLinks: "flex flex-wrap gap-x-6 gap-y-2 text-[10px] text-emerald-100/65",
+    rodapeLink: "hover:text-white",
+    rodapeDireitos: "text-[10px] leading-relaxed text-emerald-100/65 md:text-right",
+  } : {
     rodape: "bg-[#0F3D2E] text-emerald-50",
     rodapeConteudo:
       "mx-auto flex max-w-7xl flex-col gap-8 px-6 py-10 sm:flex-row sm:items-start sm:justify-between sm:px-10",

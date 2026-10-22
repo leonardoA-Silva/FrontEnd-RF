@@ -231,7 +231,7 @@ export const listarProdutos = () =>
 
 /** GET /api/reaproveitafranca/product/:id */
 export const obterProdutoPorId = (id: string) =>
-  api.get<ProductBackend>(`/product/${id}`);
+  api.get<ProductBackend>(`/product/${encodeURIComponent(id)}`);
 
 /** POST /api/reaproveitafranca/product/create */
 export const cadastrarProduto = (payload: CreateProductPayload) =>

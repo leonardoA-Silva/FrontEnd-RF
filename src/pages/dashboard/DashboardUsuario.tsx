@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Search,
   ShoppingBag,
@@ -27,6 +28,8 @@ import {
   Save,
   QrCode,
 } from "lucide-react";
+import axios from "axios";
+import { erroCatalogo, validarCatalogo } from "../marketplace/catalogo";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import { useLoggedUser } from "../../hooks/useLoggedUser";
@@ -37,9 +40,6 @@ import AvaliacaoColetaModal from "./comprador/AvaliacaoColetaModal";
 import ChatReservaModal from "./comprador/ChatReservaModal";
 import {
   listarProdutos,
-  listarLogs,
-  criarLog,
-  atualizarProduto,
   obterMeuPerfil,
   obterPerfilUsuario,
   atualizarPerfilUsuario,
@@ -74,6 +74,7 @@ export interface AtividadeFormatada {
 }
 
 export default function DashboardUsuario() {
+  const navigate = useNavigate();
   const { displayName, user, photoSrc, logout } = useLoggedUser();
 
   // Navegação: comprador possui Explorar Materiais, Minhas Reservas, Histórico e Perfil
@@ -81,7 +82,7 @@ export default function DashboardUsuario() {
 
   // Dados reais 100% vindos da API do backend
   const [produtos, setProdutos] = useState<ProductBackend[]>([]);
-  const [logs, setLogs] = useState<LogBackend[]>([]);
+  const [logs] = useState<LogBackend[]>([]);
   const [carregando, setCarregando] = useState<boolean>(true);
   const [erroApi, setErroApi] = useState<string | null>(null);
 
@@ -90,37 +91,10 @@ export default function DashboardUsuario() {
   const [categoriaSelecionada, setCategoriaSelecionada] = useState<string>("todas");
   const [tipoNegociacaoFiltro, setTipoNegociacaoFiltro] = useState<"todos" | "sale" | "donation">("todos");
 
-  // IDs dos produtos que este usuário comprador reservou na API
-  const [reservasIdsUsuario, setReservasIdsUsuario] = useState<string[]>(() => {
-    try {
-      const storageKey = `rf_comprador_reservas_${user?.id || "padrao"}`;
-      const salvas = localStorage.getItem(storageKey);
-      return salvas ? JSON.parse(salvas) : [];
-    } catch {
-      return [];
-    }
-  });
-
-  // Detalhes completos das reservas do comprador (com código, data, turno, etc.)
-  const [reservasDetalhes, setReservasDetalhes] = useState<DadosReservaFinalizada[]>(() => {
-    try {
-      const storageKey = `rf_comprador_reservas_detalhes_${user?.id || "padrao"}`;
-      const salvas = localStorage.getItem(storageKey);
-      return salvas ? JSON.parse(salvas) : [];
-    } catch {
-      return [];
-    }
-  });
-
-  // Sincronizar detalhes de reservas
-  useEffect(() => {
-    try {
-      const storageKey = `rf_comprador_reservas_detalhes_${user?.id || "padrao"}`;
-      localStorage.setItem(storageKey, JSON.stringify(reservasDetalhes));
-    } catch (e) {
-      console.warn("Falha ao salvar detalhes de reservas:", e);
-    }
-  }, [reservasDetalhes, user?.id]);
+  // Sem contrato de reservas verificado, não inferir titularidade pelo status do produto
+  // nem tratar dados locais de demonstração como pedidos reais.
+  const [reservasIdsUsuario] = useState<string[]>([]);
+  const [reservasDetalhes] = useState<DadosReservaFinalizada[]>([]);
 
   // Modais do fluxo Figma
   const [modalDetalhesAberto, setModalDetalhesAberto] = useState<boolean>(false);
@@ -146,16 +120,6 @@ export default function DashboardUsuario() {
   // Alertas
   const [mensagemToast, setMensagemToast] = useState<{ tipo: "sucesso" | "info"; texto: string } | null>(null);
 
-  // Sincronizar IDs de reservas locais por usuário
-  useEffect(() => {
-    try {
-      const storageKey = `rf_comprador_reservas_${user?.id || "padrao"}`;
-      localStorage.setItem(storageKey, JSON.stringify(reservasIdsUsuario));
-    } catch (e) {
-      console.warn("Falha ao salvar IDs de reservas:", e);
-    }
-  }, [reservasIdsUsuario, user?.id]);
-
   function exibirToast(texto: string, tipo: "sucesso" | "info" = "sucesso") {
     setMensagemToast({ tipo, texto });
     setTimeout(() => setMensagemToast(null), 4000);
@@ -163,81 +127,45 @@ export default function DashboardUsuario() {
 
   // Perfil completo importado diretamente da API (celular, CEP, endereço, etc.)
   const [perfilUsuario, setPerfilUsuario] = useState<UsuarioPerfil | null>(null);
-  const [carregandoPerfil, setCarregandoPerfil] = useState<boolean>(false);
+  const [carregandoPerfil, setCarregandoPerfil] = useState<boolean>(true);
 
-  const carregarPerfilUsuario = async () => {
-    setCarregandoPerfil(true);
-    try {
-      // 1. Tenta obter via /user/me autenticado com JWT
-      try {
-        const resMe = await obterMeuPerfil();
-        if (resMe.data && resMe.data.id) {
-          setPerfilUsuario(resMe.data);
-          return;
-        }
-      } catch {}
-
-      // 2. Se falhar ou não tiver token JWT, tenta pelo ID do usuário ou perfil ativo da API
-      const userId = user?.id || (user as any)?.userId;
-      const resId = await obterPerfilUsuario(userId || undefined);
-      if (resId.data && resId.data.id) {
-        setPerfilUsuario(resId.data);
-        return;
-      }
-    } catch (err) {
-      console.warn("Erro ao buscar perfil da API:", err);
-    } finally {
-      setCarregandoPerfil(false);
-    }
-  };
-
+  const [tentativaCatalogo, setTentativaCatalogo] = useState(0);
+  const userId = user?.id || user?.userId;
   useEffect(() => {
-    carregarPerfilUsuario();
-  }, [user?.id, abaAtiva]);
-
-  // Carregar produtos e logs diretamente da API backend (sem fallback / sem mock)
-  const carregarDadosBackend = async () => {
-    setCarregando(true);
-    setErroApi(null);
-
-    try {
-      const [resProdutos, resLogs] = await Promise.allSettled([
-        listarProdutos(),
-        listarLogs(),
-      ]);
-
-      if (resProdutos.status === "fulfilled" && Array.isArray(resProdutos.value.data)) {
-        setProdutos(resProdutos.value.data);
-      } else {
-        setProdutos([]);
-        if (resProdutos.status === "rejected") {
-          console.warn("Erro ao buscar produtos da API:", resProdutos.reason);
-        }
+    let ativo = true;
+    async function consultarPerfil() {
+      let perfil: UsuarioPerfil;
+      try { perfil = (await obterMeuPerfil()).data; }
+      catch (error) {
+        if (!axios.isAxiosError(error) || error.response?.status !== 404 || !userId) throw error;
+        perfil = (await obterPerfilUsuario(userId)).data;
       }
-
-      if (resLogs.status === "fulfilled" && Array.isArray(resLogs.value.data)) {
-        setLogs(resLogs.value.data);
-      } else {
-        setLogs([]);
-      }
-    } catch (err: any) {
-      console.error("Falha ao comunicar com a API do backend:", err);
-      setErroApi("Não foi possível conectar com o backend.");
-      setProdutos([]);
-      setLogs([]);
-    } finally {
-      setCarregando(false);
+      if (!perfil || typeof perfil.id !== "string" || typeof perfil.name !== "string" || (userId && perfil.id !== userId)) throw new Error("Perfil indisponível");
+      return perfil;
     }
-  };
+    consultarPerfil().then((perfil) => { if (ativo) setPerfilUsuario(perfil); })
+      .catch(() => { if (ativo) setPerfilUsuario(null); })
+      .finally(() => { if (ativo) setCarregandoPerfil(false); });
+    return () => { ativo = false; };
+  }, [userId]);
 
+  function carregarDadosBackend() {
+    setCarregando(true); setErroApi(null); setTentativaCatalogo((n) => n + 1);
+  }
   useEffect(() => {
-    carregarDadosBackend();
-  }, []);
+    let ativo = true;
+    listarProdutos().then(({ data }) => validarCatalogo(data)).then((lista) => {
+      if (ativo) { setProdutos(lista); setErroApi(null); }
+    }).catch((error: unknown) => {
+      if (ativo) { setProdutos([]); setErroApi(erroCatalogo(error)); }
+    }).finally(() => { if (ativo) setCarregando(false); });
+    return () => { ativo = false; };
+  }, [tentativaCatalogo]);
 
-  // MATERIAIS RESERVADOS DA API (status === 'reserved' ou reservado pelo comprador)
+  // Sem vínculo confirmado de titularidade, não exibir produtos reservados de outras contas.
   const materiaisReservadosApi = useMemo(() => {
     return produtos.filter(
-      (prod) => prod.status === "reserved" || reservasIdsUsuario.includes(prod.id)
+      (prod) => reservasIdsUsuario.includes(prod.id)
     );
   }, [produtos, reservasIdsUsuario]);
 
@@ -266,29 +194,6 @@ export default function DashboardUsuario() {
       return bateTexto && bateCategoria && bateTipo;
     });
   }, [materiaisDisponiveisApi, busca, categoriaSelecionada, tipoNegociacaoFiltro]);
-
-  // Métricas 100% calculadas dos materiais reservados da API
-  const metricasComprador = useMemo(() => {
-    const totalReservados = materiaisReservadosApi.length;
-    const emNegociacao = materiaisReservadosApi.length; // Reservas ativas do comprador
-
-    const kgTotal = materiaisReservadosApi.reduce((acc, curr) => {
-      const peso = parseFloat(String(curr.weight)) || 0;
-      return acc + peso * (curr.quantity || 1);
-    }, 0);
-
-    const economiaEstimada = materiaisReservadosApi.reduce((acc, curr) => {
-      const preco = parseFloat(String(curr.price)) || 0;
-      return acc + (curr.type_negotiation === "donation" ? 120 : preco * 1.5);
-    }, 0);
-
-    return {
-      reservados: totalReservados,
-      negociando: emNegociacao,
-      kgTotal,
-      economia: economiaEstimada,
-    };
-  }, [materiaisReservadosApi]);
 
   // Lista consolidada de Atividades Circulares Reais da API
   const atividadesCirculares: AtividadeFormatada[] = useMemo(() => {
@@ -337,85 +242,11 @@ export default function DashboardUsuario() {
     return lista;
   }, [logs, materiaisReservadosApi]);
 
-  // Ação de Confirmar Reserva Completa (Fluxo Multietapas do Figma)
-  async function handleConfirmarReserva(dados: DadosReservaFinalizada) {
-    try {
-      // 1. Atualiza na lista de IDs reservados localmente
-      if (!reservasIdsUsuario.includes(dados.produtoId)) {
-        setReservasIdsUsuario((prev) => [...prev, dados.produtoId]);
-      }
-
-      // 2. Salva os detalhes completos da reserva (código, data, quantidade, etc.)
-      setReservasDetalhes((prev) => {
-        const filtradas = prev.filter((r) => r.produtoId !== dados.produtoId);
-        return [dados, ...filtradas];
-      });
-
-      // 3. Atualiza status na API backend (tabela product)
-      const prod = produtos.find((p) => p.id === dados.produtoId);
-      if (prod) {
-        try {
-          await atualizarProduto(prod.id, {
-            name: prod.name,
-            category: prod.category,
-            type_negotiation: prod.type_negotiation,
-            weight: prod.weight,
-            conservation_state: prod.conservation_state,
-            id_localization: prod.id_localization,
-            status: "reserved",
-          });
-        } catch (errPut) {
-          console.warn("Tentativa de atualizar status do produto no backend:", errPut);
-        }
-      }
-
-      // 4. Registra log de auditoria na API (tabela log)
-      try {
-        await criarLog({
-          reference_id: dados.produtoId,
-          status: "reserved",
-          operation: "reserva",
-          table: "product",
-        });
-      } catch (errLog) {
-        console.warn("Tentativa de registrar log no backend:", errLog);
-      }
-
-      // 5. Atualiza os dados locais
-      await carregarDadosBackend();
-      exibirToast(`Reserva #${dados.codigo} registrada com sucesso!`);
-    } catch (e: any) {
-      console.error("Erro ao confirmar reserva:", e);
-      exibirToast("Erro ao processar a reserva.", "info");
-    }
+  async function handleConfirmarReserva() {
+    throw new Error("Não há reserva disponível no momento.");
   }
-
-  // Cancelar Reserva (Comprador)
-  async function handleCancelarReserva(prodId: string) {
-    try {
-      setReservasIdsUsuario((prev) => prev.filter((id) => id !== prodId));
-      setReservasDetalhes((prev) => prev.filter((r) => r.produtoId !== prodId));
-
-      const prod = produtos.find((p) => p.id === prodId);
-      if (prod) {
-        try {
-          await atualizarProduto(prod.id, {
-            name: prod.name,
-            category: prod.category,
-            type_negotiation: prod.type_negotiation,
-            weight: prod.weight,
-            conservation_state: prod.conservation_state,
-            id_localization: prod.id_localization,
-            status: "available",
-          });
-        } catch {}
-      }
-
-      await carregarDadosBackend();
-      exibirToast("Reserva cancelada com sucesso.", "info");
-    } catch (e) {
-      console.error("Erro ao cancelar reserva:", e);
-    }
+  function handleCancelarReserva() {
+    exibirToast("Não há cancelamento disponível no momento. Nenhuma reserva foi alterada.", "info");
   }
 
   // Formatação de Preço e Moeda
@@ -547,14 +378,15 @@ export default function DashboardUsuario() {
   });
 
   const abrirModalEdicao = () => {
+    if (!perfilUsuario) { exibirToast("Não há perfil disponível para editar no momento.", "info"); return; }
     setFormPerfil({
       name: perfilUsuario?.name || user?.name || displayName || "",
       email: perfilUsuario?.email || user?.email || "",
       cellphone: perfilUsuario?.cellphone || user?.cellphone || "",
-      cargo: perfilUsuario?.cargo || (user as any)?.cargo || "",
-      cpf: perfilUsuario?.cpf || (user as any)?.cpf || "",
-      cnpj: perfilUsuario?.cnpj || (user as any)?.cnpj || "",
-      setor: perfilUsuario?.setor || (user as any)?.setor || "",
+      cargo: perfilUsuario?.cargo || user?.cargo || "",
+      cpf: perfilUsuario?.cpf || user?.cpf || "",
+      cnpj: perfilUsuario?.cnpj || user?.cnpj || "",
+      setor: perfilUsuario?.setor || user?.setor || "",
       zip_code: perfilUsuario?.zip_code || user?.zip_code || "",
       street: perfilUsuario?.street || user?.street || "",
       neighborhood: perfilUsuario?.neighborhood || user?.neighborhood || "",
@@ -585,11 +417,8 @@ export default function DashboardUsuario() {
       }
 
       const targetId = perfilUsuario?.id || user?.id;
-      try {
-        await atualizarPerfilUsuario(formData, targetId);
-      } catch (apiErr) {
-        console.warn("Aviso ao salvar na API backend:", apiErr);
-      }
+      if (!targetId) throw new Error("Perfil indisponível");
+      await atualizarPerfilUsuario(formData, targetId);
 
       const novoPerfil: UsuarioPerfil = {
         ...(perfilUsuario || {}),
@@ -617,13 +446,17 @@ export default function DashboardUsuario() {
       const storage = localStorage.getItem("user") ? localStorage : sessionStorage;
       const rawUser = storage.getItem("user");
       const userAtual = rawUser ? JSON.parse(rawUser) : {};
-      storage.setItem("user", JSON.stringify({ ...userAtual, ...novoPerfil }));
+      // Não persistir documentos ou endereços pessoais na sessão.
+      storage.setItem("user", JSON.stringify({
+        id: userAtual.id, role: userAtual.role, name: novoPerfil.name,
+        photo: novoPerfil.photo,
+      }));
+      window.dispatchEvent(new Event("storage"));
 
       setModalEditarPerfilAberto(false);
       exibirToast("Perfil atualizado com sucesso!");
-    } catch (err) {
-      console.error("Erro ao salvar perfil:", err);
-      exibirToast("Erro ao salvar dados do perfil", "info");
+    } catch {
+      exibirToast("Não foi possível salvar o perfil. Nenhuma alteração foi confirmada.", "info");
     } finally {
       setSalvandoPerfil(false);
     }
@@ -643,7 +476,7 @@ export default function DashboardUsuario() {
 
   const emailExibicao = perfilUsuario?.email || user?.email || "";
   const telefoneExibicao = formatarCelular(perfilUsuario?.cellphone || user?.cellphone);
-  const cargoExibicao = perfilUsuario?.cargo || (user as any)?.cargo || "";
+  const cargoExibicao = perfilUsuario?.cargo || user?.cargo || "";
 
   const temCnpj = Boolean(perfilUsuario?.cnpj && perfilUsuario.cnpj.trim());
   const temCpf = Boolean(perfilUsuario?.cpf && perfilUsuario.cpf.trim());
@@ -658,14 +491,14 @@ export default function DashboardUsuario() {
     if (perfilUsuario?.street) {
       const ruaNum = `${perfilUsuario.street}${perfilUsuario.number ? `, ${perfilUsuario.number}` : ""}`;
       const bairro = perfilUsuario.neighborhood ? ` - ${perfilUsuario.neighborhood}` : "";
-      const cidadeUf = perfilUsuario.city ? `, ${perfilUsuario.city} - ${perfilUsuario.state || "SP"}` : "";
+      const cidadeUf = perfilUsuario.city ? `, ${perfilUsuario.city} - ${perfilUsuario.state || ""}` : "";
       const cep = perfilUsuario.zip_code ? `, ${formatarCep(perfilUsuario.zip_code)}` : "";
       return `${ruaNum}${bairro}${cidadeUf}${cep}`;
     }
     return "Não informado";
   }, [perfilUsuario]);
 
-  const setorExibicao = perfilUsuario?.setor || (user as any)?.setor || "";
+  const setorExibicao = perfilUsuario?.setor || user?.setor || "";
   const tagExibicao = perfilUsuario?.role === "company" ? "EMPRESA" : "ARTESÃO";
 
   const menuLateralItens = [
@@ -677,15 +510,15 @@ export default function DashboardUsuario() {
     },
     { id: "historico", icone: History, rotulo: "Histórico" },
     { id: "perfil", icone: UserRound, rotulo: "Perfil" },
-  ];
+  ] as const;
 
   return (
-    <div className="flex min-h-screen w-full flex-col bg-[#FAF9F5] text-[#1B4B3A]">
+    <div className="flex min-h-screen w-full flex-col bg-[#F7F9F8] text-[#1B4B3A]">
       <Header />
 
       {/* Toast de Notificação */}
       {mensagemToast && (
-        <div className="fixed top-20 right-6 z-50 flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white shadow-xl animate-in slide-in-from-top-4">
+        <div className="fixed top-20 right-6 z-50 flex items-center gap-2 rounded bg-emerald-600 px-5 py-3 text-sm font-semibold text-white shadow-xl animate-in slide-in-from-top-4">
           <CheckCircle className="h-5 w-5 shrink-0" />
           <span>{mensagemToast.texto}</span>
         </div>
@@ -694,7 +527,7 @@ export default function DashboardUsuario() {
       {/* Layout Principal: Sidebar + Conteúdo */}
       <div className="flex w-full flex-1 items-stretch">
         {/* BARRA LATERAL (SIDEBAR - Igual à imagem enviada) */}
-        <aside className="hidden w-60 shrink-0 flex-col border-r border-[#E7E4DA] bg-white p-4 md:flex lg:w-64">
+        <aside className="hidden w-52 shrink-0 flex-col border-r border-[#E2E9E5] bg-white p-3 md:flex lg:w-56">
           <nav className="flex flex-col gap-1.5">
             {menuLateralItens.map(({ id, icone: Icone, rotulo }) => {
               const ativo = abaAtiva === id;
@@ -702,8 +535,8 @@ export default function DashboardUsuario() {
                 <button
                   key={id}
                   type="button"
-                  onClick={() => setAbaAtiva(id as any)}
-                  className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition cursor-pointer text-left ${
+                  onClick={() => id === "explorar" ? navigate("/marketplace") : setAbaAtiva(id)}
+                  className={`flex items-center gap-2 rounded px-3 py-2.5 text-xs font-medium transition cursor-pointer text-left ${
                     ativo
                       ? "bg-[#D7EFE6] font-semibold text-[#0F3D2E]"
                       : "text-[#4B5A55] hover:bg-[#F3F1EA] hover:text-[#1B4B3A]"
@@ -722,7 +555,7 @@ export default function DashboardUsuario() {
           </nav>
 
           {/* Card informativo de sustentabilidade */}
-          <div className="mt-auto rounded-2xl bg-[#EBF6F2] p-4 border border-[#D5EADB]">
+          <div className="mt-auto rounded-md bg-[#EBF6F2] p-4 border border-[#D5EADB]">
             <p className="text-xs font-bold text-[#0F3D2E] uppercase tracking-wider flex items-center gap-1.5">
               <Leaf className="h-3.5 w-3.5 text-emerald-600" />
               Economia Circular
@@ -736,18 +569,18 @@ export default function DashboardUsuario() {
         {/* CONTEÚDO PRINCIPAL (DASHBOARD DO COMPRADOR) */}
         <main className="min-w-0 flex-1 px-4 py-6 sm:px-8 sm:py-8 lg:px-10">
           {/* Menu Mobile / Tablet */}
-          <div className="flex gap-2 overflow-x-auto pb-4 md:hidden border-b border-[#E7E4DA] mb-6">
+          <div className="flex gap-2 overflow-x-auto pb-4 md:hidden border-b border-[#E2E9E5] mb-6">
             {menuLateralItens.map(({ id, icone: Icone, rotulo }) => {
               const ativo = abaAtiva === id;
               return (
                 <button
                   key={id}
                   type="button"
-                  onClick={() => setAbaAtiva(id as any)}
+                  onClick={() => id === "explorar" ? navigate("/marketplace") : setAbaAtiva(id)}
                   className={`flex items-center gap-2 whitespace-nowrap rounded-full px-4 py-2 text-xs font-semibold shrink-0 cursor-pointer ${
                     ativo
                       ? "bg-[#D7EFE6] text-[#0F3D2E]"
-                      : "bg-white border border-[#E7E4DA] text-[#4B5A55]"
+                      : "bg-white border border-[#E2E9E5] text-[#4B5A55]"
                   }`}
                 >
                   <Icone className="h-4 w-4" />
@@ -777,7 +610,7 @@ export default function DashboardUsuario() {
                   <button
                     type="button"
                     onClick={carregarDadosBackend}
-                    title="Atualizar dados do backend"
+                    title="Atualizar materiais"
                     className="flex items-center gap-1.5 rounded-lg border border-[#D9D5C8] bg-white px-3 py-2.5 text-xs font-semibold text-[#4B5A55] hover:bg-gray-50 shadow-xs cursor-pointer"
                   >
                     <RefreshCw className={`h-3.5 w-3.5 ${carregando ? "animate-spin text-emerald-600" : ""}`} />
@@ -786,7 +619,7 @@ export default function DashboardUsuario() {
 
                   <button
                     type="button"
-                    onClick={() => setAbaAtiva("explorar")}
+                    onClick={() => navigate("/marketplace")}
                     className="flex items-center justify-center gap-2 rounded-lg bg-[#059669] hover:bg-[#047857] px-4 py-2.5 text-xs sm:text-sm font-bold text-white shadow-xs transition cursor-pointer"
                   >
                     <Search className="h-4 w-4" strokeWidth={2.5} />
@@ -797,73 +630,69 @@ export default function DashboardUsuario() {
 
               {/* 4 CARDS DE ESTATÍSTICAS / MÉTRICAS (DESIGN FIEL À IMAGEM) */}
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 2xl:grid-cols-4">
-                {/* Card 1: Materiais Reservados (100% da API) */}
-                <div className="flex items-center gap-4 rounded-2xl border border-[#E7E4DA] bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#D7EFE6] text-emerald-600">
+                {/* Card 1: Materiais Reservados */}
+                <div className="flex items-center gap-4 rounded-md border border-[#E2E9E5] bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-[#D7EFE6] text-emerald-600">
                     <Package className="h-6 w-6" strokeWidth={2} />
                   </div>
                   <div className="min-w-0">
                     <p className="text-[11px] font-bold uppercase tracking-wider text-[#6B7670]">
                       MATERIAIS RESERVADOS
                     </p>
-                    <p className="text-2xl font-extrabold text-[#0F3D2E]">
-                      {metricasComprador.reservados}
+                    <p className="text-base font-extrabold text-[#0F3D2E]">
+                      Não disponível
                     </p>
                     <p className="text-xs text-[#6B7670] mt-0.5 truncate">
-                      {metricasComprador.reservados > 0
-                        ? `${metricasComprador.reservados} ativos na API`
-                        : "Você não possui reservas"}
+                      Não há dados disponíveis
                     </p>
                   </div>
                 </div>
 
-                {/* Card 2: Em Negociação (100% da API) */}
-                <div className="flex items-center gap-4 rounded-2xl border border-[#E7E4DA] bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#D7EFE6] text-emerald-600">
+                {/* Card 2: Em Negociação */}
+                <div className="flex items-center gap-4 rounded-md border border-[#E2E9E5] bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-[#D7EFE6] text-emerald-600">
                     <Handshake className="h-6 w-6" strokeWidth={2} />
                   </div>
                   <div className="min-w-0">
                     <p className="text-[11px] font-bold uppercase tracking-wider text-[#6B7670]">
                       EM NEGOCIAÇÃO
                     </p>
-                    <p className="text-2xl font-extrabold text-[#0F3D2E]">
-                      {metricasComprador.negociando}
+                    <p className="text-base font-extrabold text-[#0F3D2E]">
+                      Não disponível
                     </p>
                     <p className="text-xs text-[#6B7670] mt-0.5 truncate">
-                      {metricasComprador.negociando > 0 ? "Aguardando resposta" : "Sem negociações ativas"}
+                      Não há dados disponíveis
                     </p>
                   </div>
                 </div>
 
-                {/* Card 3: KG Adquiridos (100% da API) */}
-                <div className="flex items-center gap-4 rounded-2xl border border-[#E7E4DA] bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#D7EFE6] text-emerald-600">
+                {/* Card 3: KG Adquiridos */}
+                <div className="flex items-center gap-4 rounded-md border border-[#E2E9E5] bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-[#D7EFE6] text-emerald-600">
                     <ShoppingCart className="h-6 w-6" strokeWidth={2} />
                   </div>
                   <div className="min-w-0">
                     <p className="text-[11px] font-bold uppercase tracking-wider text-[#6B7670]">
                       KG ADQUIRIDOS
                     </p>
-                    <p className="text-2xl font-extrabold text-[#0F3D2E]">
-                      {metricasComprador.kgTotal > 0
-                        ? `${metricasComprador.kgTotal.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} kg`
-                        : "0 kg"}
+                    <p className="text-base font-extrabold text-[#0F3D2E]">
+                      Não disponível
                     </p>
                     <p className="text-xs text-[#6B7670] mt-0.5 truncate">Total de materiais circulares</p>
                   </div>
                 </div>
 
-                {/* Card 4: Sua Pegada Poupada (100% da API) */}
-                <div className="flex items-center gap-4 rounded-2xl border border-[#E7E4DA] bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#D7EFE6] text-emerald-600">
+                {/* Card 4: Sua Pegada Poupada */}
+                <div className="flex items-center gap-4 rounded-md border border-[#E2E9E5] bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-[#D7EFE6] text-emerald-600">
                     <Leaf className="h-6 w-6" strokeWidth={2} />
                   </div>
                   <div className="min-w-0">
                     <p className="text-[11px] font-bold uppercase tracking-wider text-[#6B7670]">
                       SUA PEGADA POUPADA
                     </p>
-                    <p className="text-2xl font-extrabold text-[#0F3D2E]">
-                      R$ {metricasComprador.economia.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    <p className="text-base font-extrabold text-[#0F3D2E]">
+                      Não disponível
                     </p>
                     <p className="text-xs text-[#6B7670] mt-0.5 truncate">Economia gerada</p>
                   </div>
@@ -873,7 +702,7 @@ export default function DashboardUsuario() {
               {/* DUAS COLUNAS PRINCIPAIS (DESIGN DA IMAGEM ENVIADA) */}
               <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[1.65fr_1fr]">
                 {/* COLUNA ESQUERDA: MATERIAIS RESERVADOS DA API */}
-                <div className="rounded-2xl border border-[#E7E4DA] bg-white p-5 sm:p-6 shadow-xs">
+                <div className="rounded-md border border-[#E2E9E5] bg-white p-5 sm:p-6 shadow-xs">
                   <div className="flex items-center justify-between border-b border-gray-100 pb-4">
                     <h2 className="text-base font-extrabold text-[#0F3D2E] sm:text-lg">
                       Últimos Resíduos Reservados
@@ -901,19 +730,19 @@ export default function DashboardUsuario() {
                     </div>
                   ) : materiaisReservadosApi.length === 0 ? (
                     /* NOTIFICAÇÃO INTUITIVA QUANDO NÃO POSSUI RESERVAS */
-                    <div className="rounded-xl border border-dashed border-[#E7E4DA] bg-[#FAF9F5] p-8 text-center my-4">
+                    <div className="rounded border border-dashed border-[#E2E9E5] bg-[#F7F9F8] p-8 text-center my-4">
                       <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#EBF6F2] text-emerald-600 mb-3">
                         <ShoppingBag className="h-6 w-6" />
                       </div>
                       <h3 className="text-sm font-bold text-[#0F3D2E]">
-                        Você não possui reservas no momento
+                        Não há reservas disponíveis no momento
                       </h3>
                       <p className="mx-auto mt-1 max-w-sm text-xs text-[#6B7670] leading-relaxed">
-                        Nenhum material reservado foi encontrado no backend. Explore os insumos disponíveis ofertados pelas empresas parceiras.
+                        Não há reservas disponíveis para consultar. Explore os materiais das empresas parceiras.
                       </p>
                       <button
                         type="button"
-                        onClick={() => setAbaAtiva("explorar")}
+                        onClick={() => navigate("/marketplace")}
                         className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 px-4 py-2 text-xs font-bold text-white shadow-xs transition cursor-pointer"
                       >
                         <Search className="h-3.5 w-3.5" />
@@ -930,7 +759,7 @@ export default function DashboardUsuario() {
                             setProdutoDetalhes(prod);
                             setModalDetalhesAberto(true);
                           }}
-                          className="flex items-center justify-between py-4 hover:bg-gray-50/70 px-2 rounded-xl transition cursor-pointer"
+                          className="flex items-center justify-between py-4 hover:bg-gray-50/70 px-2 rounded transition cursor-pointer"
                         >
                           <div className="min-w-0 pr-3">
                             <h3 className="text-sm font-bold text-[#1F2A26] truncate">
@@ -962,7 +791,7 @@ export default function DashboardUsuario() {
                 </div>
 
                 {/* COLUNA DIREITA: ATIVIDADE CIRCULAR RECENTE */}
-                <div className="rounded-2xl border border-[#E7E4DA] bg-white p-5 sm:p-6 shadow-xs">
+                <div className="rounded-md border border-[#E2E9E5] bg-white p-5 sm:p-6 shadow-xs">
                   <div className="border-b border-gray-100 pb-4">
                     <h2 className="text-base font-extrabold text-[#0F3D2E] sm:text-lg">
                       Atividade Circular Recente
@@ -971,7 +800,7 @@ export default function DashboardUsuario() {
 
                   {atividadesCirculares.length === 0 ? (
                     /* NOTIFICAÇÃO INTUITIVA QUANDO NÃO HÁ ATIVIDADES */
-                    <div className="rounded-xl border border-dashed border-[#E7E4DA] bg-[#FAF9F5] p-8 text-center my-4">
+                    <div className="rounded border border-dashed border-[#E2E9E5] bg-[#F7F9F8] p-8 text-center my-4">
                       <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#EBF6F2] text-emerald-600 mb-3">
                         <History className="h-6 w-6" />
                       </div>
@@ -1055,7 +884,7 @@ export default function DashboardUsuario() {
               </div>
 
               {/* BARRA DE PESQUISA E FILTROS */}
-              <div className="mt-6 rounded-2xl border border-[#E7E4DA] bg-white p-4 sm:p-6 shadow-xs">
+              <div className="mt-6 rounded-md border border-[#E2E9E5] bg-white p-4 sm:p-6 shadow-xs">
                 <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                   {/* Input de Busca */}
                   <div className="relative flex-1">
@@ -1065,7 +894,7 @@ export default function DashboardUsuario() {
                       placeholder="Buscar por nome, tipo de material ou descrição..."
                       value={busca}
                       onChange={(e) => setBusca(e.target.value)}
-                      className="w-full rounded-xl border border-[#D9D5C8] bg-white pl-10 pr-4 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition"
+                      className="w-full rounded border border-[#D9D5C8] bg-white pl-10 pr-4 py-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition"
                     />
                     {busca && (
                       <button
@@ -1078,7 +907,7 @@ export default function DashboardUsuario() {
                   </div>
 
                   {/* Alternador de Tipo de Negociação */}
-                  <div className="flex items-center gap-1 rounded-xl bg-[#F4F2EC] p-1 text-xs font-semibold">
+                  <div className="flex items-center gap-1 rounded bg-[#F4F2EC] p-1 text-xs font-semibold">
                     <button
                       type="button"
                       onClick={() => setTipoNegociacaoFiltro("todos")}
@@ -1154,12 +983,12 @@ export default function DashboardUsuario() {
                 {carregando ? (
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {[1, 2, 3, 4].map((n) => (
-                      <div key={n} className="h-56 animate-pulse rounded-2xl bg-gray-200" />
+                      <div key={n} className="h-56 animate-pulse rounded-md bg-gray-200" />
                     ))}
                   </div>
                 ) : materiaisDisponiveisApi.length === 0 ? (
                   /* NOTIFICAÇÃO INTUITIVA ESPECÍFICA: SEM MATERIAIS NO BACKEND */
-                  <div className="rounded-2xl border border-dashed border-[#D9D5C8] bg-white p-12 text-center">
+                  <div className="rounded-md border border-dashed border-[#D9D5C8] bg-white p-12 text-center">
                     <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#EBF6F2] text-emerald-600 mb-4">
                       <PackageOpen className="h-8 w-8" />
                     </div>
@@ -1167,14 +996,14 @@ export default function DashboardUsuario() {
                       Nenhum material disponível para reserva
                     </h3>
                     <p className="mx-auto mt-1.5 max-w-md text-xs sm:text-sm text-gray-500 leading-relaxed">
-                      Não há resíduos industriais ou matérias-primas disponíveis no momento no backend.
+                      Não há materiais disponíveis no momento.
                       Novos lotes cadastrados pelas indústrias parceiras aparecerão aqui automaticamente.
                     </p>
                     <div className="mt-6 flex justify-center">
                       <button
                         type="button"
                         onClick={carregarDadosBackend}
-                        className="inline-flex items-center gap-1.5 rounded-xl border border-[#D9D5C8] bg-white hover:bg-gray-50 px-4 py-2.5 text-xs font-semibold text-gray-700 shadow-xs cursor-pointer"
+                        className="inline-flex items-center gap-1.5 rounded border border-[#D9D5C8] bg-white hover:bg-gray-50 px-4 py-2.5 text-xs font-semibold text-gray-700 shadow-xs cursor-pointer"
                       >
                         <RefreshCw className="h-3.5 w-3.5" />
                         Verificar Novamente
@@ -1183,7 +1012,7 @@ export default function DashboardUsuario() {
                   </div>
                 ) : produtosExplorarFiltrados.length === 0 ? (
                   /* NOTIFICAÇÃO QUANDO FILTROS NÃO ENCONTRAM ITENS */
-                  <div className="rounded-2xl border border-dashed border-[#D9D5C8] bg-white p-12 text-center">
+                  <div className="rounded-md border border-dashed border-[#D9D5C8] bg-white p-12 text-center">
                     <Package className="mx-auto h-12 w-12 text-gray-400" />
                     <h3 className="mt-3 text-base font-bold text-gray-700">Nenhum material encontrado com esses filtros</h3>
                     <p className="mt-1 text-xs text-gray-500">
@@ -1210,7 +1039,7 @@ export default function DashboardUsuario() {
                           setProdutoDetalhes(prod);
                           setModalDetalhesAberto(true);
                         }}
-                        className="flex flex-col justify-between rounded-2xl border border-[#E7E4DA] bg-white p-5 shadow-xs hover:shadow-md hover:border-emerald-500/50 transition cursor-pointer group"
+                        className="flex flex-col justify-between rounded-md border border-[#E2E9E5] bg-white p-5 shadow-xs hover:shadow-md hover:border-emerald-500/50 transition cursor-pointer group"
                       >
                         <div>
                           <div className="flex items-center justify-between gap-2 mb-3">
@@ -1273,7 +1102,7 @@ export default function DashboardUsuario() {
           )}
 
           {/* ==================================================================== */}
-          {/* 3. TELA: MINHAS RESERVAS (100% DA API COM NOTIFICAÇÃO INTUITIVA)     */}
+          {/* 3. TELA: MINHAS RESERVAS (ESTADO DE DISPONIBILIDADE)     */}
           {/* ==================================================================== */}
           {abaAtiva === "reservas" && (
             <div className="space-y-6">
@@ -1286,7 +1115,7 @@ export default function DashboardUsuario() {
                 </div>
                 <button
                   type="button"
-                  onClick={() => setAbaAtiva("explorar")}
+                  onClick={() => navigate("/marketplace")}
                   className="text-sm font-bold text-emerald-600 hover:underline flex items-center gap-1 cursor-pointer"
                 >
                   Explorar mais materiais
@@ -1296,20 +1125,20 @@ export default function DashboardUsuario() {
 
               {materiaisReservadosApi.length === 0 ? (
                 /* NOTIFICAÇÃO INTUITIVA ESPECÍFICA: VOCÊ NÃO POSSUI RESERVAS */
-                <div className="rounded-2xl border border-dashed border-[#D9D5C8] bg-white p-12 text-center">
+                <div className="rounded-md border border-dashed border-[#D9D5C8] bg-white p-12 text-center">
                   <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#EBF6F2] text-emerald-600 mb-4">
                     <ShoppingBag className="h-8 w-8" />
                   </div>
                   <h3 className="text-base sm:text-lg font-bold text-[#0F3D2E]">
-                    Você não possui reservas no momento
+                    Não há reservas disponíveis no momento
                   </h3>
                   <p className="mx-auto mt-1.5 max-w-md text-xs sm:text-sm text-gray-500 leading-relaxed">
-                    Você ainda não solicitou a reserva de nenhum material. Navegue pelo catálogo na aba Explorar para encontrar retalhos e insumos circulares para seus projetos.
+                    Não há reservas disponíveis para consultar no momento. As compras de exemplo não criam reservas reais.
                   </p>
                   <button
                     type="button"
-                    onClick={() => setAbaAtiva("explorar")}
-                    className="mt-6 inline-flex items-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 px-6 py-2.5 text-xs sm:text-sm font-bold text-white shadow-xs transition cursor-pointer"
+                    onClick={() => navigate("/marketplace")}
+                    className="mt-6 inline-flex items-center gap-2 rounded bg-emerald-600 hover:bg-emerald-700 px-6 py-2.5 text-xs sm:text-sm font-bold text-white shadow-xs transition cursor-pointer"
                   >
                     <Search className="h-4 w-4" />
                     Explorar Catálogo de Materiais
@@ -1336,10 +1165,10 @@ export default function DashboardUsuario() {
                     return (
                       <div
                         key={prod.id}
-                        className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 rounded-2xl border border-[#E7E4DA] bg-white p-5 sm:p-6 shadow-xs hover:border-emerald-500/40 transition"
+                        className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 rounded-md border border-[#E2E9E5] bg-white p-5 sm:p-6 shadow-xs hover:border-emerald-500/40 transition"
                       >
                         <div className="flex items-start gap-4">
-                          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#D7EFE6] text-emerald-800 font-bold">
+                          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-md bg-[#D7EFE6] text-emerald-800 font-bold">
                             <Package className="h-7 w-7 text-emerald-700" />
                           </div>
                           <div>
@@ -1392,7 +1221,7 @@ export default function DashboardUsuario() {
                                 });
                                 setModalQrCodeAberto(true);
                               }}
-                              className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-50 border border-emerald-200 px-3.5 py-2 text-xs font-bold text-emerald-800 hover:bg-emerald-100 transition cursor-pointer shadow-2xs"
+                              className="inline-flex items-center gap-1.5 rounded bg-emerald-50 border border-emerald-200 px-3.5 py-2 text-xs font-bold text-emerald-800 hover:bg-emerald-100 transition cursor-pointer shadow-2xs"
                               title="Ver QR Code de Retirada"
                             >
                               <QrCode className="h-4 w-4 text-emerald-700" />
@@ -1406,7 +1235,7 @@ export default function DashboardUsuario() {
                                 setProdutoParaChat(prod);
                                 setModalChatAberto(true);
                               }}
-                              className="inline-flex items-center gap-1.5 rounded-xl border border-[#D9D5C8] bg-white px-3.5 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition cursor-pointer shadow-2xs"
+                              className="inline-flex items-center gap-1.5 rounded border border-[#D9D5C8] bg-white px-3.5 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 transition cursor-pointer shadow-2xs"
                               title="Mensagens com a fábrica"
                             >
                               <MessageSquare className="h-4 w-4 text-emerald-700" />
@@ -1420,7 +1249,7 @@ export default function DashboardUsuario() {
                                 setProdutoParaAvaliar(prod);
                                 setModalAvaliacaoAberto(true);
                               }}
-                              className="inline-flex items-center gap-1.5 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-800 hover:bg-amber-100 transition cursor-pointer shadow-2xs"
+                              className="inline-flex items-center gap-1.5 rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-800 hover:bg-amber-100 transition cursor-pointer shadow-2xs"
                               title="Avaliar Coleta"
                             >
                               <Star className="h-4 w-4 text-amber-500 fill-amber-400" />
@@ -1430,8 +1259,8 @@ export default function DashboardUsuario() {
                             {/* Botão Cancelar */}
                             <button
                               type="button"
-                              onClick={() => handleCancelarReserva(prod.id)}
-                              className="rounded-xl border border-red-200 p-2 text-red-600 hover:bg-red-50 transition cursor-pointer"
+                              onClick={() => handleCancelarReserva()}
+                              className="rounded border border-red-200 p-2 text-red-600 hover:bg-red-50 transition cursor-pointer"
                               title="Cancelar reserva"
                             >
                               <Trash2 className="h-4 w-4" />
@@ -1447,7 +1276,7 @@ export default function DashboardUsuario() {
           )}
 
           {/* ==================================================================== */}
-          {/* 4. TELA: PERFIL DO USUÁRIO COMPRADOR (IMPORTADO 100% DA API)         */}
+          {/* 4. TELA: PERFIL DO USUÁRIO COMPRADOR (DADOS DA CONTA)         */}
           {/* ==================================================================== */}
           {/* ==================================================================== */}
           {/* 4. TELA: PERFIL DO USUÁRIO COMPRADOR (RESULTADO DA IMAGEM)            */}
@@ -1465,15 +1294,16 @@ export default function DashboardUsuario() {
                 <button
                   type="button"
                   onClick={abrirModalEdicao}
-                  className="inline-flex items-center gap-2 rounded-xl bg-[#0B4D34] hover:bg-[#083A27] px-5 py-2.5 text-sm font-bold text-white shadow-xs transition cursor-pointer self-start sm:self-auto"
+                  className="inline-flex items-center gap-2 rounded bg-[#0B4D34] hover:bg-[#083A27] px-5 py-2.5 text-sm font-bold text-white shadow-xs transition cursor-pointer self-start sm:self-auto"
                 >
                   <Pencil className="h-4 w-4" />
                   <span>Editar Perfil</span>
                 </button>
               </div>
 
+              {!carregandoPerfil && !perfilUsuario && <p role="status" className="mb-5 rounded border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">Não há dados do perfil disponíveis no momento.</p>}
               {carregandoPerfil ? (
-                <div className="py-20 flex flex-col items-center justify-center gap-3 rounded-2xl border border-[#E7E4DA] bg-white">
+                <div className="py-20 flex flex-col items-center justify-center gap-3 rounded-md border border-[#E2E9E5] bg-white">
                   <RefreshCw className="h-8 w-8 animate-spin text-emerald-600" />
                   <p className="text-sm font-medium text-gray-500">Carregando informações do perfil da API...</p>
                 </div>
@@ -1482,7 +1312,7 @@ export default function DashboardUsuario() {
                   {/* Grid de Cards Superiores (Foto e Identificação + Informações Pessoais) */}
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
                     {/* Card 1: Foto e Identificação (Esquerda) */}
-                    <div className="lg:col-span-4 rounded-2xl border border-[#E7E4DA] bg-white p-8 flex flex-col items-center justify-center text-center shadow-2xs">
+                    <div className="lg:col-span-4 rounded-md border border-[#E2E9E5] bg-white p-8 flex flex-col items-center justify-center text-center shadow-2xs">
                       <div className="relative">
                         {fotoExibicao ? (
                           <img
@@ -1505,7 +1335,7 @@ export default function DashboardUsuario() {
                     </div>
 
                     {/* Card 2: Informações Pessoais (Direita) */}
-                    <div className="lg:col-span-8 rounded-2xl border border-[#E7E4DA] bg-white p-7 sm:p-8 flex flex-col justify-between shadow-2xs">
+                    <div className="lg:col-span-8 rounded-md border border-[#E2E9E5] bg-white p-7 sm:p-8 flex flex-col justify-between shadow-2xs">
                       <div>
                         <div className="flex items-center gap-2.5 pb-5 border-b border-gray-100">
                           <User className="h-5 w-5 text-[#0B4D34]" strokeWidth={2.4} />
@@ -1558,7 +1388,7 @@ export default function DashboardUsuario() {
                   </div>
 
                   {/* Card 3: Dados do Usuário/Entidade (Inferior - Largura Total) */}
-                  <div className="mt-6 rounded-2xl border border-[#E7E4DA] bg-white p-7 sm:p-8 shadow-2xs">
+                  <div className="mt-6 rounded-md border border-[#E2E9E5] bg-white p-7 sm:p-8 shadow-2xs">
                     <div className="flex items-center gap-2.5 pb-5 border-b border-gray-100">
                       <Building2 className="h-5 w-5 text-[#0B4D34]" strokeWidth={2.4} />
                       <h3 className="text-lg font-bold text-[#1F2A26]">Dados do Usuário/Entidade</h3>
@@ -1626,10 +1456,11 @@ export default function DashboardUsuario() {
 
       {/* 1. MODAL DE DETALHES COMPLETOS DO RESÍDUO (FIGMA SCREEN 2) */}
       <ResiduoDetalheModal
+        key={produtoDetalhes?.id}
         aberto={modalDetalhesAberto}
         aoFechar={() => setModalDetalhesAberto(false)}
         produto={produtoDetalhes}
-        empresaNome="Curtume & Calçados Franca Ltda"
+        empresaNome="Fornecedor não informado"
         aoIniciarReserva={(prod) => {
           setModalDetalhesAberto(false);
           setProdutoParaReserva(prod);
@@ -1650,7 +1481,7 @@ export default function DashboardUsuario() {
         usuarioNome={nomeCompletoExibicao || displayName}
         usuarioDoc={docValorExibicao}
         usuarioTelefone={telefoneExibicao}
-        fornecedorNome="Curtume & Calçados Franca Ltda"
+        fornecedorNome="Fornecedor não informado"
         aoConfirmarReserva={handleConfirmarReserva}
         aoAbrirQrCode={(dados) => {
           const prod = produtos.find((p) => p.id === dados.produtoId) || produtoParaReserva;
@@ -1676,7 +1507,7 @@ export default function DashboardUsuario() {
           codigoReserva={dadosQrCode.codigo}
           quantidade={dadosQrCode.quantidade}
           dataRetirada={dadosQrCode.dataRetirada}
-          fornecedorNome="Curtume & Calçados Franca Ltda"
+          fornecedorNome="Fornecedor não informado"
         />
       )}
 
@@ -1685,9 +1516,9 @@ export default function DashboardUsuario() {
         aberto={modalAvaliacaoAberto}
         aoFechar={() => setModalAvaliacaoAberto(false)}
         produto={produtoParaAvaliar}
-        empresaNome="Curtume & Calçados Franca Ltda"
+        empresaNome="Fornecedor não informado"
         aoAvaliar={(dados) => {
-          exibirToast(`Avaliação de ${dados.estrelas} estrelas registrada com sucesso!`);
+          exibirToast(`Não há envio de avaliações disponível. A avaliação de ${dados.estrelas} estrelas não foi registrada.`, "info");
         }}
       />
 
@@ -1696,17 +1527,17 @@ export default function DashboardUsuario() {
         aberto={modalChatAberto}
         aoFechar={() => setModalChatAberto(false)}
         produto={produtoParaChat}
-        empresaNome="Curtume & Calçados Franca Ltda"
+        empresaNome="Fornecedor não informado"
         usuarioNome={displayName}
       />
 
       {/* MODAL: EDITAR PERFIL */}
       {modalEditarPerfilAberto && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 overflow-y-auto">
-          <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl border border-[#E7E4DA] bg-white p-6 sm:p-8 shadow-2xl animate-in fade-in zoom-in-95">
+          <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-md border border-[#E2E9E5] bg-white p-6 sm:p-8 shadow-2xl animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between border-b border-gray-100 pb-4">
               <div className="flex items-center gap-2.5">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-[#0B4D34]">
+                <div className="flex h-10 w-10 items-center justify-center rounded bg-emerald-50 text-[#0B4D34]">
                   <Pencil className="h-5 w-5" />
                 </div>
                 <div>
@@ -1725,7 +1556,7 @@ export default function DashboardUsuario() {
 
             <form onSubmit={handleSalvarPerfil} className="mt-6 space-y-6">
               {/* Foto de Perfil */}
-              <div className="flex items-center gap-5 p-4 rounded-xl bg-[#FAF9F5] border border-[#ECE8DC]">
+              <div className="flex items-center gap-5 p-4 rounded bg-[#F7F9F8] border border-[#ECE8DC]">
                 <div className="relative">
                   {formPerfil.photo ? (
                     <img
@@ -1781,7 +1612,7 @@ export default function DashboardUsuario() {
                       required
                       value={formPerfil.name}
                       onChange={(e) => setFormPerfil({ ...formPerfil, name: e.target.value })}
-                      className="w-full rounded-xl border border-[#D9D5C8] p-2.5 text-sm text-[#1F2A26] outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
+                      className="w-full rounded border border-[#D9D5C8] p-2.5 text-sm text-[#1F2A26] outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
                     />
                   </div>
 
@@ -1792,7 +1623,7 @@ export default function DashboardUsuario() {
                       required
                       value={formPerfil.email}
                       onChange={(e) => setFormPerfil({ ...formPerfil, email: e.target.value })}
-                      className="w-full rounded-xl border border-[#D9D5C8] p-2.5 text-sm text-[#1F2A26] outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
+                      className="w-full rounded border border-[#D9D5C8] p-2.5 text-sm text-[#1F2A26] outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
                     />
                   </div>
 
@@ -1803,7 +1634,7 @@ export default function DashboardUsuario() {
                       value={formPerfil.cellphone}
                       onChange={(e) => setFormPerfil({ ...formPerfil, cellphone: e.target.value })}
                       placeholder="(16) 99123-4567"
-                      className="w-full rounded-xl border border-[#D9D5C8] p-2.5 text-sm text-[#1F2A26] outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
+                      className="w-full rounded border border-[#D9D5C8] p-2.5 text-sm text-[#1F2A26] outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
                     />
                   </div>
 
@@ -1814,7 +1645,7 @@ export default function DashboardUsuario() {
                       value={formPerfil.cargo}
                       onChange={(e) => setFormPerfil({ ...formPerfil, cargo: e.target.value })}
                       placeholder="Gerente de Sustentabilidade"
-                      className="w-full rounded-xl border border-[#D9D5C8] p-2.5 text-sm text-[#1F2A26] outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
+                      className="w-full rounded border border-[#D9D5C8] p-2.5 text-sm text-[#1F2A26] outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
                     />
                   </div>
                 </div>
@@ -1836,7 +1667,7 @@ export default function DashboardUsuario() {
                         const val = e.target.value;
                         setFormPerfil({ ...formPerfil, cpf: val, cnpj: val });
                       }}
-                      className="w-full rounded-xl border border-[#D9D5C8] p-2.5 text-sm text-[#1F2A26] outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
+                      className="w-full rounded border border-[#D9D5C8] p-2.5 text-sm text-[#1F2A26] outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
                     />
                   </div>
 
@@ -1847,7 +1678,7 @@ export default function DashboardUsuario() {
                       value={formPerfil.setor}
                       onChange={(e) => setFormPerfil({ ...formPerfil, setor: e.target.value })}
                       placeholder="Coureiro-Calçadista"
-                      className="w-full rounded-xl border border-[#D9D5C8] p-2.5 text-sm text-[#1F2A26] outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
+                      className="w-full rounded border border-[#D9D5C8] p-2.5 text-sm text-[#1F2A26] outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
                     />
                   </div>
 
@@ -1858,7 +1689,7 @@ export default function DashboardUsuario() {
                       value={formPerfil.zip_code}
                       onChange={(e) => setFormPerfil({ ...formPerfil, zip_code: e.target.value })}
                       placeholder="14406-000"
-                      className="w-full rounded-xl border border-[#D9D5C8] p-2.5 text-sm text-[#1F2A26] outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
+                      className="w-full rounded border border-[#D9D5C8] p-2.5 text-sm text-[#1F2A26] outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
                     />
                   </div>
 
@@ -1869,7 +1700,7 @@ export default function DashboardUsuario() {
                       value={formPerfil.street}
                       onChange={(e) => setFormPerfil({ ...formPerfil, street: e.target.value })}
                       placeholder="Av. Distrito Industrial"
-                      className="w-full rounded-xl border border-[#D9D5C8] p-2.5 text-sm text-[#1F2A26] outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
+                      className="w-full rounded border border-[#D9D5C8] p-2.5 text-sm text-[#1F2A26] outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
                     />
                   </div>
 
@@ -1880,7 +1711,7 @@ export default function DashboardUsuario() {
                       value={formPerfil.number}
                       onChange={(e) => setFormPerfil({ ...formPerfil, number: e.target.value })}
                       placeholder="1500"
-                      className="w-full rounded-xl border border-[#D9D5C8] p-2.5 text-sm text-[#1F2A26] outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
+                      className="w-full rounded border border-[#D9D5C8] p-2.5 text-sm text-[#1F2A26] outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
                     />
                   </div>
 
@@ -1891,7 +1722,7 @@ export default function DashboardUsuario() {
                       value={formPerfil.neighborhood}
                       onChange={(e) => setFormPerfil({ ...formPerfil, neighborhood: e.target.value })}
                       placeholder="Distrito Industrial"
-                      className="w-full rounded-xl border border-[#D9D5C8] p-2.5 text-sm text-[#1F2A26] outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
+                      className="w-full rounded border border-[#D9D5C8] p-2.5 text-sm text-[#1F2A26] outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
                     />
                   </div>
 
@@ -1902,7 +1733,7 @@ export default function DashboardUsuario() {
                       value={formPerfil.city}
                       onChange={(e) => setFormPerfil({ ...formPerfil, city: e.target.value })}
                       placeholder="Franca"
-                      className="w-full rounded-xl border border-[#D9D5C8] p-2.5 text-sm text-[#1F2A26] outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
+                      className="w-full rounded border border-[#D9D5C8] p-2.5 text-sm text-[#1F2A26] outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
                     />
                   </div>
 
@@ -1914,7 +1745,7 @@ export default function DashboardUsuario() {
                       onChange={(e) => setFormPerfil({ ...formPerfil, state: e.target.value })}
                       placeholder="SP"
                       maxLength={2}
-                      className="w-full rounded-xl border border-[#D9D5C8] p-2.5 text-sm text-[#1F2A26] uppercase outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
+                      className="w-full rounded border border-[#D9D5C8] p-2.5 text-sm text-[#1F2A26] uppercase outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
                     />
                   </div>
                 </div>
@@ -1925,14 +1756,14 @@ export default function DashboardUsuario() {
                 <button
                   type="button"
                   onClick={() => setModalEditarPerfilAberto(false)}
-                  className="rounded-xl border border-[#D9D5C8] px-5 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition cursor-pointer"
+                  className="rounded border border-[#D9D5C8] px-5 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition cursor-pointer"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={salvandoPerfil}
-                  className="rounded-xl bg-[#0B4D34] hover:bg-[#083A27] px-6 py-2.5 text-sm font-bold text-white shadow-xs flex items-center gap-2 transition cursor-pointer disabled:opacity-50"
+                  className="rounded bg-[#0B4D34] hover:bg-[#083A27] px-6 py-2.5 text-sm font-bold text-white shadow-xs flex items-center gap-2 transition cursor-pointer disabled:opacity-50"
                 >
                   {salvandoPerfil ? (
                     <>

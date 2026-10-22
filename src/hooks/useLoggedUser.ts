@@ -1,10 +1,25 @@
 import { useState, useEffect, useCallback } from "react";
+import type { UsuarioPerfil } from "../axios/Axios";
+
+type UsuarioSessao = Partial<UsuarioPerfil> & {
+  userId?: string; tipo?: string; tipoUsuario?: string; nome?: string;
+  telefone?: string; celular?: string; foto?: string; avatar?: string;
+};
+function lerUsuario(): UsuarioSessao | null {
+  const raw = localStorage.getItem("user") ?? sessionStorage.getItem("user");
+  const data: unknown = raw ? JSON.parse(raw) : null;
+  if (!data || typeof data !== "object" || Array.isArray(data)) return null;
+  const result: Record<string, string> = {};
+  for (const [key, value] of Object.entries(data)) {
+    if (typeof value === "string") result[key] = value;
+  }
+  return result;
+}
 
 export function useLoggedUser({ fallbackName = "" }: { fallbackName?: string } = {}) {
-  const [user, setUser] = useState<any>(() => {
+  const [user, setUser] = useState<UsuarioSessao | null>(() => {
     try {
-      const raw = localStorage.getItem("user") ?? sessionStorage.getItem("user");
-      return raw ? JSON.parse(raw) : null;
+      return lerUsuario();
     } catch {
       return null;
     }
@@ -20,8 +35,7 @@ export function useLoggedUser({ fallbackName = "" }: { fallbackName?: string } =
 
   const syncUser = useCallback(() => {
     try {
-      const raw = localStorage.getItem("user") ?? sessionStorage.getItem("user");
-      setUser(raw ? JSON.parse(raw) : null);
+      setUser(lerUsuario());
       const tok = localStorage.getItem("token") ?? sessionStorage.getItem("token");
       setToken(tok);
     } catch {
@@ -42,7 +56,7 @@ export function useLoggedUser({ fallbackName = "" }: { fallbackName?: string } =
     (localStorage.getItem("tipoUsuario") ?? sessionStorage.getItem("tipoUsuario")) ??
     (token ? "user" : null);
 
-  const isLoggedIn = Boolean(token || user);
+  const isLoggedIn = Boolean(token);
   const displayName: string =
     user?.name ?? user?.nome ?? user?.razaoSocial ?? user?.email ?? fallbackName;
   const photo: unknown = user?.photo ?? user?.foto ?? user?.avatar;

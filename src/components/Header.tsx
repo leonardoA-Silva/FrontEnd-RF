@@ -3,9 +3,10 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Repeat2, UserRound, LogOut, ChevronDown, Menu, X } from "lucide-react";
 import { useLoggedUser } from "../hooks/useLoggedUser";
 
-export default function Header() {
+export default function Header({ compacto = false }: { compacto?: boolean }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const noMarketplace = location.pathname === "/marketplace" || location.pathname.startsWith("/marketplace/");
   const { isLoggedIn, role, displayName, photoSrc, logout } = useLoggedUser();
 
   const [menuUsuarioAberto, setMenuUsuarioAberto] = useState(false);
@@ -32,20 +33,39 @@ export default function Header() {
   // Verifica se o usuário está logado (role de usuário ou empresa)
   const isUsuarioLogado = isLoggedIn || Boolean(role);
 
+  const styles = {
+    conteudo: compacto
+      ? "mx-auto grid min-h-[76px] w-full grid-cols-[1fr_auto] items-center gap-3 px-4 md:grid-cols-[1fr_auto_1fr] md:px-[4.1vw]"
+      : "mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-8",
+    marca: compacto
+      ? "flex items-center gap-2 no-underline shrink-0"
+      : "flex items-center gap-3 no-underline shrink-0",
+    marcaIcone: compacto
+      ? "flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500 text-white"
+      : "flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-full bg-emerald-500 text-white shadow-sm",
+    marcaTitulo: compacto ? "text-[13px] font-bold text-[#1B4B3A]" : "text-base sm:text-lg font-bold text-[#1B4B3A]",
+    marcaSubtitulo: compacto ? "text-[10px] font-semibold tracking-wide text-orange-500" : "text-xs sm:text-sm font-bold tracking-wide text-orange-500",
+    navegacao: compacto ? "hidden md:flex items-center gap-7 [&_a]:text-[13px]" : "hidden md:flex items-center gap-8",
+    acoes: compacto ? "flex items-center justify-self-end gap-3" : "flex items-center gap-3",
+    perfil: compacto
+      ? "flex items-center gap-2 rounded-full border border-[#E5E8E7] bg-[#F5F6F7] py-1 pl-1 pr-3 transition hover:bg-[#EDF0EE] cursor-pointer"
+      : "flex items-center gap-2.5 rounded-full bg-[#EBF6F2] hover:bg-[#E0F0EA] border border-[#D5EADB] py-1.5 pl-1.5 pr-3.5 transition cursor-pointer",
+  };
+
   return (
     <header className="w-full border-b border-[#E7E4DA] bg-white sticky top-0 z-40">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-8">
+      <div className={styles.conteudo}>
         {/* Marca / Logo */}
         <Link
           to={isUsuarioLogado ? (role === "company" ? "/dashboardEmpresa" : "/dashboardUsuario") : "/"}
-          className="flex items-center gap-3 no-underline shrink-0"
+          className={styles.marca}
         >
-          <span className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-full bg-emerald-500 text-white shadow-sm">
-            <Repeat2 className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={2.4} />
+          <span className={styles.marcaIcone}>
+            <Repeat2 className={compacto ? "h-5 w-5" : "h-5 w-5 sm:h-6 sm:w-6"} strokeWidth={2.4} />
           </span>
           <div className="leading-tight">
-            <p className="text-base sm:text-lg font-bold text-[#1B4B3A]">Reaproveita</p>
-            <p className="text-xs sm:text-sm font-bold tracking-wide text-orange-500">FRANCA</p>
+            <p className={styles.marcaTitulo}>Reaproveita</p>
+            <p className={styles.marcaSubtitulo}>FRANCA</p>
           </div>
         </Link>
 
@@ -58,7 +78,7 @@ export default function Header() {
           /* ============================================================ */
           <>
             {/* Links Centrais: Início | Marketplace | Sobre Nós */}
-            <nav className="hidden md:flex items-center gap-8">
+            <nav className={styles.navegacao}>
               <Link
                 to={role === "company" ? "/dashboardEmpresa" : "/dashboardUsuario"}
                 className={`text-sm font-medium transition ${
@@ -72,7 +92,7 @@ export default function Header() {
               <Link
                 to="/marketplace"
                 className={`text-sm font-medium transition ${
-                  location.pathname === "/marketplace"
+                  noMarketplace
                     ? "text-[#059669] font-bold"
                     : "text-[#4B5A55] hover:text-[#1B4B3A]"
                 }`}
@@ -88,12 +108,12 @@ export default function Header() {
             </nav>
 
             {/* Lado Direito: Pílula de Perfil do Usuário */}
-            <div className="flex items-center gap-3">
+            <div className={styles.acoes}>
               <div className="relative" ref={menuRef}>
                 <button
                   type="button"
                   onClick={() => setMenuUsuarioAberto((prev) => !prev)}
-                  className="flex items-center gap-2.5 rounded-full bg-[#EBF6F2] hover:bg-[#E0F0EA] border border-[#D5EADB] py-1.5 pl-1.5 pr-3.5 transition cursor-pointer"
+                  className={styles.perfil}
                 >
                   <span className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-300">
                     {photoSrc ? (
@@ -106,7 +126,7 @@ export default function Header() {
                       <UserRound className="h-4 w-4 text-[#1B4B3A]" strokeWidth={2.2} />
                     )}
                   </span>
-                  <span className="text-sm font-semibold text-[#1B4B3A] max-w-[160px] truncate">
+                  <span className={compacto ? "max-w-[160px] truncate text-xs font-medium text-[#293B32]" : "text-sm font-semibold text-[#1B4B3A] max-w-[160px] truncate"}>
                     {displayName}
                   </span>
                   <ChevronDown className="h-3.5 w-3.5 text-[#1B4B3A] opacity-70" />
@@ -144,7 +164,9 @@ export default function Header() {
                 type="button"
                 onClick={() => setMenuMovelAberto((prev) => !prev)}
                 className="md:hidden flex h-10 w-10 items-center justify-center rounded-lg border border-[#E7E4DA] text-[#1B4B3A] hover:bg-[#F3F1EA]"
-                aria-label="Abrir menu"
+                aria-label={menuMovelAberto ? "Fechar menu" : "Abrir menu"}
+                aria-expanded={menuMovelAberto}
+                aria-controls="menu-navegacao-movel"
               >
                 {menuMovelAberto ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </button>
@@ -156,7 +178,7 @@ export default function Header() {
           /* ============================================================ */
           <>
             {/* Links Centrais Públicos: Início | Marketplace | Sobre Nós */}
-            <nav className="hidden md:flex items-center gap-8">
+            <nav className={styles.navegacao}>
               <Link
                 to="/"
                 className={`text-sm transition ${
@@ -170,7 +192,7 @@ export default function Header() {
               <Link
                 to="/marketplace"
                 className={`text-sm transition ${
-                  location.pathname === "/marketplace"
+                  noMarketplace
                     ? "font-bold text-emerald-600"
                     : "font-medium text-[#6B7670] hover:text-[#1B4B3A]"
                 }`}
@@ -186,7 +208,7 @@ export default function Header() {
             </nav>
 
             {/* Lado Direito Público: Entrar e Cadastrar */}
-            <div className="flex items-center gap-3">
+            <div className={styles.acoes}>
               <Link
                 to="/login"
                 className="rounded-lg border border-[#D9D5C8] px-4 sm:px-5 py-2 sm:py-2.5 text-sm font-semibold text-[#1B4B3A] transition hover:bg-[#F3F1EA] no-underline"
@@ -195,20 +217,30 @@ export default function Header() {
               </Link>
               <Link
                 to="/cadastro"
-                className="rounded-lg bg-emerald-500 px-4 sm:px-5 py-2 sm:py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-600 no-underline shadow-sm"
+                className="hidden md:inline-flex rounded-lg bg-emerald-500 px-4 sm:px-5 py-2 sm:py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-600 no-underline shadow-sm"
               >
                 Cadastrar
               </Link>
+              <button
+                type="button"
+                onClick={() => setMenuMovelAberto((prev) => !prev)}
+                className="md:hidden flex h-10 w-10 items-center justify-center rounded-lg border border-[#E7E4DA] text-[#1B4B3A] hover:bg-[#F3F1EA]"
+                aria-label={menuMovelAberto ? "Fechar menu" : "Abrir menu"}
+                aria-expanded={menuMovelAberto}
+                aria-controls="menu-navegacao-movel"
+              >
+                {menuMovelAberto ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              </button>
             </div>
           </>
         )}
       </div>
 
-      {/* Menu Mobile quando logado */}
-      {isUsuarioLogado && menuMovelAberto && (
-        <div className="md:hidden border-t border-[#E7E4DA] bg-white px-4 py-3 space-y-2">
+      {/* Navegação móvel disponível também para visitantes. */}
+      {menuMovelAberto && (
+        <div id="menu-navegacao-movel" className="md:hidden border-t border-[#E7E4DA] bg-white px-4 py-3 space-y-2">
           <Link
-            to={role === "company" ? "/dashboardEmpresa" : "/dashboardUsuario"}
+            to={isUsuarioLogado ? (role === "company" ? "/dashboardEmpresa" : "/dashboardUsuario") : "/"}
             onClick={() => setMenuMovelAberto(false)}
             className="block rounded-lg px-3 py-2 text-sm font-medium text-[#4B5A55] hover:bg-[#F3F1EA] hover:text-[#1B4B3A]"
           >
@@ -218,7 +250,7 @@ export default function Header() {
             to="/marketplace"
             onClick={() => setMenuMovelAberto(false)}
             className={`block rounded-lg px-3 py-2 text-sm font-medium transition ${
-              location.pathname === "/marketplace"
+              noMarketplace
                 ? "bg-[#EBF6F2] font-bold text-emerald-800"
                 : "text-[#4B5A55] hover:bg-[#F3F1EA] hover:text-[#1B4B3A]"
             }`}
@@ -232,14 +264,14 @@ export default function Header() {
           >
             Sobre Nós
           </Link>
-          <button
+          {isUsuarioLogado ? <button
             type="button"
             onClick={handleLogout}
             className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-red-600 hover:bg-red-50"
           >
             <LogOut className="h-4 w-4" />
             Sair
-          </button>
+          </button> : <Link to="/cadastro" onClick={() => setMenuMovelAberto(false)} className="block rounded-lg px-3 py-2 text-sm font-semibold text-emerald-700 hover:bg-emerald-50">Cadastrar</Link>}
         </div>
       )}
     </header>
