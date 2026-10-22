@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Box, Typography, Button } from "@mui/material";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Check } from "lucide-react";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 
@@ -21,264 +20,141 @@ export default function RegisterType() {
     navigate("/");
   };
 
+  const opcoes = [
+    {
+      valor: "empresa" as const,
+      imagem: "/hero-leather-scraps.jpg",
+      imagemAlt: "Retalhos de couro sobre mesa de madeira",
+      titulo: "Empresa geradora",
+      descricao:
+        "Curtumes e fábricas de calçado que publicam lotes de resíduo — por venda ou doação.",
+    },
+    {
+      valor: "pessoal" as const,
+      imagem: "/retalho-couro-nobre.png",
+      imagemAlt: "Pilha de retalhos de couro marrom",
+      titulo: "Comprador / artesão",
+      descricao:
+        "Artesãos, cooperativas, escolas e pequenos negócios que reservam material.",
+    },
+  ];
+
+  const styles = {
+    pagina: "flex min-h-screen flex-col bg-papel text-carvao",
+    area: "flex flex-1 items-center justify-center px-5 py-10 sm:px-8",
+    cartao: "w-full max-w-3xl rounded-2xl border border-areia bg-cru p-6 sm:p-10",
+
+    indicadorEtapa: "flex flex-col gap-3",
+    etapaRotulo: "flex items-baseline justify-between gap-3",
+    etapaAtual: "text-sm font-semibold text-canela-escura",
+    etapaProxima: "text-xs text-carvao-suave/70",
+    etapaBarra: "flex gap-1.5",
+    etapaSegmentoPreenchido: "h-1.5 flex-1 rounded-full bg-canela",
+    etapaSegmentoVazio: "h-1.5 flex-1 rounded-full bg-areia",
+
+    cabecalho: "mt-8",
+    titulo: "font-display text-2xl font-semibold tracking-tight sm:text-3xl",
+    descricao: "mt-2 text-[15px] text-carvao-suave",
+
+    gradeOpcoes: "mt-8 grid gap-5 sm:grid-cols-2",
+    opcao: "relative block cursor-pointer",
+    opcaoInput: "sr-only",
+    opcaoCartao:
+      "relative overflow-hidden rounded-2xl border-2 transition",
+    opcaoSelecionada: "border-canela outline-2 outline-dashed outline-canela/50 outline-offset-4",
+    opcaoVazia: "border-areia hover:border-carvao-suave/50",
+    opcaoImagem: "h-40 w-full object-cover sm:h-44",
+    opcaoCorpo: "p-5",
+    opcaoTitulo: "font-display text-lg font-semibold text-carvao",
+    opcaoDescricao: "mt-1 text-sm leading-relaxed text-carvao-suave",
+    opcaoSelo:
+      "absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-canela text-cru shadow-sm",
+
+    acoes: "mt-8 flex flex-wrap items-center justify-between gap-3",
+    botaoVoltar:
+      "rounded-xl border border-areia px-5 py-3 text-sm font-semibold text-carvao transition hover:border-carvao-suave hover:bg-areia-clara",
+    botaoContinuar:
+      "flex items-center gap-2 rounded-xl bg-canela px-6 py-3 text-sm font-bold text-cru transition hover:bg-canela-escura",
+  };
+
   return (
-    <Box
-      sx={{
-        minHeight: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "space-between",
-        bgcolor: "#FAF9F5",
-        color: "#1B4B3A",
-      }}
-    >
+    <div className={styles.pagina}>
       <Header />
 
-      <Box
-        component="main"
-        sx={{
-          flex: 1,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          px: { xs: 2, sm: 3, md: 4 },
-          py: { xs: 4, sm: 6 },
-        }}
-      >
-        {/* Card Central */}
-        <Box
-          sx={{
-            width: "100%",
-            maxWidth: 720,
-            borderRadius: "24px",
-            border: "1px solid #E7E4DA",
-            bgcolor: "white",
-            p: { xs: 3, sm: 5 },
-            boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
-          }}
-        >
-          {/* Indicador de etapa e progresso */}
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-              }}
-            >
-              <Typography
-                sx={{
-                  fontSize: "12px",
-                  fontWeight: "bold",
-                  letterSpacing: "1px",
-                  color: "#059669",
-                  textTransform: "uppercase",
-                }}
-              >
-                PASSO 1 DE 3: PERFIL
-              </Typography>
-              <Typography sx={{ fontSize: "12px", color: "#9CA3AF" }}>
-                Próximo: Materiais Frequentes
-              </Typography>
-            </Box>
+      <main className={styles.area}>
+        <div className={styles.cartao}>
+          {/* Indicador de etapa */}
+          <div className={styles.indicadorEtapa}>
+            <div className={styles.etapaRotulo}>
+              <p className={styles.etapaAtual}>Etapa 1 de 3 · Tipo de conta</p>
+              <p className={styles.etapaProxima}>Depois: dados e confirmação por e-mail</p>
+            </div>
+            <div className={styles.etapaBarra}>
+              <span className={styles.etapaSegmentoPreenchido} />
+              <span className={styles.etapaSegmentoVazio} />
+              <span className={styles.etapaSegmentoVazio} />
+            </div>
+          </div>
 
-            <Box
-              sx={{
-                height: "6px",
-                width: "100%",
-                bgcolor: "#E5E7EB",
-                borderRadius: "999px",
-                overflow: "hidden",
-              }}
-            >
-              <Box
-                sx={{
-                  height: "100%",
-                  width: "33.3%",
-                  bgcolor: "#10B981",
-                  borderRadius: "999px",
-                  transition: "width 0.3s ease",
-                }}
-              />
-            </Box>
-          </Box>
+          {/* Título */}
+          <div className={styles.cabecalho}>
+            <h1 className={styles.titulo}>Como você vai usar a plataforma?</h1>
+            <p className={styles.descricao}>
+              Escolha o tipo de conta: empresas publicam resíduos; compradores
+              reservam.
+            </p>
+          </div>
 
-          {/* Título e descrição */}
-          <Box sx={{ mt: 3.5 }}>
-            <Typography
-              variant="h5"
-              sx={{
-                fontWeight: "bold",
-                color: "#1B4B3A",
-                fontSize: { xs: "1.5rem", sm: "1.75rem" },
-              }}
-            >
-              Escolha seu tipo de conta para cadastrar-se
-            </Typography>
-            <Typography variant="body2" sx={{ color: "#6B7670", mt: 0.8 }}>
-              Registre sua fábrica ou uma conta pessoal para publicar resíduos regularmente.
-            </Typography>
-          </Box>
+          {/* Cards de seleção */}
+          <div className={styles.gradeOpcoes}>
+            {opcoes.map(({ valor, imagem, imagemAlt, titulo, descricao }) => (
+              <label key={valor} className={styles.opcao}>
+                <input
+                  type="radio"
+                  name="tipo-conta"
+                  value={valor}
+                  checked={tipoConta === valor}
+                  onChange={() => setTipoConta(valor)}
+                  className={styles.opcaoInput}
+                />
+                <div
+                  className={`${styles.opcaoCartao} ${
+                    tipoConta === valor ? styles.opcaoSelecionada : styles.opcaoVazia
+                  }`}
+                >
+                  {tipoConta === valor && (
+                    <span className={styles.opcaoSelo}>
+                      <Check className="h-4 w-4" strokeWidth={3} />
+                    </span>
+                  )}
+                  <img src={imagem} alt={imagemAlt} className={styles.opcaoImagem} />
+                  <div className={styles.opcaoCorpo}>
+                    <p className={styles.opcaoTitulo}>{titulo}</p>
+                    <p className={styles.opcaoDescricao}>{descricao}</p>
+                  </div>
+                </div>
+              </label>
+            ))}
+          </div>
 
-          {/* Cards de seleção do tipo de conta */}
-          <Box
-            sx={{
-              display: "grid",
-              gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
-              gap: 3,
-              mt: 4,
-            }}
-          >
-            {/* Opção Empresa */}
-            <Box
-              onClick={() => setTipoConta("empresa")}
-              sx={{
-                borderRadius: "16px",
-                overflow: "hidden",
-                border: "4px solid",
-                borderColor: tipoConta === "empresa" ? "#10B981" : "transparent",
-                cursor: "pointer",
-                transition: "all 0.2s ease",
-                transform: tipoConta === "empresa" ? "scale(1.01)" : "scale(1)",
-                boxShadow:
-                  tipoConta === "empresa"
-                    ? "0 6px 16px rgba(16, 185, 129, 0.2)"
-                    : "none",
-                "&:hover": {
-                  opacity: 1,
-                  borderColor: tipoConta === "empresa" ? "#10B981" : "#A7F3D0",
-                },
-              }}
-            >
-              <Box
-                component="img"
-                src="https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=600&q=80"
-                alt="Aperto de mãos empresarial"
-                sx={{
-                  height: 176,
-                  width: "100%",
-                  objectFit: "cover",
-                  display: "block",
-                }}
-              />
-              <Box
-                sx={{
-                  bgcolor: "#0F3D2E",
-                  py: 1.8,
-                  textAlign: "center",
-                  color: "white",
-                  fontWeight: "bold",
-                  fontSize: "1.1rem",
-                }}
-              >
-                Empresa
-              </Box>
-            </Box>
-
-            {/* Opção Pessoal */}
-            <Box
-              onClick={() => setTipoConta("pessoal")}
-              sx={{
-                borderRadius: "16px",
-                overflow: "hidden",
-                border: "4px solid",
-                borderColor: tipoConta === "pessoal" ? "#10B981" : "transparent",
-                cursor: "pointer",
-                transition: "all 0.2s ease",
-                transform: tipoConta === "pessoal" ? "scale(1.01)" : "scale(1)",
-                boxShadow:
-                  tipoConta === "pessoal"
-                    ? "0 6px 16px rgba(16, 185, 129, 0.2)"
-                    : "none",
-                "&:hover": {
-                  opacity: 1,
-                  borderColor: tipoConta === "pessoal" ? "#10B981" : "#A7F3D0",
-                },
-              }}
-            >
-              <Box
-                component="img"
-                src="https://images.unsplash.com/photo-1556157382-97eda2d62296?auto=format&fit=crop&w=600&q=80"
-                alt="Profissional autônomo trabalhando"
-                sx={{
-                  height: 176,
-                  width: "100%",
-                  objectFit: "cover",
-                  display: "block",
-                }}
-              />
-              <Box
-                sx={{
-                  bgcolor: "#0F3D2E",
-                  py: 1.8,
-                  textAlign: "center",
-                  color: "white",
-                  fontWeight: "bold",
-                  fontSize: "1.1rem",
-                }}
-              >
-                Pessoal
-              </Box>
-            </Box>
-          </Box>
-
-          {/* Ações do Rodapé */}
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              mt: 5,
-            }}
-          >
-            <Button
-              onClick={handleCancelar}
-              variant="outlined"
-              sx={{
-                textTransform: "none",
-                borderRadius: "8px",
-                borderColor: "#D9D5C8",
-                color: "#1B4B3A",
-                px: 3.5,
-                py: 1.2,
-                fontWeight: 600,
-                fontSize: "0.875rem",
-                "&:hover": {
-                  bgcolor: "#F3F1EA",
-                  borderColor: "#D9D5C8",
-                },
-              }}
-            >
+          {/* Ações */}
+          <div className={styles.acoes}>
+            <button type="button" onClick={handleCancelar} className={styles.botaoVoltar}>
               Cancelar
-            </Button>
-
-            <Button
+            </button>
+            <button
+              type="button"
               onClick={handleSalvarEContinuar}
-              variant="contained"
-              endIcon={<ArrowRight size={18} />}
-              sx={{
-                textTransform: "none",
-                borderRadius: "8px",
-                bgcolor: "#10B981",
-                color: "white",
-                px: 3.5,
-                py: 1.2,
-                fontWeight: 600,
-                fontSize: "0.875rem",
-                boxShadow: "none",
-                "&:hover": {
-                  bgcolor: "#059669",
-                  boxShadow: "none",
-                },
-              }}
+              className={styles.botaoContinuar}
             >
-              Salvar e Continuar
-            </Button>
-          </Box>
-        </Box>
-      </Box>
+              Salvar e continuar
+              <ArrowRight className="h-4 w-4" strokeWidth={2.5} />
+            </button>
+          </div>
+        </div>
+      </main>
 
       <Footer />
-    </Box>
+    </div>
   );
 }

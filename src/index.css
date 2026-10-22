@@ -1,1 +1,97 @@
 @import "tailwindcss";
+
+/*
+  Design "Mesa de corte" — Reaproveita Franca.
+  Paleta vem da sala de corte de uma fábrica de calçados:
+  papel de corte, couro curtido (canela), carvão de tinta e
+  um verde musgo reservado aos momentos "circulares".
+*/
+@theme {
+  --color-papel: #f4efe4;
+  --color-cru: #fcfaf3;
+  --color-areia: #dcd2bc;
+  --color-areia-clara: #eae3d2;
+  --color-carvao: #26201a;
+  --color-carvao-suave: #4a4239;
+  --color-canela: #a6511e;
+  --color-canela-escura: #8f4416;
+  --color-canela-clara: #f6e4d4;
+  --color-musgo: #44603a;
+  --color-musgo-claro: #edf1e1;
+
+  /* Paleta das telas de conta (painel da empresa).
+     Verde de reciclagem para ações e títulos, bruma para o fundo,
+     linha para bordas e âmbar apenas em status e na marca. */
+  --color-verde: #0f9f57;
+  --color-verde-escuro: #0b5b3a;
+  --color-verde-claro: #e8f6ee;
+  --color-mata: #0a4730;
+  --color-bruma: #f7f9f8;
+  --color-linha: #e3e9e6;
+  --color-tinta: #16241d;
+  --color-tinta-suave: #5f6f68;
+  --color-tinta-clara: #68766f;
+  --color-ambar: #a2660f;
+  --color-ambar-fundo: #fdf3e2;
+  --color-laranja: #e8891c;
+
+  /* Cores dos tipos de resíduo no mapa de empresas. */
+  --color-material-couro: #10b981;
+  --color-material-tecido: #3b82f6;
+  --color-material-eva: #d97706;
+  --color-material-outros: #8b5cf6;
+
+  --font-display: "Fraunces", Georgia, "Times New Roman", serif;
+  --font-body: "Archivo", system-ui, -apple-system, sans-serif;
+  --font-app: "Poppins", "Archivo", system-ui, -apple-system, sans-serif;
+
+  /* Única animação da página: os retalhos "assentam" na mesa. */
+  --animate-assentar: assentar 0.7s cubic-bezier(0.22, 0.8, 0.24, 1) both;
+
+  @keyframes assentar {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+@layer base {
+  body {
+    background-color: var(--color-papel);
+    color: var(--color-carvao);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background-color: var(--color-canela);
+    color: var(--color-cru);
+  }
+
+  /* Foco visível consistente em toda a interface. */
+  :where(a, button, select, textarea, [tabindex]):focus-visible {
+    outline: 2px solid var(--color-canela);
+    outline-offset: 2px;
+  }
+
+  /* Nas telas de conta o foco acompanha o verde da paleta. */
+  .app-circular :where(a, button, select, textarea, [tabindex]):focus-visible {
+    outline-color: var(--color-verde);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      scroll-behavior: auto !important;
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}

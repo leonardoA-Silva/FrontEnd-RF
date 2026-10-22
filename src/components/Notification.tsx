@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { CheckCircle, XCircle, Info, AlertTriangle, X } from "lucide-react";
 export type NotificationType = "success" | "error" | "info" | "warning";
 
@@ -18,54 +18,53 @@ function NotificationItem({ notification, onClose }: NotificationItemProps) {
   const [visible, setVisible] = useState(false);
   const [leaving, setLeaving] = useState(false);
 
+  const handleClose = useCallback(() => {
+    setLeaving(true);
+    setTimeout(() => onClose(notification.id), 300);
+  }, [notification.id, onClose]);
+
   useEffect(() => {
     // Entrada com pequeno delay para animar
     const enterTimer = setTimeout(() => setVisible(true), 10);
 
     // Auto-fechar após 5 segundos
-    const closeTimer = setTimeout(() => {
-      handleClose();
-    }, 5000);
+    const closeTimer = setTimeout(handleClose, 5000);
 
     return () => {
       clearTimeout(enterTimer);
       clearTimeout(closeTimer);
     };
-  }, []);
+  }, [handleClose]);
 
-  const handleClose = () => {
-    setLeaving(true);
-    setTimeout(() => onClose(notification.id), 300);
-  };
-
+  // Paleta "mesa de corte": musgo = sucesso, canela = aviso, carvão = informativo.
   const colors = {
     success: {
-      bg: "#F0FDF4",
-      border: "#86EFAC",
-      icon: "#16A34A",
-      title: "#14532D",
-      bar: "#22C55E",
+      bg: "#EDF1E1",
+      border: "#C4D3AC",
+      icon: "#44603A",
+      title: "#2E4427",
+      bar: "#44603A",
     },
     error: {
-      bg: "#FFF1F2",
-      border: "#FECDD3",
-      icon: "#DC2626",
-      title: "#7F1D1D",
-      bar: "#EF4444",
+      bg: "#FDF2F0",
+      border: "#F0C6BD",
+      icon: "#B3361D",
+      title: "#7C2214",
+      bar: "#C2402A",
     },
     info: {
-      bg: "#EFF6FF",
-      border: "#BFDBFE",
-      icon: "#2563EB",
-      title: "#1E3A5F",
-      bar: "#3B82F6",
+      bg: "#F1EFE7",
+      border: "#DCD2BC",
+      icon: "#4A4239",
+      title: "#33291F",
+      bar: "#6B5F4E",
     },
     warning: {
-      bg: "#FFFBEB",
-      border: "#FDE68A",
-      icon: "#D97706",
-      title: "#78350F",
-      bar: "#F59E0B",
+      bg: "#F9EAD9",
+      border: "#E8C79B",
+      icon: "#A6511E",
+      title: "#7C3D14",
+      bar: "#C46A2E",
     },
   };
 
@@ -139,7 +138,7 @@ function NotificationItem({ notification, onClose }: NotificationItemProps) {
             style={{
               margin: "3px 0 0",
               fontSize: 12,
-              color: "#374151",
+              color: "#3E372E",
               lineHeight: 1.5,
               wordBreak: "break-word",
             }}

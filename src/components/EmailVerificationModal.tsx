@@ -1,10 +1,21 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Box, Typography, Button, CircularProgress, Backdrop } from "@mui/material";
-import { Mail, CheckCircle2, AlertCircle, RefreshCw, X, ArrowRight, ShieldCheck } from "lucide-react";
+import {
+  Mail,
+  CheckCircle2,
+  AlertCircle,
+  RefreshCw,
+  X,
+  ArrowRight,
+  ShieldCheck,
+  Loader2,
+} from "lucide-react";
 import { enviarCodigoOtp, verificarCodigoOtp } from "../axios/Axios";
+import { mensagemDeErroApi } from "../utils/apiError";
 
+// O componente é sempre montado condicionalmente pelos pais
+// ({aberto && <EmailVerificationModal …/>}), então cada abertura
+// começa com estado limpo — sem reset manual de estado em efeito.
 interface EmailVerificationModalProps {
-  open: boolean;
   userId: string;
   email: string;
   onSuccess: () => void;
@@ -12,7 +23,6 @@ interface EmailVerificationModalProps {
 }
 
 export default function EmailVerificationModal({
-  open,
   userId,
   email,
   onSuccess,
@@ -30,34 +40,25 @@ export default function EmailVerificationModal({
   // Temporizador de 30 segundos (sincronizado com rate limit da API)
   const [tempoRestante, setTempoRestante] = useState(30);
 
+  // Foco no primeiro input quando o modal abre
   useEffect(() => {
-    if (!open) {
-      setDigits(["", "", "", "", "", ""]);
-      setErro(null);
-      setSucesso(false);
-      setInfoReenvio(null);
-      setTempoRestante(30);
-      return;
-    }
-
-    // Foco no primeiro input quando o modal abre
     const timer = setTimeout(() => {
       inputRefs.current[0]?.focus();
     }, 150);
 
     return () => clearTimeout(timer);
-  }, [open]);
+  }, []);
 
   // Contagem regressiva do reenvio
   useEffect(() => {
-    if (!open || tempoRestante <= 0) return;
+    if (tempoRestante <= 0) return;
 
     const interval = setInterval(() => {
       setTempoRestante((prev) => Math.max(0, prev - 1));
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [open, tempoRestante]);
+  }, [tempoRestante]);
 
   const codigoCompleto = digits.join("");
   const codigoPreenchido = codigoCompleto.length === 6;
@@ -141,19 +142,9 @@ export default function EmailVerificationModal({
       }, 1500);
     } catch (err: unknown) {
       console.error("Erro ao verificar código OTP:", err);
-      let mensagem = "Código incorreto ou expirado. Tente novamente.";
-      if (
-        err &&
-        typeof err === "object" &&
-        "response" in err &&
-        (err as any).response?.data
-      ) {
-        mensagem =
-          (err as any).response.data.error ||
-          (err as any).response.data.message ||
-          mensagem;
-      }
-      setErro(mensagem);
+      setErro(
+        mensagemDeErroApi(err, "Código incorreto ou expirado. Tente novamente.")
+      );
     } finally {
       setVerificando(false);
     }
@@ -174,225 +165,124 @@ export default function EmailVerificationModal({
       inputRefs.current[0]?.focus();
     } catch (err: unknown) {
       console.error("Erro ao reenviar código OTP:", err);
-      let mensagem = "Não foi possível reenviar o código. Aguarde alguns instantes.";
-      if (
-        err &&
-        typeof err === "object" &&
-        "response" in err &&
-        (err as any).response?.data
-      ) {
-        mensagem =
-          (err as any).response.data.error ||
-          (err as any).response.data.message ||
-          mensagem;
-      }
-      setErro(mensagem);
+      setErro(
+        mensagemDeErroApi(
+          err,
+          "Não foi possível reenviar o código. Aguarde alguns instantes."
+        )
+      );
     } finally {
       setReenviando(false);
     }
   };
 
-  if (!open) return null;
+  const styles = {
+    overlay:
+      "fixed inset-0 z-[9999] flex items-center justify-center bg-carvao/70 p-4 backdrop-blur-sm",
+    cartao: "relative w-full max-w-md rounded-2xl border border-areia bg-cru p-6 shadow-2xl sm:p-8",
+    botaoFechar:
+      "absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-areia-clara text-carvao-suave transition hover:bg-areia hover:text-carvao",
+    cabecalho: "flex flex-col items-center text-center",
+    icone:
+      "mb-4 flex h-16 w-16 items-center justify-center rounded-full border-2 border-areia bg-papel text-carvao",
+    iconeSucesso:
+      "mb-4 flex h-16 w-16 items-center justify-center rounded-full border-2 border-musgo/40 bg-musgo-claro text-musgo",
+    titulo: "font-display text-2xl font-semibold text-carvao",
+    descricao: "mt-2 max-w-sm text-sm leading-relaxed text-carvao-suave",
+    emailChip:
+      "inline-block rounded-md border border-areia bg-papel px-1.5 py-0.5 font-semibold text-carvao [word-break:break-all]",
+    alertaErro:
+      "mb-4 flex items-center gap-2.5 rounded-lg border border-red-300 bg-red-50 p-3 text-sm font-medium text-red-700",
+    alertaInfo:
+      "mb-4 flex items-center gap-2.5 rounded-lg border border-musgo/40 bg-musgo-claro p-3 text-sm font-medium text-musgo",
+    digitos: "my-5 flex justify-between gap-1.5 sm:gap-2",
+    digito:
+      "h-14 min-w-0 flex-1 rounded-xl border-2 bg-cru text-center font-display text-2xl font-semibold text-carvao outline-none transition [border-color:var(--color-areia)] focus:[border-color:var(--color-canela)] focus:ring-4 focus:ring-canela/15 disabled:opacity-60 sm:h-16",
+    digitoPreenchido: "[border-color:var(--color-canela)] bg-papel",
+    digitoErro: "[border-color:#f87171] bg-red-50",
+    botaoVerificar:
+      "mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-canela py-3.5 text-sm font-bold text-cru transition hover:bg-canela-escura disabled:cursor-not-allowed disabled:bg-areia disabled:text-carvao-suave",
+    reenvio:
+      "mt-6 flex flex-col items-center gap-1.5 border-t-2 border-dashed border-areia pt-5 text-sm",
+    reenvioAviso: "text-carvao-suave",
+    reenvioContagem: "font-semibold text-carvao-suave/70",
+    botaoReenviar:
+      "flex items-center gap-1.5 rounded-lg p-1.5 font-bold text-canela transition hover:text-canela-escura disabled:opacity-60",
+    sucessoCaixa: "flex flex-col items-center gap-3 py-6",
+    sucessoTexto: "text-sm font-semibold text-musgo",
+  };
+
+  function estiloDigito(temValor: boolean) {
+    if (erro) return `${styles.digito} ${styles.digitoErro}`;
+    if (temValor) return `${styles.digito} ${styles.digitoPreenchido}`;
+    return styles.digito;
+  }
 
   return (
-    <Backdrop
-      open={open}
-      sx={{
-        zIndex: 9999,
-        backgroundColor: "rgba(15, 23, 42, 0.65)",
-        backdropFilter: "blur(6px)",
-        p: { xs: 2, sm: 3 },
-      }}
+    <div
+      className={styles.overlay}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Confirmação de e-mail"
     >
-      <Box
-        sx={{
-          width: "100%",
-          maxWidth: 480,
-          bgcolor: "white",
-          borderRadius: "24px",
-          border: "1px solid #E7E4DA",
-          boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
-          overflow: "hidden",
-          position: "relative",
-          animation: "fadeInScale 0.25s ease-out",
-          "@keyframes fadeInScale": {
-            "0%": { opacity: 0, transform: "scale(0.95)" },
-            "100%": { opacity: 1, transform: "scale(1)" },
-          },
-        }}
-      >
-        {/* Botão Fechar no Canto Superior */}
+      <div className={styles.cartao}>
         {onClose && !sucesso && (
-          <Box
+          <button
+            type="button"
             onClick={onClose}
-            sx={{
-              position: "absolute",
-              top: 18,
-              right: 18,
-              width: 34,
-              height: 34,
-              borderRadius: "50%",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              color: "#6B7670",
-              bgcolor: "#F3F1EA",
-              transition: "all 0.2s ease",
-              "&:hover": {
-                bgcolor: "#E5E1D5",
-                color: "#1B4B3A",
-              },
-            }}
+            aria-label="Fechar janela de confirmação"
+            className={styles.botaoFechar}
           >
             <X size={18} />
-          </Box>
+          </button>
         )}
 
-        {/* Cabeçalho com Ícone e Descrição */}
-        <Box
-          sx={{
-            p: { xs: 3, sm: 4 },
-            pb: 2,
-            textAlign: "center",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-          }}
-        >
-          {/* Badge Ícone */}
-          <Box
-            sx={{
-              width: 72,
-              height: 72,
-              borderRadius: "50%",
-              bgcolor: sucesso ? "rgba(16, 185, 129, 0.12)" : "rgba(27, 75, 58, 0.08)",
-              color: sucesso ? "#10B981" : "#1B4B3A",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              mb: 2.5,
-              border: `2px solid ${sucesso ? "#10B981" : "#E7E4DA"}`,
-              transition: "all 0.3s ease",
-            }}
-          >
+        <div className={styles.cabecalho}>
+          <span className={sucesso ? styles.iconeSucesso : styles.icone}>
             {sucesso ? (
-              <CheckCircle2 size={38} strokeWidth={2.4} />
+              <CheckCircle2 size={32} strokeWidth={2.2} />
             ) : (
-              <Mail size={34} strokeWidth={2.2} />
+              <Mail size={28} strokeWidth={2} />
             )}
-          </Box>
+          </span>
 
-          <Typography
-            sx={{
-              fontSize: { xs: "1.35rem", sm: "1.5rem" },
-              fontWeight: 800,
-              color: "#1B4B3A",
-              lineHeight: 1.2,
-            }}
-          >
-            {sucesso ? "E-mail Confirmado!" : "Confirme seu E-mail"}
-          </Typography>
+          <h2 className={styles.titulo}>
+            {sucesso ? "E-mail confirmado!" : "Confirme seu e-mail"}
+          </h2>
 
-          <Typography
-            sx={{
-              fontSize: "0.875rem",
-              color: "#6B7670",
-              mt: 1.2,
-              lineHeight: 1.5,
-              maxWidth: 380,
-            }}
-          >
+          <p className={styles.descricao}>
             {sucesso ? (
-              "Sua conta foi ativada com sucesso. Redirecionando para a tela de login..."
+              "Sua conta foi ativada. Redirecionando para a tela de login…"
             ) : (
               <>
-                Enviamos um código de verificação de 6 dígitos para o endereço:{" "}
-                <Box
-                  component="span"
-                  sx={{
-                    display: "inline-block",
-                    fontWeight: 700,
-                    color: "#1B4B3A",
-                    bgcolor: "#FAF9F5",
-                    px: 1,
-                    py: 0.2,
-                    borderRadius: "6px",
-                    border: "1px solid #E7E4DA",
-                    wordBreak: "break-all",
-                  }}
-                >
-                  {email || "seu e-mail"}
-                </Box>
+                Enviamos um código de 6 dígitos para{" "}
+                <span className={styles.emailChip}>{email || "seu e-mail"}</span>
               </>
             )}
-          </Typography>
-        </Box>
+          </p>
+        </div>
 
-        {/* Conteúdo Central */}
-        <Box sx={{ px: { xs: 3, sm: 4 }, pb: { xs: 3, sm: 4 } }}>
+        <div className="mt-2">
           {!sucesso && (
             <>
-              {/* Alertas de Erro ou Info de Reenvio */}
               {erro && (
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1.2,
-                    p: 1.5,
-                    mb: 2.5,
-                    borderRadius: "10px",
-                    bgcolor: "#FEF2F2",
-                    border: "1px solid #FCA5A5",
-                    color: "#DC2626",
-                    fontSize: "0.85rem",
-                    fontWeight: 500,
-                  }}
-                >
-                  <AlertCircle size={18} style={{ flexShrink: 0 }} />
-                  <Typography sx={{ fontSize: "0.85rem", color: "#DC2626" }}>
-                    {erro}
-                  </Typography>
-                </Box>
+                <div className={styles.alertaErro} role="alert">
+                  <AlertCircle size={18} className="shrink-0" />
+                  {erro}
+                </div>
               )}
 
               {infoReenvio && !erro && (
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1.2,
-                    p: 1.5,
-                    mb: 2.5,
-                    borderRadius: "10px",
-                    bgcolor: "#ECFDF5",
-                    border: "1px solid #6EE7B7",
-                    color: "#059669",
-                    fontSize: "0.85rem",
-                    fontWeight: 500,
-                  }}
-                >
-                  <ShieldCheck size={18} style={{ flexShrink: 0 }} />
-                  <Typography sx={{ fontSize: "0.85rem", color: "#059669" }}>
-                    {infoReenvio}
-                  </Typography>
-                </Box>
+                <div className={styles.alertaInfo}>
+                  <ShieldCheck size={18} className="shrink-0" />
+                  {infoReenvio}
+                </div>
               )}
 
-              {/* Caixas de Entrada dos 6 Dígitos */}
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  gap: { xs: 1, sm: 1.5 },
-                  my: 2,
-                }}
-              >
+              <div className={styles.digitos}>
                 {digits.map((digit, idx) => (
-                  <Box
+                  <input
                     key={idx}
-                    component="input"
                     ref={(el: HTMLInputElement | null) => {
                       inputRefs.current[idx] = el;
                     }}
@@ -404,151 +294,72 @@ export default function EmailVerificationModal({
                     onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => handleKeyDown(idx, e)}
                     onPaste={handlePaste}
                     autoComplete="one-time-code"
-                    sx={{
-                      width: { xs: 42, sm: 54 },
-                      height: { xs: 52, sm: 62 },
-                      borderRadius: "14px",
-                      border: "2px solid",
-                      borderColor: erro
-                        ? "#EF4444"
-                        : digit
-                        ? "#10B981"
-                        : "#D9D5C8",
-                      bgcolor: digit ? "#FAF9F5" : "white",
-                      textAlign: "center",
-                      fontSize: { xs: "1.4rem", sm: "1.75rem" },
-                      fontWeight: 700,
-                      color: "#1B4B3A",
-                      outline: "none",
-                      transition: "all 0.2s ease",
-                      "&:focus": {
-                        borderColor: erro ? "#EF4444" : "#10B981",
-                        boxShadow: erro
-                          ? "0 0 0 3px rgba(239, 68, 68, 0.15)"
-                          : "0 0 0 3px rgba(16, 185, 129, 0.18)",
-                        bgcolor: "white",
-                      },
-                    }}
+                    aria-label={`Dígito ${idx + 1} do código`}
+                    className={estiloDigito(Boolean(digit))}
                   />
                 ))}
-              </Box>
+              </div>
 
-              {/* Botão de Confirmação */}
-              <Button
+              <button
                 type="button"
-                variant="contained"
                 onClick={handleVerificar}
                 disabled={!codigoPreenchido || verificando}
-                endIcon={
-                  verificando ? (
-                    <CircularProgress size={18} color="inherit" />
-                  ) : (
+                className={styles.botaoVerificar}
+              >
+                {verificando ? (
+                  <>
+                    <Loader2 size={18} className="animate-spin" />
+                    Validando código…
+                  </>
+                ) : (
+                  <>
+                    Confirmar e ativar conta
                     <ArrowRight size={18} />
-                  )
-                }
-                sx={{
-                  width: "100%",
-                  mt: 2.5,
-                  py: 1.4,
-                  borderRadius: "10px",
-                  bgcolor: "#10B981",
-                  color: "white",
-                  fontWeight: 700,
-                  fontSize: "0.95rem",
-                  textTransform: "none",
-                  boxShadow: "none",
-                  "&:hover": {
-                    bgcolor: "#059669",
-                    boxShadow: "none",
-                  },
-                  "&.Mui-disabled": {
-                    bgcolor: "#D1D5DB",
-                    color: "#9CA3AF",
-                  },
-                }}
-              >
-                {verificando ? "Validando Código..." : "Confirmar e Ativar Conta"}
-              </Button>
+                  </>
+                )}
+              </button>
 
-              {/* Seção de Reenvio com Temporizador */}
-              <Box
-                sx={{
-                  mt: 3,
-                  pt: 2.5,
-                  borderTop: "1px solid #E7E4DA",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  gap: 1,
-                }}
-              >
-                <Typography sx={{ fontSize: "0.85rem", color: "#6B7670" }}>
-                  Não recebeu o código de confirmação?
-                </Typography>
+              <div className={styles.reenvio}>
+                <p className={styles.reenvioAviso}>Não recebeu o código?</p>
 
                 {tempoRestante > 0 ? (
-                  <Typography
-                    sx={{
-                      fontSize: "0.85rem",
-                      fontWeight: 600,
-                      color: "#9CA3AF",
-                    }}
-                  >
-                    Reenviar código em{" "}
-                    <Box component="span" sx={{ color: "#1B4B3A", fontWeight: 700 }}>
-                      {tempoRestante}s
-                    </Box>
-                  </Typography>
+                  <p className={styles.reenvioContagem}>
+                    Reenviar em <strong>{tempoRestante}s</strong>
+                  </p>
                 ) : (
-                  <Button
+                  <button
                     type="button"
                     onClick={handleReenviar}
                     disabled={reenviando}
-                    startIcon={
-                      reenviando ? (
-                        <CircularProgress size={14} color="inherit" />
-                      ) : (
-                        <RefreshCw size={14} />
-                      )
-                    }
-                    sx={{
-                      textTransform: "none",
-                      fontSize: "0.875rem",
-                      fontWeight: 700,
-                      color: "#10B981",
-                      p: 0.5,
-                      "&:hover": {
-                        bgcolor: "transparent",
-                        color: "#059669",
-                        textDecoration: "underline",
-                      },
-                    }}
+                    className={styles.botaoReenviar}
                   >
-                    {reenviando ? "Reenviando..." : "Reenviar novo código"}
-                  </Button>
+                    {reenviando ? (
+                      <>
+                        <Loader2 size={14} className="animate-spin" />
+                        Reenviando…
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw size={14} />
+                        Reenviar novo código
+                      </>
+                    )}
+                  </button>
                 )}
-              </Box>
+              </div>
             </>
           )}
 
           {sucesso && (
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: 2,
-                py: 2,
-              }}
-            >
-              <CircularProgress size={32} sx={{ color: "#10B981" }} />
-              <Typography sx={{ fontSize: "0.9rem", color: "#059669", fontWeight: 600 }}>
-                Ativação concluída. Encaminhando...
-              </Typography>
-            </Box>
+            <div className={styles.sucessoCaixa}>
+              <Loader2 size={30} className="animate-spin text-musgo" />
+              <p className={styles.sucessoTexto}>
+                Ativação concluída. Encaminhando…
+              </p>
+            </div>
           )}
-        </Box>
-      </Box>
-    </Backdrop>
+        </div>
+      </div>
+    </div>
   );
 }

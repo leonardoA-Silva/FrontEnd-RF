@@ -1,69 +1,55 @@
 import { Repeat2 } from "lucide-react";
-import { Link } from "@mui/material";
+import { Link } from "react-router-dom";
+
+const navegacao = [
+  { rotulo: "Início", href: "/" },
+  { rotulo: "Como funciona", href: "/#como-funciona" },
+  { rotulo: "Materiais", href: "/#materiais" },
+];
 
 export default function Header() {
   const styles = {
-    cabecalho: "border-b border-[#E7E4DA] bg-white",
-    cabecalhoConteudo:
-      "mx-auto flex max-w-7xl items-center justify-between px-6 py-4 sm:px-10",
-    marca: "flex items-center gap-3",
-    marcaIcone:
-      "flex h-11 w-11 items-center justify-center rounded-full bg-emerald-500 text-white",
-    marcaIconeSvg: "h-6 w-6",
-    marcaTextos: "leading-tight",
-    marcaTitulo: "text-lg font-bold text-[#1B4B3A]",
-    marcaSubtitulo: "text-sm font-bold tracking-wide text-orange-500",
-    menuNavegacao: "flex items-center gap-3",
+    cabecalho: "sticky top-0 z-40 border-b border-areia bg-cru/95 backdrop-blur-sm",
+    conteudo: "mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-3 sm:px-8",
+    marca: "flex shrink-0 items-center gap-3 no-underline",
+    marcaIcone: "flex h-10 w-10 items-center justify-center rounded-lg bg-carvao text-cru",
+    marcaIconeSvg: "h-5 w-5",
+    marcaTitulo: "font-display text-lg font-semibold leading-none text-carvao",
+    menu: "hidden items-center gap-7 md:flex",
+    menuLink: "text-sm font-medium text-carvao-suave no-underline transition hover:text-carvao",
+    acoes: "flex items-center gap-2.5",
     botaoEntrar:
-      "rounded-lg border border-[#D9D5C8] px-5 py-2.5 text-sm font-semibold text-[#1B4B3A] transition hover:bg-[#F3F1EA]",
+      "rounded-lg border border-areia px-4 py-2 text-sm font-semibold text-carvao no-underline transition hover:border-carvao-suave hover:bg-areia-clara",
     botaoCadastrar:
-      "rounded-lg bg-emerald-500 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-600",
+      "rounded-lg bg-canela px-4 py-2 text-sm font-semibold text-cru no-underline transition hover:bg-canela-escura",
   };
 
   return (
     <header className={styles.cabecalho}>
-      <div className={styles.cabecalhoConteudo}>
-        <a href="/" className={`${styles.marca} no-underline`}>
+      <div className={styles.conteudo}>
+        <Link to="/" className={styles.marca}>
           <span className={styles.marcaIcone}>
             <Repeat2 className={styles.marcaIconeSvg} strokeWidth={2.4} />
           </span>
-          <div className={styles.marcaTextos}>
-            <p className={styles.marcaTitulo}>Reaproveita</p>
-            <p className={styles.marcaSubtitulo}>FRANCA</p>
-          </div>
-        </a>
+          <span className={styles.marcaTitulo}>Reaproveita Franca</span>
+        </Link>
 
-        <div className="hidden sm:flex items-center gap-6">
-          <a
-            href="/"
-            className="text-sm font-bold text-emerald-600 hover:text-emerald-700 transition"
-          >
-            Início
-          </a>
-          <a
-            href="/#sobre"
-            className="text-sm font-medium text-[#6B7670] hover:text-[#1B4B3A] transition"
-          >
-            Sobre Nós
-          </a>
-        </div>
+        <nav className={styles.menu} aria-label="Navegação principal">
+          {navegacao.map((item) => (
+            <a key={item.rotulo} href={item.href} className={styles.menuLink}>
+              {item.rotulo}
+            </a>
+          ))}
+        </nav>
 
-        <nav className={styles.menuNavegacao}>
-          <Link
-            className={styles.botaoEntrar}
-            style={{ textDecoration: "none", color: "black" }}
-            href="/login"
-          >
+        <div className={styles.acoes}>
+          <Link to="/login" className={styles.botaoEntrar}>
             Entrar
           </Link>
-          <Link
-            className={styles.botaoCadastrar}
-            style={{ textDecoration: "none", color: "white" }}
-            href="/cadastro"
-          >
+          <Link to="/cadastro" className={styles.botaoCadastrar}>
             Cadastrar
           </Link>
-        </nav>
+        </div>
       </div>
     </header>
   );
