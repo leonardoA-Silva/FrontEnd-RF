@@ -16,7 +16,7 @@ export default function Login() {
     const location = useLocation();
     const origem = location.state?.from;
     const voltarAoMarketplace = typeof origem === "string" && /^\/marketplace(?:\/[A-Za-z0-9_-]+){0,3}$/.test(origem);
-    const [tipoUsuario, setTipoUsuario] = useState<TipoUsuario>(() => voltarAoMarketplace ? "comprador" : "empresa");
+    const [tipoUsuario, setTipoUsuario] = useState<TipoUsuario>(() => voltarAoMarketplace || location.state?.tipoUsuario === "comprador" ? "comprador" : "empresa");
     const [email, setEmail] = useState("");
     const [senha, setSenha] = useState("");
     const [lembrarDeMim, setLembrarDeMim] = useState(false);

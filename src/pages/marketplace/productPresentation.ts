@@ -1,5 +1,5 @@
 import type { ProductBackend } from "../../axios/Axios";
-import { moeda } from "./marketplaceData";
+import { money as moeda } from "../dashboard/comprador/buyerPresentation";
 
 export function productPhotos(product: ProductBackend): string[] {
   return (product.photos ?? []).flatMap(({ photo }) => {

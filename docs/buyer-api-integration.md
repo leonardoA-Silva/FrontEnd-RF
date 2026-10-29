@@ -1,5 +1,7 @@
 # Integração do comprador — 22/10/2026
 
+> Registro histórico. O estado atual, a remoção da demonstração e os testes reais da API `6543cd9` estão na [atualização de 29/10/2026](buyer-api-update-2026-10-29.md).
+
 Status: **API-supported**. O frontend usa os contratos verificados no backend `main`, commit `83575fc`. As interações foram verificadas no navegador com respostas simuladas desses contratos. A API local não estava rodando na porta 5000; persistência, envio real de e-mail e provedores externos não foram exercitados. Nenhum dado real de conta foi alterado.
 
 ## Entrega e critérios observáveis

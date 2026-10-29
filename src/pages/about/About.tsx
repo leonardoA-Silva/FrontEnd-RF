@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { X } from "lucide-react";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
+import { useLoggedUser } from "../../hooks/useLoggedUser";
 
 const styles = {
   page: "flex min-h-screen flex-col bg-[#fbfbf9] text-[#064e3b] font-['RF_About_Manrope',sans-serif] [&_:is(a,button):focus-visible]:outline-2 [&_:is(a,button):focus-visible]:outline-offset-4 [&_:is(a,button):focus-visible]:outline-[#064e3b]",
@@ -19,6 +20,7 @@ const styles = {
 
 export default function About() {
   const dialog = useRef<HTMLDialogElement>(null);
+  const { isLoggedIn } = useLoggedUser();
 
   return (
     <div className={styles.page}>
@@ -69,7 +71,7 @@ export default function About() {
             Seja você uma indústria de calçados querendo reduzir seu impacto, ou
             um artesão local em busca de couro de alta qualidade para suas criações.
           </p>
-          <Link to="/cadastro" className={styles.signup}>Cadastre-se Gratuitamente</Link>
+          {!isLoggedIn && <Link to="/cadastro" className={styles.signup}>Cadastre-se Gratuitamente</Link>}
         </section>
       </main>
       <Footer variant="about" />
@@ -84,11 +86,11 @@ export default function About() {
         <ol className="my-6 list-decimal space-y-4 pl-5 text-sm leading-relaxed text-[#4b5563]">
           <li>Cadastre-se como pessoa ou empresa para participar da comunidade.</li>
           <li>Explore o catálogo de materiais e conheça as opções de venda ou doação.</li>
-          <li>Veja os detalhes do material e percorra a demonstração de solicitação de reserva.</li>
+          <li>Veja os detalhes do material, solicite uma reserva e acompanhe a resposta do fornecedor.</li>
         </ol>
         <p className="mb-6 rounded-lg bg-[#ecfdf5] p-4 text-sm leading-relaxed">
-          O fluxo de reserva e pagamento disponível no marketplace é demonstrativo.
-          Nenhuma reserva ou cobrança real é realizada por ele.
+          As solicitações de reserva são registradas e aguardam aceite do fornecedor.
+          Pagamentos ainda não estão disponíveis nesta versão.
         </p>
         <Link to="/marketplace" className={styles.primary}>Explorar Materiais</Link>
       </dialog>

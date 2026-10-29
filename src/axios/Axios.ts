@@ -226,6 +226,43 @@ export const redefinirSenha = (token: string, newPassword: string) => api.post<{
 export interface LoginResponse { token: string; user: SessionUser; mustChangePassword: boolean }
 export const entrarComGoogle = (idToken: string) => api.post<LoginResponse>("/user/login/google", { idToken });
 
+// Contratos do comprador verificados na API 6543cd9.
+export type ShoppingStatus = "pending" | "accepted" | "refused" | "cancelled" | "completed";
+export interface ShoppingItem { id: string; id_product: string; product_name: string; quantity: number; subtotal: number | string; seller_id?: string; type_negotiation?: TipoNegociacao }
+export interface Shopping { id: string; value: number | string; status: ShoppingStatus; datetime?: string; id_user?: string; total_items?: number; items?: ShoppingItem[] }
+export const criarReserva = (id: string, quantity: number) => api.post<{ shopping: Shopping }>("/shopping/create", { items: [{ id_product: id, quantity }] });
+export const listarReservas = (signal?: AbortSignal) => api.get<Shopping[]>("/shopping/", { signal });
+export const obterReserva = (id: string, signal?: AbortSignal) => api.get<Shopping>(`/shopping/${encodeURIComponent(id)}`, { signal });
+export const cancelarReserva = (id: string) => api.patch<{ shopping: Shopping }>(`/shopping/${encodeURIComponent(id)}/cancel`);
+
+export interface BuyerNotification { id: string; title: string; content: string | null; type: string; read: "sim" | "nao"; created_in: string; reference_table: string | null; reference_id: string | null }
+export const listarNotificacoes = (read: string, type: string, signal?: AbortSignal) => api.get<BuyerNotification[]>("/notification/", { signal, params: { read: read || undefined, type: type || undefined } });
+export const contarNotificacoes = (signal?: AbortSignal) => api.get<{ total: number }>("/notification/unread/count", { signal });
+export const lerNotificacao = (id: string) => api.patch(`/notification/${encodeURIComponent(id)}/read`);
+export const lerTodasNotificacoes = () => api.patch("/notification/read-all");
+export const excluirNotificacao = (id: string) => api.delete(`/notification/${encodeURIComponent(id)}`);
+
+export interface BuyerAddress { id: string; zip_code: string; street: string; neighborhood: string; number: string; city: string; state: string; latitude: number | string | null; longitude: number | string | null }
+export interface AddressInput { zipCode: string; street: string; neighborhood: string; number: string; city: string; state: string; latitude: number | null; longitude: number | null }
+export interface ProductLocation { productId: string; city: string; neighborhood: string; addressFull: boolean; street?: string; number?: string; zipCode?: string; state?: string; latitude: number | null; longitude: number | null }
+export const listarEnderecos = (signal?: AbortSignal) => api.get<BuyerAddress[]>("/localization/", { signal });
+export const criarEndereco = (userId: string, input: AddressInput) => api.post<{ id: string }>("/localization/", { userId, ...input });
+export const atualizarEndereco = (id: string, input: AddressInput) => api.put(`/localization/${encodeURIComponent(id)}`, input);
+export const excluirEndereco = (id: string) => api.delete(`/localization/${encodeURIComponent(id)}`);
+export const obterLocalizacaoProduto = (id: string, signal?: AbortSignal) => api.get<ProductLocation>(`/localization/product/${encodeURIComponent(id)}`, { signal });
+
+export interface BuyerCard { id: string; holder_name: string; brand: string; last_digits: string; type: "credit" | "debit"; expiration_month: number; expiration_year: number }
+export const listarCartoes = (signal?: AbortSignal) => api.get<BuyerCard[]>("/card/", { signal });
+export const atualizarCartao = (id: string, input: Pick<BuyerCard, "holder_name" | "expiration_month" | "expiration_year">) => api.put(`/card/${encodeURIComponent(id)}`, input);
+export const excluirCartao = (id: string) => api.delete(`/card/${encodeURIComponent(id)}`);
+
+export interface BuyerConversation { conversationId: string; otherUserId: string; otherUserName: string; unreadCount: number; updated_in: string }
+export interface BuyerMessage { id: string; id_conversation: string; id_user: string; type: string; content: string | null; created_in: string; edited_in?: string | null; deleted_in?: string | null }
+export const listarConversas = (signal?: AbortSignal) => api.get<BuyerConversation[]>("/conversation/", { signal });
+export const iniciarConversa = (otherUserId: string) => api.post<{ conversationId: string }>("/conversation/", { otherUserId });
+export const obterConversa = (id: string, signal?: AbortSignal) => api.get<{ conversationId: string; participants: string[] }>(`/conversation/${encodeURIComponent(id)}`, { signal });
+export const sairConversa = (id: string) => api.delete(`/conversation/${encodeURIComponent(id)}`);
+
 // ─── Serviços de Produtos (Banco de Dados) ────────────────────────────────────
 
 /** GET /api/reaproveitafranca/product */

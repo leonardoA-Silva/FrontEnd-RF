@@ -1,5 +1,7 @@
 # Marketplace — design reference
 
+Current extension, 2026-10-29: the static catalog example and payment demonstration described in the historical sections below have been removed. The buyer API extension at the end of this document is authoritative for current account/reservation screens.
+
 ## 1. Project overview
 
 Reaproveita Franca, web frontend. Profiles: Redesign + E-commerce/Store + App/Product UI. This reference covers `/marketplace`, its reservation/payment demonstration, and the separately scoped `/sobre-nos` page described below. It does not authorize redesigning other pages. Audience: people and companies reusing industrial materials. The catalog now contains only the single `mkt-1` demonstration record, per the user's follow-up.
@@ -123,3 +125,21 @@ The default marketplace now shows API records; the single demonstration remains 
 Buyer account screens reuse the existing warm `#FAF9F5` canvas, white outlined panels, `#0F3D2E` headings and `#4B5A55` supporting text. `buyerStyles` owns 44–48px controls, 12px radii, dark `#006c4a` primary buttons, visible focus and textual error/success feedback. Existing system fonts and Lucide icons are retained. Header uses the existing compact marketplace variant for buyer/account recovery routes. Native destructive confirmation supports Escape, focus restoration and pending-state cancellation blocking.
 
 No fake metrics or persisted negotiation history remain in the buyer dashboard. Unsupported services have explicit empty states. Recovery tokens remain in memory and are removed from the URL. See [buyer integration evidence](docs/buyer-api-integration.md) for contracts, checks and remaining configuration dependencies. These screens have browser verification with contract mocks; live API readiness is not claimed.
+
+## Buyer API extension — reservations and account resources (2026-10-29)
+
+Profile: App/Product UI + Store, preserving the Figma composition and existing account navigation. Concept: one truthful action per server-supported step, from material to reservation and supplier response. No redesign or new visual language. All new account pages use `buyerStyles`, the same warm canvas, dark-green actions, white panels, system sans and Lucide library. The approved project's compact 14px copy and 12–16px radii remain explicit exceptions to generic skill defaults; no gradients or motion added.
+
+The dashboard sidebar stays in place for reservations/history, notifications, messages, addresses, cards, profile and security; on narrow screens it wraps above content. New controls have 44–48px minimum height, associated native labels and visible focus. Resource views include loading, empty, sanitized error/retry and confirmed success states. Destructive dialogs block while pending and restore focus on cancellation/Escape. Input styles use block layout; untrusted names/message text wrap.
+
+Material photos remain API-only with geometric placeholders. Location shows only the disclosure supplied by the server. Reservation quantities are whole units; totals and status come from the server, and donation remains free. Messaging uses server acknowledgements and textual ownership/deletion states; no fake replies, chat history or purchase metrics. Cards display existing tokenized records without collecting PAN/CVV/token. No payment visual, QR or fake success remains.
+
+Review: retained compact account layout and brand. The weakest observed details were a filter label touching its desktop control and missing focus restoration after unmounting a dialog; both were corrected. Reservations were visually inspected at 375px and 1280px; interactions/layout also exercised at 768px. Contrast pairs reuse `#006c4a`/white, `#0F3D2E`/white and `#4B5A55`/`#FAF9F5`. See [current verification and backend limitations](docs/buyer-api-update-2026-10-29.md).
+
+Computed contrast for those three pairs: **6.47:1**, **12.16:1** and **6.89:1**, respectively. These measured pairs cover the new account actions/headings/supporting text; they do not claim every historical marketplace color pairing passes AA.
+
+### Profile, postal lookup and authenticated About actions
+
+Buyer profile uses a 112×112px circular photo preview with fixed geometry and the existing green-tint/UserRound fallback. A local object URL shows the selected image; only confirmed upload changes its caption to sent. No stock avatar, persistent browser photo cache or claim of reload recovery is added. Object URLs are revoked on replacement/unmount. The API still lacks authenticated photo readback.
+
+The address form keeps its two-column desktop/stacked mobile layout. CEP lookup has explicit pending, found, partial, invalid/not-found and network/retry copy. Existing dark-green/outlined button patterns and accessible status/alerts are reused; fields remain manually editable and stale responses cannot overwrite newer input. No new colors, dependencies or motion. About retains its Figma section; the registration CTA is hidden for authenticated accounts and returns on logout. The complete continuation brief is `docs/CONTINUIDADE-PROJETO.md`.

@@ -1,5 +1,7 @@
 # Marketplace prototype implementation
 
+> Archived on 2026-10-29: the static example and payment/reservation demonstration were removed. See [current buyer API integration](buyer-api-update-2026-10-29.md). The content below documents the former prototype only.
+
 Update 2026-10-22: the user requested only one catalog example; `mkt-1` is the sole demonstration record. After the explicitly requested backend restore/pull, API commit `83575fc` adds product photos and user/account routes. The historical API notes below describe the earlier inspection; see [frontend-readiness-review.md](frontend-readiness-review.md) for the current static analysis. No new API integration was performed.
 
 Status: **UI-only**. Scope: frontend marketplace and its demonstration reservation/payment pages. No backend/mobile edits, new dependencies, real charges, or real reservations.
