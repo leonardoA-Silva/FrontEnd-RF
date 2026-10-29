@@ -1,161 +1,77 @@
-import { MapPin, BarChart3 } from "lucide-react";
+import { useState } from "react";
+import { ArrowDown, ArrowRight, ArrowUpRight, Leaf, Pause, PencilLine, Play, UserRound } from "lucide-react";
+import { Link } from "react-router-dom";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
-import { Link } from "react-router-dom";
+import HeroSculpture from "./components/HeroSculpture";
+import { useHomeMotion } from "./useHomeMotion";
 
-const stats = [
-  { value: "2.500+", label: "Toneladas desviadas de aterros" },
-  { value: "340+", label: "Empresas parceiras conectadas" },
-  { value: "1.200+", label: "Negociações concluídas com sucesso" },
+const materials = [
+  { number: "01", name: "Couro", description: "Resistente, versátil e cheio de novas possibilidades.", swatch: "leather" },
+  { number: "02", name: "Tecidos", description: "Texturas que se reinventam em cada criação.", swatch: "fabric" },
+  { number: "03", name: "EVA", description: "Leveza e novas formas para múltiplos usos.", swatch: "foam" },
 ];
-
-const technologies = [
-  {
-    icon: MapPin,
-    title: "Mapa de Empresas",
-    description: "Logística reversa simplificada",
-  },
-  {
-    icon: BarChart3,
-    title: "Indicadores Verdes",
-    description: "Métricas reais de CO2 poupado",
-  },
+const steps = [
+  { icon: UserRound, title: "Escolha seu perfil", description: "Uma conta de empresa ou pessoal, de acordo com a sua participação." },
+  { icon: PencilLine, title: "Crie sua conta", description: "Preencha seus dados e confirme seu e-mail para começar." },
+  { icon: Leaf, title: "Faça parte da rede", description: "Aproxime sua empresa ou suas ideias de novas possibilidades." },
 ];
 
 export default function Home() {
-  // Estilos centralizados aqui dentro da função (sem arquivo .css).
-  // Cada chave tem um nome semântico e guarda as classes Tailwind correspondentes.
-  const styles = {
-    pagina: "min-h-screen bg-[#FAF9F5] text-[#1B4B3A]",
-
-    secaoPrincipal: "mx-auto max-w-7xl px-6 py-16 sm:px-10 sm:py-20",
-    principalGrade: "grid items-center gap-12 lg:grid-cols-2",
-    principalTexto: "",
-    etiquetaDestaque:
-      "inline-block rounded-full border border-emerald-500 px-4 py-1.5 text-xs font-semibold tracking-wide text-emerald-600",
-    tituloPrincipal:
-      "mt-6 text-5xl font-extrabold leading-[1.08] tracking-tight text-[#1B4B3A] sm:text-6xl",
-    descricaoPrincipal: "mt-6 max-w-xl text-lg leading-relaxed text-[#4B5A55]",
-    grupoBotoesPrincipal: "mt-8 flex flex-wrap gap-4",
-    botaoPublicar:
-      "rounded-lg bg-emerald-500 px-7 py-3.5 text-base font-semibold text-white shadow-sm transition hover:bg-emerald-600",
-    botaoExplorar:
-      "rounded-lg border-2 border-emerald-500 px-7 py-3.5 text-base font-semibold text-emerald-600 transition hover:bg-emerald-50",
-    imagemDestaqueContainer: "overflow-hidden rounded-2xl shadow-lg",
-    imagemDestaque: "h-full w-full object-cover",
-
-    faixaEstatisticas: "bg-[#0F3D2E]",
-    faixaEstatisticasConteudo:
-      "mx-auto flex max-w-7xl flex-col gap-8 px-6 py-10 sm:flex-row sm:items-center sm:justify-center sm:gap-16 sm:px-10",
-    estatisticaItem: "flex items-center gap-4",
-    estatisticaDivisor: "hidden h-10 w-px bg-emerald-800 sm:block",
-    estatisticaTexto: "flex items-baseline gap-3",
-    estatisticaValor: "text-3xl font-extrabold text-emerald-400 sm:text-4xl",
-    estatisticaLegenda: "max-w-[10rem] text-sm leading-snug text-emerald-50",
-
-    secaoConteudo: "mx-auto max-w-7xl px-6 py-16 sm:px-10",
-    conteudoGrade: "grid gap-12 lg:grid-cols-[1.4fr_1fr]",
-    tituloSecao: "text-2xl font-bold text-[#1B4B3A]",
-    gradeTecnologias: "mt-6 grid gap-4 sm:grid-cols-3",
-    cartaoTecnologia: "rounded-xl border border-[#E7E4DA] bg-white p-5",
-    iconeTecnologia: "h-5 w-5 text-emerald-500",
-    tituloTecnologia: "mt-3 text-sm font-bold text-[#1B4B3A]",
-    descricaoTecnologia: "mt-1 text-sm text-[#6B7670]",
-
-    depoimentoCaixa: "mt-6 rounded-xl border border-orange-300 bg-amber-50 p-6",
-    depoimentoTexto: "text-[15px] leading-relaxed text-[#3F4A45]",
-    depoimentoAutor: "mt-4 text-sm font-bold text-[#1B4B3A]",
-  };
-
+  const [paused, setPaused] = useState(false);
+  const root = useHomeMotion(paused);
   return (
-    <div className={styles.pagina}>
+    <div ref={root} className={`home-page ${paused ? "home-motion-paused" : ""}`}>
       <Header />
-
-      {/* Hero */}
-      <section className={styles.secaoPrincipal}>
-        <div className={styles.principalGrade}>
-          <div className={styles.principalTexto}>
-            <span className={styles.etiquetaDestaque}>
-              ECONOMIA CIRCULAR EM FRANCA
-            </span>
-
-            <h1 className={styles.tituloPrincipal}>
-              Transforme resíduos em oportunidades
-            </h1>
-
-            <p className={styles.descricaoPrincipal}>
-              Conectamos as grandes indústrias calçadistas de Franca a
-              artesãos, cooperativas e microempresas locais. Dê um novo destino
-              a retalhos de couro, tecidos, borrachas e muito mais.
-            </p>
-
-            <div className={styles.grupoBotoesPrincipal}>
-              <button className={styles.botaoPublicar}>
-                Publicar Material
-              </button>
-              <button className={styles.botaoExplorar}>
-                Explorar Materiais
-              </button>
-            </div>
+      <main id="conteudo" tabIndex={-1}>
+        <section className="home-hero home-container" aria-labelledby="hero-title">
+          <div className="home-hero-copy">
+            <p className="home-eyebrow">Economia circular em Franca</p>
+            <h1 id="hero-title">O fim de<br />um ciclo.<br /><em>O começo</em><br />de outro.</h1>
+            <p className="home-hero-description">O que sobra na indústria pode ser o início da sua próxima criação.</p>
+            <Link to="/cadastro" className="home-button">Quero fazer parte <ArrowUpRight size={17} /></Link>
           </div>
+          <HeroSculpture paused={paused} />
+          <a href="#sobre" className="home-scroll-cue" aria-label="Conhecer a proposta"><ArrowDown size={19} /></a>
+        </section>
 
-          <div className={styles.imagemDestaqueContainer}>
-            <img
-              src="/hero-leather-scraps.jpg"
-              alt="Retalhos de couro reaproveitados formando uma composição sobre madeira"
-              className={styles.imagemDestaque}
-            />
-          </div>
+        <div className="home-container home-material-strip" aria-label="Materiais reaproveitáveis">
+          <span className="home-strip-rule" />
+          {[...materials, { name: "Madeira", swatch: "wood" }].map(item => <span key={item.name} className="home-strip-item"><span className={`home-swatch home-swatch-${item.swatch}`} aria-hidden="true" />{item.name === "EVA" ? "EVA e borracha" : item.name}</span>)}
+          <span className="home-strip-rule" />
         </div>
-      </section>
 
-      {/* Stats band */}
-      <section className={styles.faixaEstatisticas}>
-        <div className={styles.faixaEstatisticasConteudo}>
-          {stats.map((stat, i) => (
-            <div key={stat.value} className={styles.estatisticaItem}>
-              {i > 0 && <span className={styles.estatisticaDivisor} />}
-              <div className={styles.estatisticaTexto}>
-                <span className={styles.estatisticaValor}>{stat.value}</span>
-                <span className={styles.estatisticaLegenda}>{stat.label}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Technologies + Testimonial */}
-      <section className={styles.secaoConteudo}>
-        <div className={styles.conteudoGrade}>
-          <div>
-            <h2 className={styles.tituloSecao}>Nossas Tecnologias</h2>
-            <div className={styles.gradeTecnologias}>
-              {technologies.map(({ icon: Icon, title, description }) => (
-                <div key={title} className={styles.cartaoTecnologia}>
-                  <Icon className={styles.iconeTecnologia} strokeWidth={2} />
-                  <p className={styles.tituloTecnologia}>{title}</p>
-                  <p className={styles.descricaoTecnologia}>{description}</p>
-                </div>
-              ))}
-            </div>
+        <section id="sobre" className="home-story" aria-labelledby="story-title">
+          <div className="home-container home-story-heading" data-reveal>
+            <p className="home-eyebrow">Uma ideia que circula</p>
+            <h2 id="story-title">Tudo pode<br />ganhar outra forma.</h2>
+            <p>Conectamos empresas de Franca, artesãos e cooperativas para transformar sobras da indústria em novas possibilidades.</p>
           </div>
-
-          <div>
-            <h2 className={styles.tituloSecao}>Depoimento em Destaque</h2>
-            <blockquote className={styles.depoimentoCaixa}>
-              <p className={styles.depoimentoTexto}>
-                &ldquo;Os retalhos de couro que antes iriam para o lixo agora
-                viram bolsas e carteiras exclusivas. O Reaproveita Franca
-                impulsionou meu ateliê!&rdquo;
-              </p>
-              <footer className={styles.depoimentoAutor}>
-                — Silvana M., Artesã local
-              </footer>
-            </blockquote>
+          <div className="home-container home-story-art"><img src="/images/home/transformation.webp" alt="Possibilidade ilustrativa: retalhos de couro, peças em criação e uma bolsa pronta" width="1800" height="744" loading="lazy" /></div>
+          <div className="home-container home-story-stages">
+            {[{ title: "Matéria", text: "O que seria descartado ganha um novo destino." }, { title: "Ideia", text: "A criatividade conecta materiais e pessoas." }, { title: "Nova história", text: "Novas criações, mais possibilidades e menos desperdício." }].map((item, index) => <div key={item.title} data-reveal><span className="home-stage-number">0{index + 1}</span><h3 className="home-serif">{item.title}</h3><p>{item.text}</p></div>)}
           </div>
-        </div>
-      </section>
+          <p className="home-container home-illustration-note">Possibilidade ilustrativa de reaproveitamento.</p>
+        </section>
+
+        <section id="materiais" className="home-materials" aria-labelledby="materials-title">
+          <div className="home-container">
+            <div className="home-materials-heading" data-reveal><div><p className="home-eyebrow">Materiais</p><h2 id="materials-title">Sinta as possibilidades.</h2></div><p>Sobras da indústria podem ganhar novas histórias nas mãos de quem transforma.</p></div>
+            <div className="home-gallery-art"><img src="/images/home/materials.webp" alt="Composições de couro, tecido e placas de EVA sobre um fundo verde" width="1800" height="600" loading="lazy" /></div>
+            <div className="home-material-descriptions">{materials.map(item => <article key={item.name} data-reveal><span className="home-eyebrow">{item.number}</span><h3 className="home-serif">{item.name}</h3><p>{item.description}</p></article>)}</div>
+            <p className="home-illustration-note">Composições ilustrativas. Não representam anúncios ou estoque disponível.</p>
+          </div>
+        </section>
+
+        <section className="home-container home-steps" aria-labelledby="steps-title">
+          <div data-reveal><p className="home-eyebrow">Como fazer parte</p><h2 id="steps-title">Seu próximo ciclo<br />começa aqui.</h2></div>
+          <ol>{steps.map(({ icon: Icon, title, description }, index) => <li key={title} data-reveal><div className="home-step-icon"><Icon size={26} strokeWidth={1.3} />{index < steps.length - 1 && <ArrowRight size={21} className="home-step-arrow" strokeWidth={1} />}</div><span className="home-step-number">0{index + 1}</span><h3 className="home-serif">{title}</h3><p>{description}</p></li>)}</ol>
+        </section>
+
+        <section className="home-closing" aria-labelledby="closing-title"><div className="home-container home-closing-inner"><div className="home-closing-copy" data-reveal><p className="home-eyebrow">Economia circular em ação</p><h2 id="closing-title">O futuro não<br />se descarta.<br /><em>Se transforma.</em></h2><Link to="/cadastro" className="home-button">Criar minha conta <ArrowUpRight size={17} /></Link></div><img className="home-closing-art" src="/images/home/hero.webp" alt="" width="1600" height="1067" loading="lazy" /></div></section>
+      </main>
       <Footer />
+      <button type="button" className="home-motion-control" onClick={() => setPaused(value => !value)} aria-pressed={paused}>{paused ? <Play size={13} /> : <Pause size={13} />}<span>{paused ? "Retomar movimentos" : "Pausar movimentos"}</span></button>
     </div>
   );
 }

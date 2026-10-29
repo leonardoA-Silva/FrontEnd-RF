@@ -89,16 +89,18 @@ const menuLateral = [
 
 const navegacaoTopo = ["Início", "Marketplace", "Sobre Nós"];
 
-export default function DashboardUsuario() {
+export default function DashboardUsuario({ preview = false }: { preview?: boolean }) {
   const navigate = useNavigate();
   const [menuAberto, setMenuAberto] = useState(false);
 
-  // Nome e foto vêm do login (local/sessionStorage) e são atualizados via /user/me.
+  // A prévia usa identidade fictícia e não lê os dados da sessão.
   const { displayName, firstName, photoSrc } = useLoggedUser({
     fallbackName: "Usuário",
+    previewName: preview ? "Visitante" : undefined,
   });
 
   function handleLogout() {
+    if (preview) { navigate("/login"); return; }
     for (const storage of [localStorage, sessionStorage]) {
       storage.removeItem("token");
       storage.removeItem("user");
@@ -111,14 +113,14 @@ export default function DashboardUsuario() {
   // Cada chave tem um nome semântico e guarda as classes Tailwind correspondentes.
   // Layout 100% fluido (w-full, sem max-width travado) para ocupar a tela em qualquer zoom.
   const styles = {
-    pagina: "flex min-h-screen w-full flex-col bg-[#FAF9F5] text-[#1B4B3A]",
+    pagina: "rf-dashboard flex min-h-screen w-full flex-col bg-[#FAF9F5] text-[#1B4B3A]",
 
     cabecalho: "w-full border-b border-[#E7E4DA] bg-white",
     cabecalhoConteudo:
       "flex w-full items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8",
     marca: "flex min-w-0 shrink-0 items-center gap-2.5",
     marcaIcone:
-      "flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-white",
+      "flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#1B4B3A] text-white",
     marcaTextos: "leading-tight",
     marcaTitulo: "text-base font-bold text-[#1B4B3A] sm:text-lg",
     marcaSubtitulo: "text-xs font-bold tracking-wide text-orange-500 sm:text-sm",
@@ -163,7 +165,7 @@ export default function DashboardUsuario() {
     itemMovelInativo: "font-medium text-[#4B5A55]",
 
     principal: "min-w-0 flex-1 px-4 py-6 sm:px-6 lg:px-8",
-    saudacao: "text-2xl font-extrabold tracking-tight text-[#0F3D2E] sm:text-3xl",
+    saudacao: "text-3xl font-extrabold tracking-tight text-[#0F3D2E] sm:text-4xl",
     saudacaoDescricao: "mt-1.5 text-sm text-[#4B5A55] sm:text-[15px]",
 
     gradeEstatisticas:
@@ -195,7 +197,7 @@ export default function DashboardUsuario() {
     produtoDistancia: "shrink-0 text-[13px] text-[#4B5A55]",
 
     cartaoReservas:
-      "min-w-0 rounded-2xl border border-[#E7E4DA] bg-white p-4 sm:p-6",
+      "rf-dashboard-card min-w-0 rounded-2xl border border-[#E7E4DA] bg-white p-4 sm:p-6",
     listaReservas: "mt-4 flex flex-col gap-3",
     reservaItem: "rounded-xl border border-[#E7E4DA] p-4",
     reservaTopo: "flex flex-wrap items-start justify-between gap-2",
@@ -358,7 +360,7 @@ export default function DashboardUsuario() {
         </nav>
 
         {/* Conteúdo principal */}
-        <main className={styles.principal}>
+        <main id="conteudo" className={styles.principal}><div className="rf-demo-notice" role="note"><strong>Prévia do painel</strong><br />Os materiais, números, reservas e atividades abaixo são exemplos ilustrativos. Não representam dados da sua conta. Recursos de reservas, indicadores e classificação por IA ainda não estão disponíveis nesta interface.</div>
           <div className="min-w-0">
             <h1 className={styles.saudacao}>Olá, {firstName}!</h1>
             <p className={styles.saudacaoDescricao}>

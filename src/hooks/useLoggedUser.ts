@@ -1,21 +1,21 @@
 import { useState } from "react";
 
-export function useLoggedUser({ fallbackName = "Usuário" }: { fallbackName?: string } = {}) {
-  const [user] = useState<any>(() => {
+interface LoggedUserOptions {
+  fallbackName?: string;
+  previewName?: string;
+}
+
+export function useLoggedUser({ fallbackName = "Usuário", previewName }: LoggedUserOptions = {}) {
+  const [user] = useState<Record<string, unknown> | null>(() => {
+    if (previewName) return null;
     try {
       const raw = localStorage.getItem("user") ?? sessionStorage.getItem("user");
-      return raw ? JSON.parse(raw) : null;
-    } catch {
-      return null;
-    }
+      const parsed: unknown = raw ? JSON.parse(raw) : null;
+      return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed as Record<string, unknown> : null;
+    } catch { return null; }
   });
-
-  const displayName: string = user?.name ?? user?.nome ?? user?.razaoSocial ?? user?.email ?? fallbackName;
-  const photo: unknown = user?.photo ?? user?.foto ?? user?.avatar;
-
-  return {
-    displayName,
-    firstName: displayName.split(" ")[0] || fallbackName,
-    photoSrc: typeof photo === "string" && photo.trim() ? photo : null,
-  };
+  const name = user?.name ?? user?.nome ?? user?.razaoSocial ?? user?.email;
+  const displayName = previewName ?? (typeof name === "string" && name.trim() ? name : fallbackName);
+  const photo = previewName ? null : user?.photo ?? user?.foto ?? user?.avatar;
+  return { displayName, firstName: displayName.split(" ")[0] || fallbackName, photoSrc: typeof photo === "string" && photo.trim() ? photo : null };
 }

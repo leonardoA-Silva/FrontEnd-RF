@@ -1,42 +1,16 @@
+import Brand from "./Brand";
+import { Link } from "react-router-dom";
+
 export default function Footer() {
-  const styles = {
-    rodape: "bg-[#0F3D2E] text-emerald-50",
-    rodapeConteudo:
-      "mx-auto flex max-w-7xl flex-col gap-8 px-6 py-10 sm:flex-row sm:items-start sm:justify-between sm:px-10",
-    rodapeMarca: "max-w-xs",
-    rodapeMarcaTitulo: "text-base font-bold text-white",
-    rodapeMarcaTexto: "mt-2 text-sm leading-relaxed text-emerald-200",
-    rodapeLinks: "flex gap-8 text-sm text-emerald-100",
-    rodapeLink: "hover:text-white",
-    rodapeDireitos: "text-sm text-emerald-300",
-  };
-
   return (
-    <footer className={styles.rodape}>
-      <div className={styles.rodapeConteudo}>
-        <div className={styles.rodapeMarca}>
-          <p className={styles.rodapeMarcaTitulo}>Reaproveita Franca</p>
-          <p className={styles.rodapeMarcaTexto}>
-            Conectando a indústria calçadista de Franca à economia circular e
-            ao artesanato local.
-          </p>
+    <footer className="home-footer">
+      <div className="home-container">
+        <div className="home-footer-top">
+          <div><Brand footer /><p className="home-serif">Da indústria para a criatividade.</p></div>
+          <nav aria-label="Links do rodapé"><a href="/#sobre">Nossa proposta</a><a href="/#materiais">Materiais</a><Link to="/cadastro">Criar conta</Link></nav>
+          <a href="/#conteudo" className="home-back-top">Voltar ao topo ↑</a>
         </div>
-
-        <nav className={styles.rodapeLinks}>
-          <a href="#" className={styles.rodapeLink}>
-            Políticas de Privacidade
-          </a>
-          <a href="#" className={styles.rodapeLink}>
-            Termos de Uso
-          </a>
-          <a href="#" className={styles.rodapeLink}>
-            Suporte
-          </a>
-        </nav>
-
-        <p className={styles.rodapeDireitos}>
-          © 2026 Reaproveita Franca. Todos os direitos reservados.
-        </p>
+        <div className="home-footer-bottom"><span>© {new Date().getFullYear()} Reaproveita Franca.</span><span>Feito para transformar. Pensado para circular.</span></div>
       </div>
     </footer>
   );

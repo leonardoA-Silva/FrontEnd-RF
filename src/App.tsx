@@ -7,6 +7,7 @@ import Login from "./pages/login/Login";
 import DashboardUsuario from "./pages/dashboard/DashboardUsuario";
 import DashboardEmpresa from "./pages/dashboard/DashboardEmpresa";
 import ProtectedRoute from "./components/ProtectedRoute";
+import DashboardPreview from "./pages/dashboard/DashboardPreview";
 
 function App() {
   return (
@@ -21,6 +22,12 @@ function App() {
           <Route path="/login" element={<Login />} />
 
 
+          {/* Prévia visual somente no servidor de desenvolvimento. */}
+          {import.meta.env.DEV && <>
+            <Route path="/previa/dashboard/empresa/*" element={<DashboardPreview kind="company" />} />
+            <Route path="/previa/dashboard/usuario" element={<DashboardPreview kind="user" />} />
+          </>}
+
           {/* rotas privadas */}
           <Route
             path="/dashboardUsuario"
@@ -31,7 +38,7 @@ function App() {
             }
           />
           <Route
-            path="/dashboardEmpresa"
+            path="/dashboardEmpresa/*"
             element={
               <ProtectedRoute allowedRoles={["company"]}>
                 <DashboardEmpresa/>
