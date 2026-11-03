@@ -1,35 +1,49 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogTitle } from "@mui/material";
-import { ArrowRight, ArrowUpRight, Compass, History, Leaf, Package, Search, X } from "lucide-react";
+import { Dialog, DialogContent, DialogTitle, useMediaQuery } from "@mui/material";
+import { Compass, History, Package, X } from "lucide-react";
 import WorkspaceFrame from "../../components/dashboard/WorkspaceFrame";
 import { useLoggedUser } from "../../hooks/useLoggedUser";
+import { MaterialStorefront } from "../company/CompanyLibrary";
+import { createDemoProducts } from "../company/companyDemo";
+import { MaterialImage, TypeBadge } from "../company/CompanyUi";
+import { categoryLabel, conditionLabel, money, number, statusLabel, type CompanyProduct } from "../company/companyTypes";
 import UserRecords from "./UserRecords";
-import { userReservationExamples as reservations } from "./userReservationExamples";
-
-const materials = [
-  { id: "couro", name: "Retalhos de couro", category: "Couro", image: "/retalho-couro-nobre.png", quantity: "150 kg", description: "Recortes em diferentes formatos e tons de marrom. Uma possibilidade para pequenos acessórios e novos projetos.", type: "Doação" },
-  { id: "eva", name: "Placas de EVA", category: "Borracha", image: "/eva-camurca-premium.png", quantity: "30 un.", description: "Placas com textura aveludada e espessura uniforme. Um exemplo para explorar novas aplicações.", type: "Venda" },
-  { id: "tecido", name: "Retalhos de nobuck", category: "Tecidos", image: "/retalho-nobuck-macio.png", quantity: "60 kg", description: "Retalhos macios em tons neutros, com diferentes tamanhos. Um ponto de partida para sua próxima criação.", type: "Doação" },
-];
 type Section = "explorar" | "reservas" | "historico";
 
 export default function DashboardUsuario({ preview = false }: { preview?: boolean }) {
-  const { displayName, firstName } = useLoggedUser({ fallbackName: "Visitante", previewName: preview ? "Visitante" : undefined });
+  const { displayName } = useLoggedUser({ fallbackName: "Visitante", previewName: preview ? "Visitante" : undefined });
   const [section, setSection] = useState<Section>("explorar");
   const [demo, setDemo] = useState(preview);
-  const [search, setSearch] = useState("");
-  const [category, setCategory] = useState("Todos");
-  const [detail, setDetail] = useState<typeof materials[number] | null>(null);
-  const filtered = (demo ? materials : []).filter(item => (category === "Todos" || category === item.category) && item.name.toLocaleLowerCase("pt-BR").includes(search.trim().toLocaleLowerCase("pt-BR")));
+  const [products] = useState(createDemoProducts);
+  const [detail, setDetail] = useState<CompanyProduct | null>(null);
+  const reducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
   const label = section === "explorar" ? "Explorar materiais" : section === "reservas" ? "Minhas reservas" : "Histórico";
   const nav = [{ key: "explorar", label: "Explorar", Icon: Compass }, { key: "reservas", label: "Reservas", Icon: Package }, { key: "historico", label: "Histórico", Icon: History }] as const;
   function changeSection(next: Section) { setSection(next); window.scrollTo({ top: 0, behavior: "instant" }); }
   return <WorkspaceFrame user name={displayName} section={label} preview={preview} navigation={nav.map(({ key, label: text, Icon }) => <button key={key} type="button" aria-current={section === key ? "page" : undefined} onClick={() => changeSection(key)}><Icon size={23} strokeWidth={1.5} aria-hidden="true" /><span>{text}</span></button>)}>
     <div className={`user-dashboard ${section !== "explorar" ? "user-dashboard-records" : ""}`}>
-      {section === "explorar" ? <header className="user-welcome"><div><p className="company-eyebrow">Olá, {firstName}. O que vamos criar?</p><h1>Sua próxima ideia<br />pode começar <em>aqui.</em></h1><p className="workspace-description">Materiais com história. Possibilidades para transformar. Encontre inspiração para o que você quer fazer.</p></div><figure className="user-welcome-art"><img src="/retalho-nobuck-macio.png" alt="Retalhos de nobuck dobrados, com textura macia" width={420} height={330} /><figcaption><Leaf size={17} strokeWidth={1.5} aria-hidden="true" />Uma nova forma de enxergar valor.</figcaption></figure></header> : <header className="activity-page-heading"><h1>{section === "reservas" ? "Minhas reservas" : "Histórico de reservas"}</h1><p>{section === "reservas" ? "Acompanhe as solicitações e confira quais já foram confirmadas." : "Consulte os materiais e as quantidades das reservas concluídas."}</p></header>}
-      {section === "explorar" ? <div className="workspace-demo"><div><span className="workspace-demo-dot" aria-hidden="true" /><div><p>{demo ? "Inspiração com exemplos, por enquanto" : "Seu espaço está pronto para novas conexões"}</p><span>{demo ? "Materiais e reservas fictícios. Nenhuma ação nesta tela cria uma reserva real." : "A consulta de materiais e reservas ainda não está integrada neste painel. Conheça o visual com exemplos."}</span></div></div><button type="button" className="company-secondary" aria-pressed={demo} onClick={() => { setDemo(!demo); setDetail(null); }}>{demo ? "Ocultar exemplos" : "Explorar exemplos"}<ArrowUpRight size={16} aria-hidden="true" /></button></div> : <div className="activity-notice"><p><span aria-hidden="true" />{demo ? "Dados de exemplo. Nenhuma reserva real é criada nesta tela." : "Consulta real ainda indisponível. Você pode visualizar exemplos."}</p><button type="button" aria-pressed={demo} onClick={() => setDemo(!demo)}>{demo ? "Ocultar exemplos" : "Explorar exemplos"}</button></div>}
-      {section === "explorar" ? <div className="user-content-grid"><section aria-labelledby="materiais-titulo"><div className="user-section-title"><div><p className="company-eyebrow">Novos começos</p><h2 id="materiais-titulo">Encontre sua matéria-prima.</h2></div><span>{filtered.length} {filtered.length === 1 ? "exemplo" : "exemplos"}</span></div><label className="user-search"><Search size={19} aria-hidden="true" /><span className="sr-only">Buscar materiais</span><input type="search" placeholder="Qual material faz parte da sua ideia?" value={search} onChange={event => setSearch(event.target.value)} /></label><div className="user-categories" aria-label="Categorias de materiais">{["Todos", "Couro", "Tecidos", "Borracha"].map(item => <button type="button" key={item} aria-pressed={category === item} onClick={() => setCategory(item)}>{item}</button>)}</div><div className="user-material-grid">{filtered.map((item, index) => <article className="user-material" key={item.id}><button type="button" className="user-material-image" onClick={() => setDetail(item)} aria-label={`Ver exemplo: ${item.name}`}><img src={item.image} width={440} height={360} alt={item.name} loading="lazy" /><span>{item.type}</span><i><ArrowUpRight size={20} aria-hidden="true" /></i></button><div className="user-material-caption"><span>0{index + 1} / {item.category}</span><h3><button type="button" onClick={() => setDetail(item)}>{item.name}</button></h3><p>{item.quantity} · Material demonstrativo</p></div></article>)}</div>{!filtered.length && <div className="workspace-empty"><Compass size={32} strokeWidth={1.2} aria-hidden="true" /><h3>{demo ? "Outra busca, novas possibilidades." : "As possibilidades vão aparecer aqui."}</h3><p>{demo ? "Tente outro material ou limpe os filtros para ver todos os exemplos." : "Ative os exemplos para conhecer a apresentação dos materiais."}</p>{demo && <button type="button" className="company-secondary" onClick={() => { setSearch(""); setCategory("Todos"); }}>Limpar filtros</button>}</div>}</section><aside className="user-reservations"><div className="user-section-title"><div><p className="company-eyebrow">Seu próximo ciclo</p><h2>Em movimento.</h2></div><Package size={24} strokeWidth={1.2} aria-hidden="true" /></div><p className="user-reservation-description">Um lugar para os materiais que podem fazer parte da sua próxima criação.</p>{demo ? reservations.slice(0, 2).map((item, index) => <div className="user-reservation-row" key={item.name}><span>0{index + 1}</span><div><h3>{item.name}</h3><p>{item.quantity} · Exemplo</p><small>{item.status}</small></div><ArrowUpRight size={16} aria-hidden="true" /></div>) : <p className="user-reservation-placeholder">Reservas ainda não disponíveis neste painel.</p>}<button type="button" onClick={() => changeSection("reservas")} className="user-reservation-link">Conhecer minhas reservas<ArrowRight size={17} aria-hidden="true" /></button><div className="user-note"><Leaf size={27} strokeWidth={1.1} aria-hidden="true" /><p>O que é sobra<br />para alguém pode ser<br /><em>o seu começo.</em></p></div></aside></div> : <UserRecords key={`${section}-${demo}`} kind={section} demo={demo} onExplore={() => changeSection("explorar")} />}
+      {section === "explorar" ? <>
+        <div className="activity-notice"><p><span aria-hidden="true" />{demo ? "Materiais de exemplo. Nenhuma compra ou reserva real é realizada nesta tela." : "Consulta real ainda indisponível. Você pode visualizar exemplos."}</p><button type="button" aria-pressed={demo} onClick={() => { setDemo(!demo); setDetail(null); }}>{demo ? "Ocultar exemplos" : "Explorar exemplos"}</button></div>
+        <MaterialStorefront products={demo ? products : []} preview={demo} onSelect={setDetail} />
+      </> : <>
+        <header key={section} className="activity-page-heading"><div><p className="company-eyebrow">Meu espaço</p><h1>{section === "reservas" ? "Minhas reservas" : "Histórico de reservas"}</h1><p>{section === "reservas" ? "Acompanhe as solicitações e confira quais já foram confirmadas." : "Consulte os materiais e as quantidades das reservas concluídas."}</p></div><span className="workspace-heading-symbol" aria-hidden="true">{section === "reservas" ? <Package size={28} strokeWidth={1.4} /> : <History size={28} strokeWidth={1.4} />}</span></header>
+        <div className="activity-notice"><p><span aria-hidden="true" />{demo ? "Dados de exemplo. Nenhuma reserva real é criada nesta tela." : "Consulta real ainda indisponível. Você pode visualizar exemplos."}</p><button type="button" aria-pressed={demo} onClick={() => setDemo(!demo)}>{demo ? "Ocultar exemplos" : "Explorar exemplos"}</button></div>
+        <UserRecords key={`${section}-${demo}`} kind={section} demo={demo} onExplore={() => changeSection("explorar")} />
+      </>}
+
     </div>
-    <Dialog open={Boolean(detail)} onClose={() => setDetail(null)} maxWidth="sm" fullWidth slotProps={{ paper: { className: "user-material-dialog" } }}><DialogTitle className="flex items-center justify-between gap-4"><span>Material demonstrativo</span><button type="button" onClick={() => setDetail(null)} className="company-icon-button" aria-label="Fechar detalhes"><X size={20} /></button></DialogTitle><DialogContent>{detail && <><img src={detail.image} alt={detail.name} className="user-dialog-image" /><p className="company-eyebrow mt-6">{detail.category} · {detail.type}</p><h2 className="workspace-title mt-2">{detail.name}</h2><p className="workspace-description">{detail.description}</p><p className="mt-5 text-sm">Quantidade de exemplo: {detail.quantity}</p><p className="workspace-demo-detail">Este é um exemplo visual. Consulta de anúncios e solicitação de reserva ainda não estão integradas neste painel.</p><button type="button" className="company-secondary mt-5" onClick={() => setDetail(null)}>Continuar explorando<ArrowRight size={16} aria-hidden="true" /></button></>}</DialogContent></Dialog>
+    <Dialog transitionDuration={reducedMotion ? 0 : { enter: 180, exit: 120 }} open={Boolean(detail)} onClose={() => setDetail(null)} maxWidth="sm" fullWidth aria-labelledby="buyer-material-title" slotProps={{ paper: { className: "user-material-dialog" } }}>
+      <DialogTitle className="flex items-center justify-between gap-4"><span id="buyer-material-title">Detalhes do material</span><button type="button" onClick={() => setDetail(null)} className="company-icon-button" aria-label="Fechar detalhes"><X size={20} /></button></DialogTitle>
+      <DialogContent>{detail && <>
+        <MaterialImage key={detail.id} product={detail} large />
+        <div className="buyer-material-meta"><TypeBadge type={detail.type} /><span>{categoryLabel(detail.category)} · {conditionLabel(detail.condition)}</span></div>
+        <h2 className="workspace-title mt-2">{detail.name}</h2>
+        <div className="market-product-value mt-5"><strong>{detail.type === "donation" ? "Doação" : detail.price !== null ? money(detail.price) : "Valor não informado"}</strong><small>{detail.type === "donation" ? "Sem custo pelo material" : "Valor do anúncio"}</small></div>
+        <p className="workspace-description">{detail.description || "Descrição não informada."}</p>
+        <p className="mt-5 text-sm">{number(detail.quantity)} un. · {number(detail.weight)} kg · {statusLabel(detail.status)}</p>
+        <p className="workspace-demo-detail">Material demonstrativo. A consulta real de anúncios e a solicitação de reserva ainda não estão integradas neste painel.</p>
+        <button type="button" className="company-secondary mt-5" onClick={() => setDetail(null)}>Continuar explorando</button>
+      </>}</DialogContent>
+    </Dialog>
   </WorkspaceFrame>;
 }

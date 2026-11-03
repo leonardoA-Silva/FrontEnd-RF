@@ -1,5 +1,6 @@
 import Brand from "./Brand";
 import { Link } from "react-router-dom";
+import LegalLinks from "./LegalLinks";
 
 export default function Footer() {
   return (
@@ -10,6 +11,7 @@ export default function Footer() {
           <nav aria-label="Links do rodapé"><a href="/#sobre">Nossa proposta</a><a href="/#materiais">Materiais</a><Link to="/cadastro">Criar conta</Link></nav>
           <a href="/#conteudo" className="home-back-top">Voltar ao topo ↑</a>
         </div>
+        <LegalLinks />
         <div className="home-footer-bottom"><span>© {new Date().getFullYear()} Reaproveita Franca.</span><span>Feito para transformar. Pensado para circular.</span></div>
       </div>
     </footer>

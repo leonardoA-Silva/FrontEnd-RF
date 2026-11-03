@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogTitle } from "@mui/material";
-import { ArrowRight, Check, ClipboardList, Clock3, Search, SlidersHorizontal, X } from "lucide-react";
+import { Dialog, DialogContent, DialogTitle, useMediaQuery } from "@mui/material";
+import { ArrowRight, Check, ClipboardList, Clock3, Package, Search, SlidersHorizontal, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import CompanyPage from "./CompanyPage";
 
@@ -21,6 +21,7 @@ function NegotiationStatus({ status }: { status: string }) {
 }
 
 export default function HistoricoNegociacoes({ preview = false }: { preview?: boolean }) {
+  const reducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
   const [demo, setDemo] = useState(preview);
   const [status, setStatus] = useState("Todas");
   const [search, setSearch] = useState("");
@@ -34,8 +35,8 @@ export default function HistoricoNegociacoes({ preview = false }: { preview?: bo
   const hasFilter = Boolean(search || status !== "Todas" || start || end);
   function clearFilters() { setStatus("Todas"); setSearch(""); setStart(""); setEnd(""); setSelected(null); }
 
-  return <CompanyPage>
-    <header className="activity-page-heading"><h1>Negociações</h1><p>Consulte a situação, as quantidades e os valores dos seus materiais.</p></header>
+  return <CompanyPage className="company-negotiations-page">
+    <header className="activity-page-heading"><div><p className="company-eyebrow">Movimentação dos materiais</p><h1>Negociações</h1><p>Consulte a situação, as quantidades e os valores dos seus materiais.</p></div><span className="workspace-heading-symbol"><ClipboardList size={29} strokeWidth={1.3} aria-hidden="true" /></span></header>
     <div className="activity-notice"><p><span aria-hidden="true" />{demo ? "Dados de exemplo. Nenhuma negociação real é realizada nesta tela." : "A consulta de negociações da empresa ainda não está integrada."}</p><button type="button" aria-pressed={demo} onClick={() => { setDemo(!demo); clearFilters(); }}>{demo ? "Ocultar exemplos" : "Visualizar exemplo"}</button></div>
     <section className="activity-view" aria-label="Consulta de negociações">
       <div className="activity-summary"><span>{demo ? `${examples.length} negociações nos exemplos` : "Consulta ainda indisponível"}</span><Link to={preview ? "/previa/dashboard/empresa" : "/dashboardEmpresa/materiais"}>Meus materiais<ArrowRight size={15} aria-hidden="true" /></Link></div>
@@ -46,11 +47,11 @@ export default function HistoricoNegociacoes({ preview = false }: { preview?: bo
         {invalidDates && <p id="erro-periodo" role="alert" className="activity-validation">A data final deve ser igual ou posterior à data inicial.</p>}
         <p role="status" className="activity-results">{!demo ? "Ative os exemplos para visualizar os registros." : invalidDates ? "Confira o período para consultar os registros." : `${filtered.length} ${filtered.length === 1 ? "negociação encontrada" : "negociações encontradas"}`}</p>
         {filtered.length > 0 && !invalidDates ? <table className="activity-table activity-negotiations"><caption className="sr-only">Negociações demonstrativas, sem dados reais da conta</caption><thead><tr>{["Material", "Situação", "Quantidade", "Valor", "Data", "Ações"].map(label => <th scope="col" key={label}>{label === "Ações" ? <span className="sr-only">Ações</span> : label}</th>)}</tr></thead><tbody>{filtered.map(item => <tr className="activity-row" key={item.id}>
-          <th scope="row" className="activity-material"><div><div><span>{item.material}</span><small>{item.type}</small></div></div></th>
+          <th scope="row" className="activity-material"><div><span className={`negotiation-material-icon ${item.type === "Doação" ? "is-donation" : ""}`}><Package size={21} strokeWidth={1.3} aria-hidden="true" /></span><div><span>{item.material}</span><small>{item.type}</small></div></div></th>
           <td data-label="Situação"><NegotiationStatus status={item.status} /></td><td data-label="Quantidade" className="activity-quantity">{item.quantity}</td><td data-label="Valor">{item.type === "Doação" ? "Sem custo" : currency.format(item.value)}</td><td data-label="Data"><time dateTime={item.date}>{dateLabel(item.date)}</time></td><td className="activity-action"><button type="button" onClick={() => setSelected(item.id)} aria-label={`Ver detalhes de ${item.material}`}>Detalhes<ArrowRight size={14} aria-hidden="true" /></button></td>
         </tr>)}</tbody></table> : <div className="activity-empty"><ClipboardList size={28} strokeWidth={1.4} aria-hidden="true" /><h2>{invalidDates ? "Período inválido" : !demo ? "Consulta ainda não disponível" : "Nenhuma negociação encontrada"}</h2><p>{invalidDates ? "Ajuste as datas para visualizar os registros." : !demo ? "Visualize os exemplos para conhecer a organização das negociações." : "Altere a busca, a situação ou o período para encontrar os registros."}</p>{demo && hasFilter && <button type="button" className="company-secondary" onClick={clearFilters}>Limpar filtros</button>}</div>}
       </div>
     </section>
-    <Dialog open={Boolean(detail)} onClose={() => setSelected(null)} maxWidth="sm" fullWidth aria-labelledby="negotiation-dialog-title" slotProps={{ paper: { className: "activity-dialog" } }}><DialogTitle className="activity-dialog-heading"><span id="negotiation-dialog-title">Detalhes da negociação</span><button type="button" aria-label="Fechar detalhes" className="company-icon-button" onClick={() => setSelected(null)}><X size={20} /></button></DialogTitle><DialogContent>{detail && <><div className="activity-detail-material"><div><h2>{detail.material}</h2><span>{detail.type}</span></div></div><dl className="activity-detail-list"><div><dt>Situação</dt><dd><NegotiationStatus status={detail.status} /></dd></div><div><dt>Quantidade</dt><dd>{detail.quantity}</dd></div><div><dt>Valor</dt><dd>{detail.type === "Doação" ? "Sem custo" : currency.format(detail.value)}</dd></div><div><dt>Data</dt><dd>{dateLabel(detail.date)}</dd></div></dl><p className="activity-detail-note">Registro fictício para demonstração. Não é uma reserva nem uma confirmação de pagamento.</p><button type="button" className="company-secondary" onClick={() => setSelected(null)}>Fechar detalhes</button></>}</DialogContent></Dialog>
+    <Dialog transitionDuration={reducedMotion ? 0 : { enter: 180, exit: 120 }} open={Boolean(detail)} onClose={() => setSelected(null)} maxWidth="sm" fullWidth aria-labelledby="negotiation-dialog-title" slotProps={{ paper: { className: "activity-dialog" } }}><DialogTitle className="activity-dialog-heading"><span id="negotiation-dialog-title">Detalhes da negociação</span><button type="button" aria-label="Fechar detalhes" className="company-icon-button" onClick={() => setSelected(null)}><X size={20} /></button></DialogTitle><DialogContent>{detail && <><div className="activity-detail-material"><div><h2>{detail.material}</h2><span>{detail.type}</span></div></div><dl className="activity-detail-list"><div><dt>Situação</dt><dd><NegotiationStatus status={detail.status} /></dd></div><div><dt>Quantidade</dt><dd>{detail.quantity}</dd></div><div><dt>Valor</dt><dd>{detail.type === "Doação" ? "Sem custo" : currency.format(detail.value)}</dd></div><div><dt>Data</dt><dd>{dateLabel(detail.date)}</dd></div></dl><p className="activity-detail-note">Registro fictício para demonstração. Não é uma reserva nem uma confirmação de pagamento.</p><button type="button" className="company-secondary" onClick={() => setSelected(null)}>Fechar detalhes</button></>}</DialogContent></Dialog>
   </CompanyPage>;
 }

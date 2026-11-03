@@ -12,3 +12,11 @@ A biblioteca da empresa substitui a tabela por cards com fotografia, categoria, 
 - Não existe suíte de testes configurada; verificações de navegador executadas por script temporário removido após o uso.
 
 [Desktop](library-market-desktop.png) · [Celular](library-market-mobile.png)
+
+## Refinamento após o ponto de retorno
+
+O estado anterior foi salvo no commit `ee87a71` e enviado para `origin/new-ui` antes de qualquer novo refinamento. A versão local acrescenta banner verde com fotografia sobre marfim, atalhos com contagem real de categorias, fotos sem moldura interna nos cards e ilustrações de categoria para materiais sem foto.
+
+Verificação no Edge em 320, 390, 768 e 1440 px: atalhos de categorias, filtros móveis, busca e vazio, ordenação, acesso a detalhes e edição; um título principal e nenhuma rolagem horizontal da página. Nenhuma chamada de API ou erro JavaScript na prévia. Movimento reduzido respeitado. Script temporário removido após o uso.
+
+[Desktop refinado](library-refined-desktop.png) · [Celular refinado](library-refined-mobile.png)

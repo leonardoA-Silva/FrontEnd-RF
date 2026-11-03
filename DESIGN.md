@@ -60,3 +60,21 @@ Map, impact, negotiations and profile retain the approved new-ui frame and their
 ## Materials library as a storefront
 
 The company library uses a marketplace composition requested by the owner: prominent search, a compact photographic banner, category sidebar, sale/donation tabs, sorting and a responsive product grid. Cards prioritize photos, the listing value or donation, quantities and availability; editing and management remain separate actions. Default sorting puts listings with photos first. Mobile filters expand inline with focus transferred to the selected category and a clear return to results. Missing photos and unknown prices stay explicit. All data remains the company's own inventory; no checkout, shipping, reviews, discounts or marketplace API is introduced. Existing forest, ivory and natural-material styling stays in place.
+
+The subsequent visual refinement uses a forest banner with ivory photography, category shortcuts showing actual inventory counts, full-width card photos and category-specific missing-photo illustrations. Category shortcuts stay horizontally navigable on phones and keep the selected category visible. These refinements follow the saved checkpoint `ee87a71` and remain uncommitted for comparison.
+
+## Company interior refinement
+
+Publication and editing use numbered form sections, section anchors and a live local listing preview. Details prioritize the actual photos, value, quantity and weight, with keyboard-operable photo selection when multiple images exist. Impact highlights the main metric in forest green while retaining explicit demonstration labels. Profile pairs a forest identity panel with an ivory form. Negotiations retain their practical ledger with stronger tabs and material icons; map search uses a forest panel and distinct company cards. The changes preserve field validation, role gates, API contracts and the existing limits on real product mutations. These refinements also remain local after checkpoint `ee87a71`.
+
+## Dashboard motion
+
+Preserve the approved composition, palette and typography. CSS handles brief heading, conditional-field, gallery and feedback transitions; MUI retains its accessible dialog/menu behavior with shorter timings. The material grid uses native Web Animations to move surviving cards from their previous positions rather than replaying an entrance for every result. Initial/new cards receive a bounded 230 ms reveal with at most 88 ms of stagger. Frequent keyboard/search updates remain immediate. GSAP reveals the existing impact series through an SVG mask and restores segment opacity when each chart enters the viewport, without changing plotted values or animating counters. Motion stops for reduced-motion preferences and on hidden documents, with cleanup on route changes. No continuous effects, scroll interception, added dependencies or dashboard 3D. Small library labels now use an 11 px floor, with improved secondary-text contrast and a two-line banner on phones.
+
+## Login refinement
+
+Login now pairs a forest editorial panel containing the existing home material sculpture with an ivory access form. Company/buyer selection uses explicit radio controls, visible selected states and contextual help. Larger inputs, a full-width submit action and a separate registration invitation prioritize returning users. On phones the decorative panel is omitted and the form fills the available width. Brief artwork and heading entrances respect reduced motion. Authentication, session persistence and existing API contracts are unchanged; no password recovery or social sign-in is implied.
+
+## Transparency documents
+
+Terms, privacy, data rights, contact and cookies use a shared editorial document layout: serif title, readable body, document navigation and a section index that stacks above the text on phones. All documents are explicitly preliminary while legal identity, institutional contact and review remain undefined. Footer links are shared across public/account/dashboard screens; registration links preserve input by opening a separate tab. No fake support submission, cookie preference controls or contractual consent record is introduced.

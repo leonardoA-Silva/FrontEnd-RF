@@ -3,8 +3,8 @@ import DashboardShell from "../../components/dashboard/DashboardShell";
 import { ArrowUpRight } from "lucide-react";
 import { companyStyles } from "./companyStyles";
 
-export default function CompanyPage({ children }: { children: ReactNode; profile?: boolean }) {
-  return <DashboardShell onSoon={() => undefined}><div className="workspace-editorial">{children}</div></DashboardShell>;
+export default function CompanyPage({ children, profile = false, className = "" }: { children: ReactNode; profile?: boolean; className?: string }) {
+  return <DashboardShell onSoon={() => undefined}><div className={`workspace-editorial company-refined-page ${profile ? "company-profile-page" : ""} ${className}`}>{children}</div></DashboardShell>;
 }
 
 export function WorkspaceHeading({ eyebrow, title, description, children }: { eyebrow: string; title: ReactNode; description: string; children?: ReactNode }) {

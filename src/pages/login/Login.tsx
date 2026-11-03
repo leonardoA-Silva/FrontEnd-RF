@@ -1,10 +1,11 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, ArrowUpRight, Eye, EyeOff, LoaderCircle, LockKeyhole } from "lucide-react";
+import { ArrowLeft, ArrowRight, ArrowUpRight, Building2, Check, Eye, EyeOff, LoaderCircle, Scissors } from "lucide-react";
 import axios from "axios";
 import api from "../../axios/Axios";
 import Brand from "../../components/Brand";
+import LegalLinks from "../../components/LegalLinks";
 import { accountError } from "../../components/account/accountError";
 
 type TipoUsuario = "empresa" | "comprador";
@@ -165,43 +166,50 @@ export default function Login() {
         }
     }
     return (
-        <div className="login-page">
+        <div className="login-page login-refined">
             <a href="#conteudo" className="rf-skip">Pular para o conteúdo</a>
-            <header className="login-header"><Brand /><Link to="/" className="login-home-link"><ArrowLeft size={15} /> Voltar ao início</Link></header>
+            <header className="login-header"><Brand /><Link to="/" className="login-home-link"><ArrowLeft size={16} aria-hidden="true" /> Voltar ao início</Link></header>
             <main id="conteudo" className="login-main" tabIndex={-1}>
-              <div className="login-card">
-                <div className="login-intro"><span className="login-lock"><LockKeyhole size={20} strokeWidth={1.4} /></span><p className="home-eyebrow">Seu espaço na rede</p><h1>Entre na<br /><em>sua conta.</em></h1><p>Bom ter você de volta. Vamos continuar?</p></div>
-            <form onSubmit={handleSubmit} className="account-login-form" aria-busy={carregando}>
-                <fieldset className="account-profile-toggle" disabled={carregando}>
-                    <legend className="sr-only">Perfil da conta</legend>
-                    {[{ value: "empresa" as const, label: "Empresa" }, { value: "comprador" as const, label: "Comprador / Artesão" }].map(item => (
-                        <label key={item.value} className={tipoUsuario === item.value ? "is-selected" : ""}>
-                            <input type="radio" name="perfil-login" checked={tipoUsuario === item.value} onChange={() => handleTrocaTipo(item.value)} />
-                            <span>{item.label}</span>
-                        </label>
-                    ))}
-                </fieldset>
-                {erro && <p id="login-error" role="alert" className={styles.error}>{erro}</p>}
-                <div className={styles.field}>
-                    <label htmlFor="email">{ehEmpresa ? "E-mail da empresa" : "E-mail"}</label>
-                    <input id="email" type="email" autoComplete="email" required placeholder="Seu e-mail de cadastro" value={email} onChange={event => setEmail(event.target.value)} disabled={carregando} className={styles.input} aria-describedby={erro ? "login-error" : undefined} />
+                <div className="login-layout">
+                    <aside className="login-editorial" aria-labelledby="login-editorial-title">
+                        <div className="login-editorial-heading"><p className="login-kicker">Reaproveita Franca · Economia circular</p><h2 id="login-editorial-title">Boas ideias<br />merecem um<br /><em>novo começo.</em></h2><p>Conectamos quem tem materiais<br />a quem enxerga possibilidades.</p></div>
+                        <figure className="login-material-art"><img src="/images/home/hero.webp" alt="" width={1536} height={1024} fetchPriority="high" /><figcaption>Couro, tecido e EVA.<br /><span>Outras formas de continuar.</span></figcaption></figure>
+                        <div className="login-editorial-bottom"><span>Da indústria<br />para a criatividade.</span><Link to="/sobre">Conheça o projeto<ArrowUpRight size={17} aria-hidden="true" /></Link></div>
+                    </aside>
+                    <section className="login-card" aria-labelledby="login-title">
+                        <div className="login-intro"><p className="login-kicker">Seu espaço na rede</p><h1 id="login-title">Bom ter você<br /><em>de volta.</em></h1><p>Entre com os dados da sua conta.</p></div>
+                        <form onSubmit={handleSubmit} className="account-login-form" aria-busy={carregando}>
+                            <fieldset className="account-profile-toggle" disabled={carregando} aria-describedby="login-profile-hint">
+                                <legend>Como você participa?</legend>
+                                {[{ value: "empresa" as const, label: "Empresa", Icon: Building2 }, { value: "comprador" as const, label: "Comprador / Artesão", Icon: Scissors }].map(({ value, label, Icon }) => (
+                                    <label key={value} className={tipoUsuario === value ? "is-selected" : ""}>
+                                        <input type="radio" name="perfil-login" checked={tipoUsuario === value} onChange={() => handleTrocaTipo(value)} />
+                                        <Icon size={19} strokeWidth={1.5} aria-hidden="true" /><span>{label}</span>{tipoUsuario === value && <Check className="login-profile-check" size={14} aria-hidden="true" />}
+                                    </label>
+                                ))}
+                            </fieldset>
+                            <p id="login-profile-hint" className="login-profile-hint">{ehEmpresa ? "Acesse o espaço da sua empresa." : "Acesse seu espaço de comprador ou artesão."}</p>
+                            {erro && <p id="login-error" role="alert" className={styles.error}>{erro}</p>}
+                            <div className={styles.field}>
+                                <label htmlFor="email">{ehEmpresa ? "E-mail da empresa" : "E-mail"}</label>
+                                <input id="email" type="email" autoComplete="email" autoCapitalize="none" spellCheck={false} required placeholder="Seu e-mail de cadastro" value={email} onChange={event => setEmail(event.target.value)} disabled={carregando} className={styles.input} aria-describedby={erro ? "login-error" : undefined} />
+                            </div>
+                            <div className={styles.field}>
+                                <label htmlFor="senha">Senha</label>
+                                <div className="account-password">
+                                    <input id="senha" type={mostrarSenha ? "text" : "password"} autoComplete="current-password" required placeholder="Digite sua senha" value={senha} onChange={event => setSenha(event.target.value)} disabled={carregando} className={styles.input} aria-describedby={erro ? "login-error" : undefined} />
+                                    <button type="button" disabled={carregando} onClick={() => setMostrarSenha(value => !value)} aria-label={mostrarSenha ? "Ocultar senha" : "Mostrar senha"} aria-pressed={mostrarSenha}>{mostrarSenha ? <EyeOff size={19} aria-hidden="true" /> : <Eye size={19} aria-hidden="true" />}</button>
+                                </div>
+                            </div>
+                            <label className="account-remember"><input type="checkbox" checked={lembrarDeMim} onChange={event => setLembrarDeMim(event.target.checked)} disabled={carregando} />Lembrar de mim</label>
+                            <button type="submit" className="home-button account-submit" disabled={carregando}>{carregando ? <><LoaderCircle size={18} className="account-spinner" aria-hidden="true" /> Entrando…</> : <>Entrar na minha conta <ArrowRight size={19} aria-hidden="true" /></>}</button>
+                        </form>
+                        <div className="account-switch"><p>Ainda não tem uma conta?</p><Link to="/cadastro">Faça parte da rede<ArrowUpRight size={16} aria-hidden="true" /></Link></div>
+                    </section>
                 </div>
-                <div className={styles.field}>
-                    <label htmlFor="senha">Senha de acesso</label>
-                    <div className="account-password">
-                        <input id="senha" type={mostrarSenha ? "text" : "password"} autoComplete="current-password" required placeholder="Sua senha" value={senha} onChange={event => setSenha(event.target.value)} disabled={carregando} className={styles.input} aria-describedby={erro ? "login-error" : undefined} />
-                        <button type="button" disabled={carregando} onClick={() => setMostrarSenha(value => !value)} aria-label={mostrarSenha ? "Ocultar senha" : "Mostrar senha"}>{mostrarSenha ? <EyeOff size={19} /> : <Eye size={19} />}</button>
-                    </div>
-                </div>
-                <label className="account-remember"><input type="checkbox" checked={lembrarDeMim} onChange={event => setLembrarDeMim(event.target.checked)} disabled={carregando} />Lembrar de mim</label>
-                <button type="submit" className="home-button account-submit" disabled={carregando}>{carregando ? <><LoaderCircle size={18} className="account-spinner" /> Entrando…</> : <>Entrar na minha conta <ArrowUpRight size={18} /></>}</button>
-            </form>
-            <p className="account-switch">Ainda não faz parte? <Link to="/cadastro">Crie sua conta <ArrowUpRight size={14} /></Link></p>
-              </div>
-              <p className="login-outside-note">Uma conexão de cada vez. Um novo ciclo a cada encontro.</p>
-              {import.meta.env.DEV && <nav aria-label="Prévias locais dos painéis" className="mt-4 flex flex-wrap justify-center gap-4 text-xs text-[#D3DFCF]"><span>Prévia sem API:</span><Link to="/previa/dashboard/empresa" className="underline underline-offset-4">Empresa</Link><Link to="/previa/dashboard/usuario" className="underline underline-offset-4">Usuário</Link></nav>}
+                {import.meta.env.DEV && <nav aria-label="Prévias locais dos painéis" className="login-preview-links"><span>Prévia sem API</span><Link to="/previa/dashboard/empresa">Empresa<ArrowUpRight size={13} aria-hidden="true" /></Link><Link to="/previa/dashboard/usuario">Comprador<ArrowUpRight size={13} aria-hidden="true" /></Link></nav>}
             </main>
-            <footer className="login-footer"><span>© {new Date().getFullYear()} Reaproveita Franca.</span><span>Da indústria para a criatividade.</span></footer>
+            <footer className="login-footer"><span>© {new Date().getFullYear()} Reaproveita Franca.</span><span>Uma conexão de cada vez. Um novo ciclo a cada encontro.</span><LegalLinks /></footer>
         </div>
     );
 }

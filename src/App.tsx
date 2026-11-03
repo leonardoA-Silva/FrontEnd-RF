@@ -16,6 +16,7 @@ const IndicadoresAmbientais = lazy(() => import("./pages/dashboard/IndicadoresAm
 const HistoricoNegociacoes = lazy(() => import("./pages/dashboard/HistoricoNegociacoes"));
 const PerfilEmpresa = lazy(() => import("./pages/dashboard/PerfilEmpresa"));
 const SobreNos = lazy(() => import("./pages/home/SobreNos"));
+const LegalPage = lazy(() => import("./pages/legal/LegalPage"));
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
           <Route path="/cadastro-empresa" element={<RegisterCompany />} />
           <Route path="/cadastro-pessoal" element={<RegisterUser />} />
           <Route path="/login" element={<Login />} />
+          {(["termos", "privacidade", "direitos", "contato", "cookies"] as const).map(kind => <Route key={kind} path={`/${kind}`} element={<Suspense fallback={<main role="status" className="p-8">Carregando informações…</main>}><LegalPage kind={kind} /></Suspense>} />)}
           <Route path="/sobre" element={<Suspense fallback={<main role="status" className="p-8">Carregando…</main>}><SobreNos /></Suspense>} />
           {[
             { path: "/dashboardEmpresa/indicadores", element: <IndicadoresAmbientais /> },
