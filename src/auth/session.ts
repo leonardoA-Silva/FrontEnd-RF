@@ -1,3 +1,5 @@
+import { clearProfilePhoto } from "./profilePhoto";
+
 export interface SessionUser {
   id: string;
   role: string;
@@ -23,6 +25,7 @@ export function readSession() {
 }
 
 export function clearSession() {
+  clearProfilePhoto();
   for (const storage of [localStorage, sessionStorage]) {
     for (const key of ["token", "user", "tipoUsuario", "rememberedEmail"]) storage.removeItem(key);
     for (const key of Object.keys(storage)) if (key.startsWith("rf_comprador_reservas")) storage.removeItem(key);

@@ -1,9 +1,11 @@
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
-import { UserRound } from "lucide-react";
+import { Camera, ImagePlus, UserRound } from "lucide-react";
 import { atualizarPerfilUsuario, obterPerfilUsuario, type UsuarioPerfil } from "../../../axios/Axios";
 import { apiError } from "../../../axios/apiError";
-import { updateSessionUser } from "../../../auth/session";
+import { readSession, updateSessionUser } from "../../../auth/session";
+import { saveProfilePhoto } from "../../../auth/profilePhoto";
+import { useLoggedUser } from "../../../hooks/useLoggedUser";
 import { buyerStyles as s } from "./buyerStyles";
 
 export default function BuyerProfile({ userId }: { userId: string }) {
@@ -21,6 +23,10 @@ export default function BuyerProfile({ userId }: { userId: string }) {
 }
 
 function ProfileForm({ profile }: { profile: UsuarioPerfil }) {
+  const { photoSrc } = useLoggedUser();
+  const savedPhoto = photoSrc ?? "";
+  const photoInputId = useId();
+  const savedBirthday = useRef(profile.birthday?.slice(0, 10) ?? "");
   const [name, setName] = useState(profile.name);
   const [phone, setPhone] = useState(profile.cellphone ?? "");
   const [birthday, setBirthday] = useState(profile.birthday?.slice(0, 10) ?? "");
@@ -28,7 +34,6 @@ function ProfileForm({ profile }: { profile: UsuarioPerfil }) {
   const photoInput = useRef<HTMLInputElement>(null);
   const previewUrls = useRef(new Set<string>());
   const [pendingPhoto, setPendingPhoto] = useState("");
-  const [savedPhoto, setSavedPhoto] = useState("");
   const [unreadablePhoto, setUnreadablePhoto] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -53,7 +58,7 @@ function ProfileForm({ profile }: { profile: UsuarioPerfil }) {
     event.preventDefault();
     if (busy) return;
     setError(""); setSuccess("");
-    if (profile.birthday && !birthday) { setError("Informe uma data de nascimento. A remoção de uma data já cadastrada ainda não está disponível."); return; }
+    if (savedBirthday.current && !birthday) { setError("Informe uma data de nascimento. A remoção de uma data já cadastrada ainda não está disponível."); return; }
     const digits = phone.replace(/\D/g, "");
     if (!name.trim() || digits.length !== 11 || (birthday && birthday > today)) { setError("Informe seu nome, um celular com DDD e 11 dígitos e uma data de nascimento válida."); return; }
     if (file && (!['image/jpeg','image/png','image/webp','image/gif'].includes(file.type) || file.size > 5 * 1024 * 1024)) { setError("Escolha uma imagem JPG, PNG, WebP ou GIF de até 5 MB."); return; }
@@ -61,12 +66,18 @@ function ProfileForm({ profile }: { profile: UsuarioPerfil }) {
     const data = new FormData(); data.append("name", name.trim()); data.append("cellphone", digits);
     if (birthday) data.append("birthday", birthday);
     if (file) data.append("photo", file);
+    const session = readSession();
+    if (session.user?.id !== profile.id || !session.token) { setError("Sua sessão mudou. Entre novamente para atualizar o perfil."); return; }
     setBusy(true);
     try {
       const response = await atualizarPerfilUsuario(profile.id, data);
       if (!response.data.user || response.data.user.id !== profile.id) throw new Error("Resposta inválida.");
+      const current = readSession();
+      if (current.user?.id !== profile.id || current.token !== session.token) return;
       const user = response.data.user;
-      if (file && pendingPhoto) { if (savedPhoto !== pendingPhoto) releasePreview(savedPhoto); setSavedPhoto(pendingPhoto); setPendingPhoto(""); }
+      if (typeof user.name !== "string") throw new Error("Resposta inválida.");
+      if (file && pendingPhoto) { saveProfilePhoto(profile.id, session.token, file); releasePreview(pendingPhoto); setPendingPhoto(""); }
+      savedBirthday.current = user.birthday?.slice(0, 10) ?? "";
       setName(user.name); setPhone(user.cellphone ?? ""); setBirthday(user.birthday?.slice(0,10) ?? ""); setFile(null);
       if (photoInput.current) photoInput.current.value = "";
       updateSessionUser({ name: user.name });
@@ -77,10 +88,10 @@ function ProfileForm({ profile }: { profile: UsuarioPerfil }) {
   return <form onSubmit={submit} className={`${s.panel} max-w-3xl space-y-6`}>
     <p className={s.copy}>Atualize os dados da sua conta de comprador.</p>
     <section aria-label="Foto de perfil" className="flex flex-wrap items-center gap-5">
-      <div className="flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[var(--buyer-soft)] text-[#1B4B3A]">
+      <div className="relative shrink-0"><div className="flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[var(--buyer-soft)] text-[#1B4B3A]">
         {(pendingPhoto || savedPhoto) && unreadablePhoto !== (pendingPhoto || savedPhoto) ? <img src={pendingPhoto || savedPhoto} alt={pendingPhoto ? "Prévia da foto de perfil" : "Foto de perfil enviada"} width={112} height={112} onError={() => setUnreadablePhoto(pendingPhoto || savedPhoto)} className="h-full w-full object-cover" /> : <UserRound size={44} aria-hidden="true" />}
-      </div>
-      <div className="max-w-md space-y-2"><h2 className={s.subtitle}>Sua foto</h2><p className={s.copy}>{pendingPhoto ? "Prévia da foto selecionada. Salve as alterações para enviar." : savedPhoto ? "Foto enviada nesta visita ao perfil." : "Selecione uma foto para visualizar como ela ficará no perfil."}</p>{unreadablePhoto && <p role="alert" className="text-sm text-red-800">Não foi possível exibir esta imagem. Escolha outra foto.</p>}</div>
+      </div><button type="button" disabled={busy} onClick={() => photoInput.current?.click()} aria-label="Adicionar ou alterar foto de perfil" className="absolute -right-2 -bottom-1 flex h-11 w-11 items-center justify-center rounded-full border-4 border-white bg-[#0F3D2E] text-white hover:bg-[#1B4B3A] disabled:cursor-not-allowed disabled:opacity-50"><Camera size={20} aria-hidden="true" /></button></div>
+      <div className="max-w-md space-y-2"><h2 className={s.subtitle}>Sua foto</h2><p className={s.copy}>{pendingPhoto ? "Prévia da foto selecionada. Salve as alterações para enviar." : savedPhoto ? "Foto salva e atualizada nos ícones da sua conta." : "Selecione uma foto para visualizar como ela ficará no perfil."}</p>{unreadablePhoto && <p role="alert" className="text-sm text-red-800">Não foi possível exibir esta imagem. Escolha outra foto.</p>}</div>
     </section>
     <fieldset disabled={busy} className="space-y-5">
       <legend className="sr-only">Dados do perfil</legend>
@@ -88,7 +99,7 @@ function ProfileForm({ profile }: { profile: UsuarioPerfil }) {
       <label className={s.label}>E-mail<input readOnly type="email" value={profile.email ?? ""} className={`${s.input} bg-gray-50`} /><span className="mt-1 block text-xs font-normal text-gray-600">A alteração de e-mail não está disponível por esta tela.</span></label>
       <label className={s.label}>Celular com DDD *<input required type="tel" autoComplete="tel-national" maxLength={20} value={phone} onChange={e => setPhone(e.target.value)} className={s.input} /></label>
       <label className={s.label}>Data de nascimento<input type="date" max={today} value={birthday} onChange={e => setBirthday(e.target.value)} className={s.input} /></label>
-      <label className={s.label}>Enviar foto de perfil<input ref={photoInput} type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={e => selectPhoto(e.target.files?.[0] ?? null)} className={`${s.input} text-xs`} aria-describedby="profile-photo-help" /><span id="profile-photo-help" className="mt-2 block text-xs font-normal leading-relaxed text-gray-600">JPG, PNG, WebP ou GIF de até 5 MB. A foto permanece visível nesta tela após o envio. Ao sair ou recarregar, a imagem salva ainda não pode ser recuperada. Seus endereços são gerenciados na aba Endereços.</span></label>
+      <div><p className={s.label}>Foto de perfil</p><input id={photoInputId} ref={photoInput} type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={e => selectPhoto(e.target.files?.[0] ?? null)} className="sr-only" aria-label="Enviar foto de perfil" aria-describedby="profile-photo-help" /><label htmlFor={photoInputId} className={`${s.secondary} mt-2 cursor-pointer`}><ImagePlus size={18} aria-hidden="true" />Escolher foto</label>{file && <p className="mt-2 break-all text-sm text-[#4B5A55]">{file.name}</p>}<p id="profile-photo-help" className="mt-2 text-xs leading-relaxed text-gray-600">JPG, PNG, WebP ou GIF de até 5 MB. Após salvar, a foto aparece no perfil e no cabeçalho durante esta sessão. A API ainda não permite recuperá-la ao recarregar ou entrar novamente.</p></div>
     </fieldset>
     {error && <p role="alert" className={s.error}>{error}</p>}{success && <p role="status" className={s.success}>{success}</p>}
     <button disabled={busy} type="submit" className={s.button}>{busy ? "Salvando..." : "Salvar alterações"}</button>

@@ -68,3 +68,7 @@ The requested merge includes the existing `new-ui` WebP assets, account layouts,
 ## 14. Verification and continuation
 
 Use `npm run lint`, `npm run build` and responsive route inspection. One-off local Playwright scripts in ignored `.verification.local/` validate buyer contracts and layouts at 375/768/1280px. They are not a configured npm test suite. Real API/MySQL/Socket.IO checks use an exclusively created disposable database and clean it up; never initialize or drop the project's database. Check the current task report for results. Historical verification documents imported from `new-ui` describe that branch's original previews and do not prove current API behavior. Future pages must reuse these tokens, primitives and actual API capabilities.
+
+### Profile avatar update — 2026-11-03
+
+Profile photo uses a 44px forest camera action on the 112px preview, plus a labeled image-picker control. The `AccountAvatar` primitive is 36px, circular, with a neutral fallback. Confirmed uploads update a session-owned in-memory photo store shared across the profile and both headers. Pending/failed uploads do not replace the confirmed header photo. Photos are not persisted in browser storage; API readback remains unavailable after reload. See `docs/auditoria-perfil-integracoes.md` for current evidence and integration limitations.

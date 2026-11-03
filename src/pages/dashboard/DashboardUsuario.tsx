@@ -1,5 +1,6 @@
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Bell, CreditCard, History, MapPin, MessagesSquare, Search, ShieldCheck, ShoppingBag, UserRound, LogOut, ArrowUpRight, Repeat2 } from "lucide-react";
+import AccountAvatar from "../../components/AccountAvatar";
 import { useLoggedUser } from "../../hooks/useLoggedUser";
 import { useBuyerSocket } from "../../hooks/useBuyerSocket";
 import ProductCatalog from "../marketplace/ProductCatalog";
@@ -39,7 +40,7 @@ export default function DashboardUsuario() {
       <div className="buyer-desktop-navigation">{navigation}</div><details className="buyer-mobile-navigation"><summary>Navegação · {activeTab.label}</summary>{navigation}</details>
       <div className="buyer-rail-bottom"><Link to="/marketplace">Ir ao marketplace <ArrowUpRight size={16} /></Link><button type="button" onClick={() => { logout(); navigate("/login"); }}><LogOut size={18} />Sair da conta</button></div>
     </aside>
-    <div className="buyer-workspace"><header className="buyer-topbar"><div><Link to="/">Início</Link><span aria-hidden="true">/</span><span>{activeTab.label}</span></div><Link to="/dashboardUsuario?aba=perfil" className="buyer-account-link"><UserRound size={18} aria-hidden="true" /><span>{displayName || "Minha conta"}</span></Link></header>
+    <div className="buyer-workspace"><header className="buyer-topbar"><div><Link to="/">Início</Link><span aria-hidden="true">/</span><span>{activeTab.label}</span></div><Link to="/dashboardUsuario?aba=perfil" className="buyer-account-link"><AccountAvatar /><span>{displayName || "Minha conta"}</span></Link></header>
       <main id="buyer-content" tabIndex={-1} className="buyer-main space-y-6">
         {(tab === "mensagens" || tab === "notificacoes") && <div className={`${s.notice} flex flex-wrap items-center justify-between gap-3`}><p role="status">{realtime.connected ? "Conectado às atualizações em tempo real." : realtime.error || "Conectando às atualizações em tempo real..."}</p>{!realtime.connected && <button onClick={realtime.reconnect} className={s.secondary}>Reconectar</button>}</div>}
         {tab === "explorar" && <section className="space-y-8"><header className="buyer-heading"><p className="buyer-kicker">Materiais que continuam</p><h1 className={s.title}>Olá, {displayName || "Comprador"}</h1><p className={s.copy}>Sua próxima criação começa com uma nova possibilidade.</p></header><ProductCatalog embedded /></section>}

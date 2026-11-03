@@ -50,9 +50,9 @@ Eventos recebidos: `new_message`, `message_edited`, `message_deleted`, `notifica
 ## Fora do escopo e pendências
 
 - Não há pagamento, avaliação, QR de retirada ou indicadores ambientais confirmados. Esses recursos não são simulados no comprador.
-- Foto no perfil: a prévia local permanece após PUT confirmado, mas GET/PUT ainda não retornam a foto salva; recuperação entre visitas depende da API. Não persistir imagem no navegador.
+- Foto no perfil: após PUT confirmado, a imagem é compartilhada em memória entre perfil e cabeçalhos e permanece ao navegar entre rotas. GET/PUT ainda não retornam a foto salva; recuperação após reload/novo login depende da API. Logout libera a imagem; não persistir foto no navegador.
 - ViaCEP: não existe rota/service correspondente na API `6543cd9`. `src/services/cepService.ts` consulta diretamente o serviço externo, sem JWT/cookies/referrer, como a integração já presente nos cadastros. O endereço final é gravado pela rota autenticada de localização.
 - `/shopping-product/*` não confere ownership; logs e documentos também têm lacunas. Não conectar a telas comuns para contornar verificações dos endpoints próprios.
 - Publicação/edição de produto permanece fora desta tarefa, restrita ao escopo da empresa; autorização continua obrigação do servidor.
-- Banco local observado ainda não tem coordenadas de localização nem `conversation_participant`. Migrações aditivas cabem ao proprietário da API; o schema inicial destrutivo não foi aplicado ao banco existente.
+- Verificação somente leitura em 03/11/2026: o banco local já possui `localization.latitude`, `localization.longitude` e `conversation_participant`. A ausência descrita em registros anteriores foi resolvida no ambiente. Nenhuma migração ou alteração de banco foi realizada nesta tarefa.
 - Contratos novos foram exercitados com API/Socket.IO e MySQL reais em banco descartável isolado, não com dados do projeto nem serviços externos de SMTP/OAuth/gateway.
