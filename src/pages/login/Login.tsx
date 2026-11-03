@@ -75,11 +75,6 @@ export default function Login() {
         divisorLinha: "h-px flex-1 bg-[#E7E4DA]",
         divisorTexto: "tracking-wide",
 
-        sociais: "grid grid-cols-2 gap-4",
-        botaoSocial:
-            "flex items-center justify-center gap-2.5 rounded-xl border border-[#E7E4DA] bg-white px-4 py-3 text-[15px] font-medium text-[#2F3D38] transition hover:bg-[#FAF9F5]",
-        iconeSocial: "h-5 w-5",
-
         rodapeCartao: "mt-6 text-center text-sm text-[#6B7670]",
         linkCadastro: "font-bold text-emerald-600 transition hover:text-emerald-700",
     };
@@ -96,9 +91,18 @@ export default function Login() {
             setErro(expected === "user" ? "Esta conta é de empresa. Selecione Empresa Geradora." : "Esta conta é de comprador. Selecione Comprador / Artesão.");
             return;
         }
-        saveSession(data.token, { ...data.user, mustChangePassword: data.mustChangePassword === true }, remember);
-        navigate(data.mustChangePassword ? "/primeiro-acesso" : data.user.role === "company" ? "/dashboardEmpresa" : voltarAoMarketplace ? origem : "/dashboardUsuario", { replace: true });
+        // Login social não informa mustChangePassword; firstLogin continua obrigatório nos dois fluxos.
+        const trocarSenha = data.mustChangePassword === true || data.user.status === "firstLogin";
+        saveSession(data.token, { ...data.user, mustChangePassword: trocarSenha }, remember);
+        navigate(trocarSenha ? "/primeiro-acesso" : data.user.role === "company" ? "/dashboardEmpresa" : voltarAoMarketplace ? origem : "/dashboardUsuario", { replace: true });
     }, [navigate, tipoUsuario, voltarAoMarketplace, origem]);
+
+    const handleGoogleSuccess = useCallback((data: LoginResponse, remember: boolean) => {
+        if (!data.token || !data.user?.id) throw new Error("Resposta de login inválida.");
+        const trocarSenha = data.mustChangePassword === true || data.user.status === "firstLogin";
+        saveSession(data.token, { ...data.user, mustChangePassword: trocarSenha }, remember);
+        navigate(trocarSenha ? "/primeiro-acesso" : data.user.role === "company" ? "/dashboardEmpresa" : voltarAoMarketplace ? origem : "/dashboardUsuario", { replace: true });
+    }, [navigate, voltarAoMarketplace, origem]);
 
     async function handleSubmit(event: FormEvent) {
         event.preventDefault();
@@ -246,7 +250,7 @@ export default function Login() {
 
                     {!ehEmpresa && <div className="mt-7 space-y-5">
                         <div className={styles.divisor}><span className={styles.divisorLinha} /><span>OU ENTRAR COM</span><span className={styles.divisorLinha} /></div>
-                        <GoogleSignIn onSuccess={handleLoginSuccess} remember={lembrarDeMim} />
+                        <GoogleSignIn onSuccess={handleGoogleSuccess} remember={lembrarDeMim} />
                         <p className="text-xs text-gray-600">A entrada com LinkedIn ainda está indisponível. Use e-mail e senha ou Google.</p>
                     </div>}
 

@@ -1,5 +1,8 @@
 # Pendências da API para o comprador — 03/11/2026
 
+> Atualização posterior em 03/11/2026: o usuário autorizou alterações na API, exceto LinkedIn e pagamento por cartão. Leitura autenticada da foto, alias SQL das conversas e autorização dos itens de compra foram corrigidos localmente e verificados com API/MySQL/Socket.IO reais. A foto agora é recuperada após reload/novo login e a lista alternativa local de conversas foi removida. As descrições abaixo registram o diagnóstico anterior; consulte `api-contract.md` para o contrato atual. Sem commit/push destas novas alterações.
+
+
 Diagnóstico somente leitura sobre o checkout local da API `6543cd9`. Este documento registra o que deve ser encaminhado ao responsável pelo backend. Nenhum arquivo da API ou registro/estrutura do banco foi alterado nesta tarefa.
 
 ## 1. Leitura da foto de perfil

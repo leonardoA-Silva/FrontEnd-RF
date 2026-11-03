@@ -431,6 +431,8 @@ button:not(:disabled), label:has(input[type="radio"]) { cursor: pointer; }
 .registration-rail-note span { display: block; margin-top: 12px; max-width: 185px; font-size: 11px; line-height: 1.8; color: #7b8371; }
 .registration-change-profile { display: inline-block; font-size: 11px; margin-top: 24px; text-decoration: underline; text-underline-offset: 4px; }
 .registration-sheet { background: #fffefa; padding: 32px 36px; border: 1px solid #e0e3d7; border-radius: 12px; min-width: 0; }
+.registration-social { margin-bottom: 26px; padding-bottom: 24px; border-bottom: 1px solid #e0e2d6; }
+.registration-social .account-alert { margin: 14px 0 0; }
 .registration-sheet-heading { display: flex; align-items: center; justify-content: space-between; gap: 15px; margin-bottom: 25px; }
 .registration-sheet-heading h2 { font-size: 22px; font-weight: 650; letter-spacing: -.04em; }
 .registration-sheet-heading > span { font-size: 10px; color: #7b8371; }

@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { listarConversas, sairConversa, type BuyerConversation } from "../../../axios/Axios";
+import { listarConversas, sairConversa } from "../../../axios/Axios";
 import { apiError } from "../../../axios/apiError";
 import { requireArray, useApiResource } from "../../../hooks/useApiResource";
 import type { BuyerSocket } from "../../../realtime/buyerSocket";
@@ -8,43 +8,6 @@ import ConfirmAction from "./ConfirmAction";
 import ConversationMessages from "./ConversationMessages";
 import RequestState from "./RequestState";
 import { buyerStyles as s } from "./buyerStyles";
-
-interface RecentConversation {
-  id: string;
-  name?: string;
-  accessedAt: string;
-}
-
-const RECENT_KEY = "rf_recent_conversations";
-
-function getRecentConversations(): RecentConversation[] {
-  try {
-    const raw = sessionStorage.getItem(RECENT_KEY);
-    const parsed = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
-
-function saveRecentConversation(id: string, name?: string) {
-  try {
-    const current = getRecentConversations().filter(item => item.id !== id);
-    current.unshift({ id, name: name || "Conversa", accessedAt: new Date().toISOString() });
-    sessionStorage.setItem(RECENT_KEY, JSON.stringify(current.slice(0, 10)));
-  } catch {
-    // ignora falhas de storage
-  }
-}
-
-function removeRecentConversation(id: string) {
-  try {
-    const current = getRecentConversations().filter(item => item.id !== id);
-    sessionStorage.setItem(RECENT_KEY, JSON.stringify(current));
-  } catch {
-    // ignora falhas de storage
-  }
-}
 
 export default function BuyerConversations({ userId, socket, connected }: { userId: string; socket: BuyerSocket | null; connected: boolean }) {
   const [params, setParams] = useSearchParams();
@@ -87,9 +50,6 @@ function ConversationDetail({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    saveRecentConversation(id);
-  }, [id]);
 
   async function leave() {
     if (busy) return;
@@ -97,7 +57,6 @@ function ConversationDetail({
     setError("");
     try {
       await sairConversa(id);
-      removeRecentConversation(id);
       setLeaving(false);
       onBack();
     } catch (cause) {
@@ -134,22 +93,8 @@ function ConversationDetail({
 
 function ConversationsList({ onSelect }: { onSelect: (id: string) => void }) {
   const loader = useCallback(async (signal: AbortSignal) => {
-    try {
-      const response = await listarConversas(signal);
-      return { data: requireArray(response.data) };
-    } catch {
-      // Se a listagem geral da API falhar (ex.: erro 500 na query SQL do backend),
-      // exibe as conversas ativas da sessão para permitir que o usuário continue conversando.
-      const recent = getRecentConversations();
-      const fallbackList: BuyerConversation[] = recent.map(item => ({
-        conversationId: item.id,
-        otherUserId: "",
-        otherUserName: item.name || "Conversa",
-        unreadCount: 0,
-        updated_in: item.accessedAt,
-      }));
-      return { data: fallbackList };
-    }
+    const response = await listarConversas(signal);
+    return { data: requireArray(response.data) };
   }, []);
   const resource = useApiResource(loader);
 

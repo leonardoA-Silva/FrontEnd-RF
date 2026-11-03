@@ -47,11 +47,11 @@ Real API photos only; unavailable images have an explicit placeholder. Material 
 
 ## 9. Account and forms
 
-Explore, reservations, history, notifications, messages, addresses, cards, profile and security all use the forest workspace. Inputs remain labeled and at least 48px high. Profile upload preserves its pending/saved preview and current API limitation after reload. Address lookup keeps the existing separate ViaCEP service; no API JWT is sent to it. Cards remain metadata management only; no payment approval, PAN/CVV collection or gateway simulation.
+Explore, reservations, history, notifications, messages, addresses, cards, profile and security all use the forest workspace. Inputs remain labeled and at least 48px high. Profile upload preserves its pending/saved preview and reloads the stored photo through an authenticated binary endpoint. Address lookup keeps the existing separate ViaCEP service; no API JWT is sent to it. Cards remain metadata management only; no payment approval, PAN/CVV collection or gateway simulation.
 
 ## 10. States and interaction
 
-Keep loading, empty, validation, success, server/network error, retry and authorization behavior. Never replace API confirmation with local visual success. Reservation submissions retain duplicate-prevention behavior after an uncertain response. Native dialogs preserve confirmation and pending states. Conversation listing still has a backend SQL alias issue; the pre-existing frontend session fallback is preserved, not presented as an API fix.
+Keep loading, empty, validation, success, server/network error, retry and authorization behavior. Never replace API confirmation with local visual success. Reservation submissions retain duplicate-prevention behavior after an uncertain response. Native dialogs preserve confirmation and pending states. Conversation listing uses the corrected backend SQL query. Failures show a retry state; the old local recent-list fallback has been removed.
 
 ## 11. Accessibility and motion
 
@@ -71,4 +71,4 @@ Use `npm run lint`, `npm run build` and responsive route inspection. One-off loc
 
 ### Profile avatar update — 2026-11-03
 
-Profile photo uses a 44px forest camera action on the 112px preview, plus a labeled image-picker control. The `AccountAvatar` primitive is 36px, circular, with a neutral fallback. Confirmed uploads update a session-owned in-memory photo store shared across the profile and both headers. Pending/failed uploads do not replace the confirmed header photo. Photos are not persisted in browser storage; API readback remains unavailable after reload. See `docs/auditoria-perfil-integracoes.md` for current evidence and integration limitations.
+Profile photo uses a 44px forest camera action on the 112px preview, plus a labeled image-picker control. The `AccountAvatar` primitive is 36px, circular, with a neutral fallback. Confirmed uploads update a session-owned in-memory photo store shared across the profile and both headers. Pending/failed uploads do not replace the confirmed header photo. Photos are not persisted in browser storage; Authenticated image readback now restores the avatar after reload. See `docs/auditoria-perfil-integracoes.md` for current evidence and integration limitations.

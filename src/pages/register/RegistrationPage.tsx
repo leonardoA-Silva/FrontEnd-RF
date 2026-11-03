@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { ArrowLeft, Building2, UserRound, Check } from "lucide-react";
 import Header from "../../components/Header";
@@ -5,6 +6,9 @@ import Footer from "../../components/Footer";
 import { RegistrationSection, AccountSignIn } from "../../components/account/AccountLayout";
 import AccountSteps from "../../components/account/AccountSteps";
 import EmailVerificationModal from "../../components/EmailVerificationModal";
+import GoogleSignIn from "../login/GoogleSignIn";
+import { saveSession } from "../../auth/session";
+import type { LoginResponse } from "../../axios/Axios";
 import RegistrationForm from "./components/RegistrationForm";
 import { useRegistrationForm } from "./useRegistrationForm";
 import type { RegistrationKind } from "./registrationData";
@@ -13,6 +17,21 @@ export default function RegistrationPage({ kind }: { kind: RegistrationKind }) {
   const company = kind === "company";
   const form = useRegistrationForm(kind);
   const navigate = useNavigate();
+  const [googleRoleError, setGoogleRoleError] = useState("");
+
+  // A API faz login-ou-cadastro em /user/login/google e devolve o token da sessão.
+  function handleGoogleSuccess(data: LoginResponse) {
+    if (!data.token || !data.user?.id) throw new Error("Resposta inválida.");
+    if (data.user.role !== "user" && data.user.role !== "admin") {
+      setGoogleRoleError("Este e-mail já pertence a uma conta de empresa. Entre pela tela de login com o perfil Empresa Geradora.");
+      return;
+    }
+    setGoogleRoleError("");
+    const trocarSenha = data.mustChangePassword === true || data.user.status === "firstLogin";
+    saveSession(data.token, { ...data.user, mustChangePassword: trocarSenha }, false);
+    navigate(trocarSenha ? "/primeiro-acesso" : "/dashboardUsuario", { replace: true });
+  }
+
   return (
     <div className="account-page registration-page">
       <Header />
@@ -28,6 +47,12 @@ export default function RegistrationPage({ kind }: { kind: RegistrationKind }) {
           </aside>
           <RegistrationSection>
             <div className="registration-mobile-progress"><AccountSteps current={form.created ? 3 : 2} /></div>
+            {!company && (
+              <div className="registration-social">
+                <GoogleSignIn variant="criar" onSuccess={handleGoogleSuccess} remember={false} />
+                {googleRoleError && <p role="alert" className="account-alert account-alert-error">{googleRoleError}</p>}
+              </div>
+            )}
             <div className="registration-sheet-heading"><h2>Preencha seus dados</h2><span>* Campos obrigatórios</span></div>
             <RegistrationForm kind={kind} form={form} />
             <AccountSignIn />

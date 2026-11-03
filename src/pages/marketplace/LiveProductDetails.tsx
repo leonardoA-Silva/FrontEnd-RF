@@ -38,15 +38,6 @@ function ProductDetails({ productId }: { productId: string }) {
     try {
       const response = await iniciarConversa(product.id_user);
       if (!response.data.conversationId) throw new Error("Resposta inválida.");
-      try {
-        const raw = sessionStorage.getItem("rf_recent_conversations");
-        const list = raw ? JSON.parse(raw) : [];
-        const next = Array.isArray(list) ? list.filter((i: { id: string }) => i.id !== response.data.conversationId) : [];
-        next.unshift({ id: response.data.conversationId, name: product.name, accessedAt: new Date().toISOString() });
-        sessionStorage.setItem("rf_recent_conversations", JSON.stringify(next.slice(0, 10)));
-      } catch {
-        // ignora erro de storage
-      }
       navigate(`/dashboardUsuario?aba=mensagens&conversa=${encodeURIComponent(response.data.conversationId)}`);
     } catch (cause) { setError(apiError(cause, "Não foi possível abrir a conversa com o fornecedor.")); }
     finally { setBusy(false); }

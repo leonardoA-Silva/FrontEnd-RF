@@ -30,7 +30,11 @@ O catálogo real e o único exemplo são separados. `?origem=exemplo` abre a dem
 
 ## Google
 
-O usuário confirmou não possuir Client ID. O botão permanece desativado, com orientação para entrar por e-mail/senha; nenhum SDK do Google é carregado nessa condição. A integração opcional usa Google Identity Services, após clique explícito, e envia a credencial para `/user/login/google`.
+O usuário confirmou não possuir Client ID. O botão permanece desativado, com orientação para entrar por e-mail/senha; nenhum SDK do Google é carregado nessa condição. A integração opcional usa Google Identity Services, após clique explícito, e envia a credencial para `/user/login/google`, que faz login-ou-cadastro.
+
+O botão próprio usa o estilo social do cartão de login e exibe o ícone do Google (SVG decorativo, sem texto alternativo). Os erros do fluxo têm mensagens próprias em pt-BR: 400/401 de token, 403 de e-mail não verificado ou conta não ativada e 500 de provedor não configurado. `mustChangePassword` considera também `status === "firstLogin"`, porque o login social devolve `false` nesse campo e o primeiro acesso continua obrigatório.
+
+O componente `GoogleSignIn` tem duas variantes: `entrar` (login, aba Comprador / Artesão, rótulo oficial `signin_with`) e `criar` (`/cadastro-pessoal`, botão “Criar conta com Google”, rótulo oficial `signup_with`). Na variante `criar`, o sucesso grava a sessão e navega para `/dashboardUsuario` ou `/primeiro-acesso`; se o e-mail já pertence a uma conta de empresa, exibe aviso e não inicia sessão. A variante `criar` não aparece em `/cadastro-empresa`: a API cria contas sociais apenas com papel `user`. Conta social nasce `active` sem OTP e sem CPF/celular/nascimento/endereço.
 
 Para ativação futura, configurar o ID **público** em `VITE_GOOGLE_CLIENT_ID`, o mesmo público-alvo em `GOOGLE_CLIENT_ID` no backend e as origens autorizadas no provedor; reiniciar o Vite. Nenhum Client Secret deve ir para `VITE_*`. Configuração de backend fica a cargo do proprietário desse repositório. Referências: [renderização do botão](https://developers.google.com/identity/gsi/web/guides/display-button) e [API JavaScript oficial](https://developers.google.com/identity/gsi/web/reference/js-reference). Login real do Google não foi validado.
 
