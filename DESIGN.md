@@ -38,3 +38,7 @@ Login is an independent access composition: full-height forest background, compa
 
 ## Company workspace
 The selected company concept uses a narrow forest rail, ivory workspace, serif editorial headings, compact inline totals, fine table rules, natural material imagery and a modest guidance strip. Nested pages cover materials, publication, editing, details, account and delete confirmation. Forms are practical and visually consistent, not copies of the marketing home. Preview is interactive and explicitly in-memory; production is read-only for product mutation until confirmed server-side company/ownership checks. Account editing uses the verified protected own-user endpoint.
+
+## Integração de telas-empresa — 2026-11-03
+
+As páginas públicas e o workspace da new-ui são preservados. Mapa, indicadores, histórico, perfil e gestão de materiais importam os componentes da branch leonardo/telas-empresa. Seus aliases de cores e estilos do Leaflet permanecem disponíveis em src/index.css. A publicação usa o formulário do workspace, mantendo as restrições de integração documentadas.

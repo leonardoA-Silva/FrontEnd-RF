@@ -18,6 +18,13 @@ export default function CompanyShell({ children }: { children: ReactNode }) {
       <NavLink to={base} end><Layers3 size={23} strokeWidth={1.5} /><span>Materiais</span></NavLink>
       <NavLink to={`${base}/publicar`}><Plus size={25} strokeWidth={1.5} /><span>Publicar</span></NavLink>
       <NavLink to={`${base}/conta`}><UserRound size={23} strokeWidth={1.5} /><span>Conta</span></NavLink>
+      {!preview && <>
+        <NavLink to="/mapaEmpresas"><Layers3 size={23} /><span>Mapa</span></NavLink>
+        <NavLink to="/dashboardEmpresa/indicadores"><Layers3 size={23} /><span>Indicadores</span></NavLink>
+        <NavLink to="/dashboardEmpresa/negociacoes"><Layers3 size={23} /><span>Histórico</span></NavLink>
+        <NavLink to="/dashboardEmpresa/perfil"><UserRound size={23} /><span>Perfil</span></NavLink>
+        <NavLink to="/dashboardEmpresa/materiais"><Layers3 size={23} /><span>Gestão</span></NavLink>
+      </>}
     </nav><button type="button" className="company-exit" onClick={exit}><LogOut size={21} strokeWidth={1.5} /><span>{preview ? "Sair da prévia" : "Sair"}</span></button></aside>
     <div className="company-workspace"><header className="company-topbar"><Link to="/" className="company-wordmark">reaproveita<span>.</span><small>FRANCA</small></Link><div className="company-breadcrumb"><span>Minha empresa</span><span>/</span><span>{section}</span></div><Link to={`${base}/conta`} className="company-user"><span><UserRound size={17} /></span><span>{identity?.name || "Minha empresa"}</span></Link></header>
       <main id="conteudo" tabIndex={-1} className="company-main"><p className="company-mode">{preview ? "Prévia interativa · Alterações temporárias, sem API" : "Área da empresa"}</p>
