@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Home from "./pages/home/Home";
+import { lazy, Suspense } from "react";
+const Home = lazy(() => import("./pages/home/Home"));
 import About from "./pages/about/About";
 import RegisterType from "./pages/register/RegisterType";
 import RegisterCompany from "./pages/register/RegisterCompany";
@@ -24,7 +25,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           {/* rotas publicas */}
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<Suspense fallback={<main className="buyer-panel" role="status">Carregando início...</main>}><Home /></Suspense>} />
           <Route path="/sobre-nos" element={<About />} />
           <Route path="/marketplace" element={<MarketplaceLayout />}>
             <Route index element={<Marketplace />} />
@@ -45,6 +46,9 @@ function App() {
           <Route path="/primeiro-acesso" element={<ProtectedRoute><FirstAccess /></ProtectedRoute>} />
 
 
+          {/* Prévia visual somente no servidor de desenvolvimento. */}
+          {import.meta.env.DEV && <Route path="/previa/dashboard/empresa/*" element={<DashboardEmpresa preview />} />}
+
           {/* rotas privadas */}
           <Route
             path="/dashboardUsuario"
@@ -55,7 +59,7 @@ function App() {
             }
           />
           <Route
-            path="/dashboardEmpresa"
+            path="/dashboardEmpresa/*"
             element={
               <ProtectedRoute allowedRoles={["company"]}>
                 <DashboardEmpresa/>

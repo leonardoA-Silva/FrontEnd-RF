@@ -140,3 +140,11 @@ Os roteiros Playwright usam o Edge e o runtime já existente no computador; não
 ## 10. Instrução inicial para a próxima IA
 
 > Você está continuando o frontend web Reaproveita Franca, escopo comprador. Leia este arquivo, AGENTS.md e CLAUDE.md, depois confira Git e código atual. Preserve todo o trabalho local. Use só contratos implementados na API, sem dados/pagamentos/reservas simulados. Não edite backend/mobile nem faça commit/push sem autorização. As pendências reais estão na seção 7. Antes de declarar conclusão, verifique o cenário alterado no navegador e rode lint/build, informando limites e o baseline existente. Pergunte apenas por decisões que realmente bloqueiem a tarefa.
+
+## Atualização visual em 03/11/2026
+
+A referência visual atual é `origin/new-ui` (`abe2906`), integrada à branch `Rafael/Sprint2----Comprador`. O estado anterior está preservado em `codex/comprador-antes-new-ui` (`3b5c937`). Consulte `DESIGN_SYSTEM.md`: fundo marfim, verde floresta, títulos editoriais, navegação lateral escura, filtros móveis recolhíveis e componentes compartilhados de formulário/feedback. As nove seções reais do comprador foram mantidas; o painel demonstrativo de comprador da referência não substitui o painel integrado.
+
+A integração inclui a Home, os layouts de cadastro, a área de empresa e os recursos/dependências já existentes na branch solicitada. O login mantém `saveSession`, seleção de perfil, retorno ao marketplace, primeiro acesso e Google indisponível sem Client ID. `useLoggedUser`, Axios, serviços e contratos do comprador foram preservados. A Home e a cena 3D são carregadas sob demanda. Nenhum arquivo do backend/mobile foi alterado nesta tarefa. Os documentos de verificação importados da referência são históricos, e não evidência de integração atual. O erro SQL da lista de conversas permanece na API; o frontend já usava uma lista recente da sessão como alternativa. Não documente essa alternativa como correção do backend.
+
+O pedido de integração de branch cobre o merge local desta tarefa; não pressupõe autorização para push ou novas alterações de API. Para a próxima tarefa, releia o Git e os testes atuais em vez de assumir que o estado não commitado descrito no início deste documento ainda se aplica.

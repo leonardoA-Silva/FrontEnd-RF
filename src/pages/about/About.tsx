@@ -6,16 +6,16 @@ import Footer from "../../components/Footer";
 import { useLoggedUser } from "../../hooks/useLoggedUser";
 
 const styles = {
-  page: "flex min-h-screen flex-col bg-[#fbfbf9] text-[#064e3b] font-['RF_About_Manrope',sans-serif] [&_:is(a,button):focus-visible]:outline-2 [&_:is(a,button):focus-visible]:outline-offset-4 [&_:is(a,button):focus-visible]:outline-[#064e3b]",
+  page: "flex min-h-screen flex-col bg-[#FAF9F5] text-[#0F3D2E] font-sans [&_:is(a,button):focus-visible]:outline-2 [&_:is(a,button):focus-visible]:outline-offset-4 [&_:is(a,button):focus-visible]:outline-[#0F3D2E]",
   hero: "grid items-center gap-10 px-5 py-12 sm:px-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.8333fr)] lg:gap-16 lg:px-16 lg:py-20",
-  title: "font-['RF_About_Instrument_Serif',serif] text-5xl leading-[1.1] font-normal sm:text-[64px]",
-  description: "text-base leading-[1.6] text-[#4b5563] sm:text-lg",
-  primary: "inline-flex min-h-12 items-center justify-center rounded-lg bg-[#10b981] px-7 py-3.5 text-center text-[15px] font-bold text-white transition-colors hover:bg-[#006c4a] active:bg-[#064e3b]",
-  secondary: "inline-flex min-h-12 cursor-pointer items-center justify-center rounded-lg border border-[#064e3b] px-7 py-3.5 text-center text-[15px] font-bold text-[#064e3b] transition-colors hover:bg-[#ecfdf5] active:bg-emerald-100",
-  cta: "relative isolate flex min-h-[379px] flex-col items-center justify-center gap-8 overflow-hidden bg-[#064e3b] px-5 py-12 text-center sm:px-8 lg:px-16 lg:py-6",
-  ctaTitle: "max-w-[800px] font-['RF_About_Instrument_Serif',serif] text-[40px] leading-[1.2] font-normal text-white sm:text-[56px]",
+  title: "font-serif text-5xl leading-[1.1] font-normal sm:text-[64px]",
+  description: "text-base leading-[1.6] text-[#4B5A55] sm:text-lg",
+  primary: "inline-flex min-h-12 items-center justify-center rounded-full bg-[#1B4B3A] px-7 py-3.5 text-center text-[15px] font-bold text-white transition-colors hover:bg-[#0F3D2E] active:bg-[#0F3D2E]",
+  secondary: "inline-flex min-h-12 cursor-pointer items-center justify-center rounded-full border border-[#0F3D2E] px-7 py-3.5 text-center text-[15px] font-bold text-[#0F3D2E] transition-colors hover:bg-[#ecfdf5] active:bg-emerald-100",
+  cta: "relative isolate flex min-h-[379px] flex-col items-center justify-center gap-8 overflow-hidden bg-[#0F3D2E] px-5 py-12 text-center sm:px-8 lg:px-16 lg:py-6",
+  ctaTitle: "max-w-[800px] font-serif text-[40px] leading-[1.2] font-normal text-white sm:text-[56px]",
   signup: "inline-flex min-h-14 items-center justify-center rounded-lg bg-[#d97706] px-9 py-4 text-base font-bold text-white transition-colors hover:bg-amber-700 active:bg-amber-800 focus-visible:outline-white!",
-  dialog: "fixed inset-0 m-auto max-h-[90svh] w-[calc(100%_-_32px)] max-w-xl overflow-y-auto rounded-2xl border border-[#e5e7eb] bg-[#fbfbf9] p-6 text-[#064e3b] shadow-xl backdrop:bg-black/40 sm:p-8",
+  dialog: "fixed inset-0 m-auto max-h-[90svh] w-[calc(100%_-_32px)] max-w-xl overflow-y-auto rounded-2xl border border-[#e5e7eb] bg-[#FAF9F5] p-6 text-[#0F3D2E] shadow-xl backdrop:bg-black/40 sm:p-8",
 };
 
 export default function About() {
@@ -62,7 +62,7 @@ export default function About() {
         <section aria-labelledby="participar-titulo" className={styles.cta}>
           <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
             <img src="/about/economia-circular.png" alt="" width={1600} height={379} className="h-full w-full object-cover" />
-            <div className="absolute inset-0 bg-[#064e3b]/92" />
+            <div className="absolute inset-0 bg-[#0F3D2E]/92" />
           </div>
           <h2 id="participar-titulo" className={styles.ctaTitle}>
             Faça Parte da Economia Circular de Franca
@@ -83,7 +83,7 @@ export default function About() {
             <X size={20} aria-hidden="true" />
           </button>
         </div>
-        <ol className="my-6 list-decimal space-y-4 pl-5 text-sm leading-relaxed text-[#4b5563]">
+        <ol className="my-6 list-decimal space-y-4 pl-5 text-sm leading-relaxed text-[#4B5A55]">
           <li>Cadastre-se como pessoa ou empresa para participar da comunidade.</li>
           <li>Explore o catálogo de materiais e conheça as opções de venda ou doação.</li>
           <li>Veja os detalhes do material, solicite uma reserva e acompanhe a resposta do fornecedor.</li>

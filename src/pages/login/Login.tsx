@@ -6,8 +6,8 @@ import api, { type LoginResponse } from "../../axios/Axios";
 import { apiError, apiStatus } from "../../axios/apiError";
 import { saveSession } from "../../auth/session";
 import GoogleSignIn from "./GoogleSignIn";
-import Header from "../../components/Header";
-import Footer from "../../components/Footer";
+import Brand from "../../components/Brand";
+
 
 type TipoUsuario = "empresa" | "comprador";
 
@@ -27,20 +27,20 @@ export default function Login() {
     const ehEmpresa = tipoUsuario === "empresa";
 
     const styles = {
-        pagina: "min-h-screen bg-[#FAF9F5] text-[#1B4B3A] flex flex-col",
+        pagina: "login-page",
 
-        conteudo: "flex flex-1 items-center justify-center px-4 py-12 sm:px-6",
+        conteudo: "login-main",
         cartao:
-            "w-full max-w-[560px] rounded-[24px] border border-[#E7E4DA] bg-white px-6 py-10 shadow-[0_2px_16px_rgba(27,75,58,0.06)] sm:px-12",
+            "login-card",
 
         marca: "flex items-center justify-center gap-2.5",
         marcaIcone:
-            "flex h-9 w-9 items-center justify-center rounded-full bg-emerald-500 text-white",
+            "flex h-9 w-9 items-center justify-center rounded-full bg-[#0F3D2E] text-white",
         marcaTextos: "leading-tight text-left",
         marcaTitulo: "text-lg font-extrabold text-[#1B4B3A]",
         marcaSubtitulo: "text-[13px] font-extrabold tracking-wide text-[#D97706]",
 
-        titulo: "mt-4 text-center text-[26px] font-extrabold text-[#0F3D2E]",
+        titulo: "mt-4 text-center font-serif text-4xl font-normal text-[#0F3D2E]",
 
         abasContainer:
             "mt-6 grid grid-cols-2 rounded-xl bg-[#F7F5EF] p-1.5 text-sm font-medium",
@@ -66,7 +66,7 @@ export default function Login() {
         linkEsqueceu: "font-semibold text-emerald-600 transition hover:text-emerald-700",
 
         botaoEntrar:
-            "mt-1 w-full rounded-xl bg-emerald-500 px-6 py-4 text-base font-bold text-white transition hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-70",
+            "mt-1 w-full rounded-xl bg-[#0F3D2E] px-6 py-4 text-base font-bold text-white transition hover:bg-[#1B4B3A] focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-70",
 
         erroBox:
             "rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700",
@@ -116,7 +116,7 @@ export default function Login() {
 
     return (
         <div className={styles.pagina}>
-            <Header />
+            <header className="login-topbar"><Brand footer /><Link to="/" className="login-back">Voltar ao site</Link></header>
 
             <main className={styles.conteudo}>
                 <div className={styles.cartao}>
@@ -259,7 +259,7 @@ export default function Login() {
                 </div>
             </main>
 
-            <Footer />
+            <footer className="login-footer">© {new Date().getFullYear()} Reaproveita Franca.</footer>
         </div>
     );
 }

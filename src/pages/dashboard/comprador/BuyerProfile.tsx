@@ -77,7 +77,7 @@ function ProfileForm({ profile }: { profile: UsuarioPerfil }) {
   return <form onSubmit={submit} className={`${s.panel} max-w-3xl space-y-6`}>
     <p className={s.copy}>Atualize os dados da sua conta de comprador.</p>
     <section aria-label="Foto de perfil" className="flex flex-wrap items-center gap-5">
-      <div className="flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-full bg-emerald-50 text-[#1B4B3A]">
+      <div className="flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[var(--buyer-soft)] text-[#1B4B3A]">
         {(pendingPhoto || savedPhoto) && unreadablePhoto !== (pendingPhoto || savedPhoto) ? <img src={pendingPhoto || savedPhoto} alt={pendingPhoto ? "Prévia da foto de perfil" : "Foto de perfil enviada"} width={112} height={112} onError={() => setUnreadablePhoto(pendingPhoto || savedPhoto)} className="h-full w-full object-cover" /> : <UserRound size={44} aria-hidden="true" />}
       </div>
       <div className="max-w-md space-y-2"><h2 className={s.subtitle}>Sua foto</h2><p className={s.copy}>{pendingPhoto ? "Prévia da foto selecionada. Salve as alterações para enviar." : savedPhoto ? "Foto enviada nesta visita ao perfil." : "Selecione uma foto para visualizar como ela ficará no perfil."}</p>{unreadablePhoto && <p role="alert" className="text-sm text-red-800">Não foi possível exibir esta imagem. Escolha outra foto.</p>}</div>
