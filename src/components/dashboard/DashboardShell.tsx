@@ -22,6 +22,7 @@ interface DashboardShellProps {
   onSoon: (tela: string) => void;
   /** Conteúdo próprio da barra lateral; substitui a lista de seções. */
   sidebar?: ReactNode;
+  showSidebar?: boolean;
 }
 
 interface SecaoNavegacao {
@@ -34,27 +35,27 @@ interface SecaoNavegacao {
 const secoes: SecaoNavegacao[] = [
   { id: "materiais", rotulo: "Meus Materiais", icone: Folder, to: "/dashboardEmpresa/materiais" },
   { id: "publicar", rotulo: "Publicar Novo", icone: PlusCircle, to: "/dashboardEmpresa/materiais/novo" },
-  { id: "perfil", rotulo: "Perfil", icone: UserRound },
+  { id: "perfil", rotulo: "Perfil", icone: UserRound, to: "/dashboardEmpresa/perfil" },
 ];
 
 const navegacao: { rotulo: string; to?: string }[] = [
   { rotulo: "Início", to: "/dashboardEmpresa" },
   { rotulo: "Mapa de Empresas", to: "/mapaEmpresas" },
-  { rotulo: "Indicadores Ambientais" },
-  { rotulo: "Histórico de Negociações" },
-  { rotulo: "Sobre Nós" },
+  { rotulo: "Indicadores Ambientais", to: "/dashboardEmpresa/indicadores" },
+  { rotulo: "Histórico de Negociações", to: "/dashboardEmpresa/negociacoes" },
+  { rotulo: "Sobre Nós", to: "/sobre" },
 ];
 
 function Marca() {
   return (
     <Link
       to="/dashboardEmpresa"
-      className="flex shrink-0 items-center gap-3 no-underline"
+      className="flex min-h-11 shrink-0 items-center gap-2 no-underline sm:gap-3"
       aria-label="Reaproveita Franca — painel"
     >
-      <BrandIcon className="grid h-11 w-11 place-items-center rounded-lg bg-verde-escuro text-white" iconClassName="h-6 w-6" />
+      <BrandIcon className="grid h-9 w-9 place-items-center rounded-lg bg-verde-escuro text-white sm:h-11 sm:w-11" iconClassName="h-6 w-6" />
       <span className="leading-none">
-        <span className="block text-[19px] font-bold tracking-tight text-verde-escuro">
+        <span className="block text-[16px] font-bold tracking-tight text-verde-escuro sm:text-[19px]">
           Reaproveita
         </span>
         <span className="mt-1 block text-[12px] font-bold tracking-[0.14em] text-laranja">
@@ -70,6 +71,7 @@ export default function DashboardShell({
   active,
   onSoon,
   sidebar,
+  showSidebar = true,
 }: DashboardShellProps) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
@@ -99,8 +101,8 @@ export default function DashboardShell({
 
     cabecalho: "border-b border-linha bg-white",
     cabecalhoConteudo:
-      "flex h-[76px] items-center justify-between gap-4 px-5 sm:px-8 lg:h-[84px] lg:px-10",
-    menuTopo: "hidden flex-1 items-center justify-center gap-6 lg:flex xl:gap-9",
+      "flex h-[76px] items-center justify-between gap-2 px-4 sm:gap-4 sm:px-8 lg:h-[84px] lg:px-10",
+    menuTopo: "hidden flex-1 items-center justify-center gap-6 xl:flex 2xl:gap-9",
     menuTopoLink:
       "whitespace-nowrap text-[15px] font-medium text-tinta-suave transition-colors hover:text-verde-escuro",
     menuTopoLinkAtivo:
@@ -108,7 +110,7 @@ export default function DashboardShell({
     acoes: "flex shrink-0 items-center gap-2",
     usuarioDetalhes: "relative",
     usuarioPilha:
-      "flex cursor-pointer list-none items-center gap-2.5 rounded-full bg-verde-claro py-1.5 pl-1.5 pr-3 transition-colors hover:bg-musgo-claro [&::-webkit-details-marker]:hidden",
+      "flex min-h-11 cursor-pointer list-none items-center gap-1.5 rounded-full bg-verde-claro py-1.5 pl-1.5 pr-2 transition-colors hover:bg-musgo-claro sm:gap-2.5 sm:pr-3 [&::-webkit-details-marker]:hidden",
     avatar:
       "grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-full bg-white text-[13px] font-bold text-verde-escuro",
     avatarImg: "h-8 w-8 rounded-full object-cover",
@@ -120,8 +122,8 @@ export default function DashboardShell({
     usuarioMenuItem:
       "flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm text-tinta transition-colors hover:bg-bruma",
     botaoMenu:
-      "grid h-10 w-10 place-items-center rounded-lg border border-linha text-tinta transition-colors hover:bg-bruma lg:hidden",
-    menuMovel: "border-t border-linha px-5 py-3 lg:hidden",
+      "grid h-11 w-11 place-items-center rounded-lg border border-linha text-tinta transition-colors hover:bg-bruma xl:hidden",
+    menuMovel: "border-t border-linha px-5 py-3 xl:hidden",
     menuMovelLink:
       "block w-full rounded-lg px-2 py-2.5 text-left text-sm font-medium text-tinta-suave transition-colors hover:bg-bruma hover:text-tinta",
     menuMovelLinkAtivo:
@@ -230,7 +232,7 @@ export default function DashboardShell({
                 <button
                   type="button"
                   className={styles.usuarioMenuItem}
-                  onClick={() => abrirTela("Perfil")}
+                  onClick={() => navigate("/dashboardEmpresa/perfil")}
                 >
                   <UserRound size={16} aria-hidden="true" />
                   Perfil
@@ -294,7 +296,7 @@ export default function DashboardShell({
         )}
       </header>
 
-      {!sidebar && (
+      {!sidebar && showSidebar && (
         <nav className={styles.navegacaoMovel} aria-label="Seções do painel">
           <div className={styles.navegacaoMovelLista}>
             {secoes.map(({ id, rotulo, icone: Icone, to }) =>
@@ -327,7 +329,7 @@ export default function DashboardShell({
       )}
 
       <div className={styles.corpo}>
-        <aside className={classeBarraLateral}>
+        {showSidebar && <aside className={classeBarraLateral}>
           {sidebar ?? (
             <nav className={styles.menuLateral} aria-label="Seções da conta">
               {secoes.map(({ id, rotulo, icone: Icone, to }) =>
@@ -369,7 +371,7 @@ export default function DashboardShell({
               )}
             </nav>
           )}
-        </aside>
+        </aside>}
 
         <main id="conteudo-principal" className={classePrincipal}>
           {children}

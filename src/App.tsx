@@ -12,6 +12,10 @@ import ProtectedRoute from "./components/ProtectedRoute";
 const MapaEmpresas = lazy(() => import("./pages/dashboard/MapaEmpresas"));
 const MeusMateriais = lazy(() => import("./pages/dashboard/MeusMateriais"));
 const NovoMaterial = lazy(() => import("./pages/dashboard/NovoMaterial"));
+const IndicadoresAmbientais = lazy(() => import("./pages/dashboard/IndicadoresAmbientais"));
+const HistoricoNegociacoes = lazy(() => import("./pages/dashboard/HistoricoNegociacoes"));
+const PerfilEmpresa = lazy(() => import("./pages/dashboard/PerfilEmpresa"));
+const SobreNos = lazy(() => import("./pages/home/SobreNos"));
 
 function App() {
   return (
@@ -24,6 +28,12 @@ function App() {
           <Route path="/cadastro-empresa" element={<RegisterCompany />} />
           <Route path="/cadastro-pessoal" element={<RegisterUser />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/sobre" element={<Suspense fallback={<main role="status" className="p-8">Carregando…</main>}><SobreNos /></Suspense>} />
+          {[
+            { path: "/dashboardEmpresa/indicadores", element: <IndicadoresAmbientais /> },
+            { path: "/dashboardEmpresa/negociacoes", element: <HistoricoNegociacoes /> },
+            { path: "/dashboardEmpresa/perfil", element: <PerfilEmpresa /> },
+          ].map(({ path, element }) => <Route key={path} path={path} element={<ProtectedRoute allowedRoles={["company"]}><Suspense fallback={<main role="status" className="grid min-h-screen place-items-center bg-bruma text-sm text-tinta-suave">Carregando…</main>}>{element}</Suspense></ProtectedRoute>} />)}
 
 
           {/* rotas privadas */}

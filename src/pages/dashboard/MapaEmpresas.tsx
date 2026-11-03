@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, MapPin, Search, X } from "lucide-react";
 import * as L from "leaflet";
+import { Link } from "react-router-dom";
 import "leaflet/dist/leaflet.css";
 import AvisoEmBreve from "../../components/dashboard/AvisoEmBreve";
 import DashboardShell from "../../components/dashboard/DashboardShell";
@@ -241,20 +242,18 @@ export default function MapaEmpresas() {
   const painel = (
     <div className={styles.painel}>
       <div className={styles.atalhos}>
-        <button
-          type="button"
+        <Link
+          to="/dashboardEmpresa/indicadores"
           className={styles.atalho}
-          onClick={() => avisar("Indicadores Ambientais")}
         >
           Indicadores Ambientais
-        </button>
-        <button
-          type="button"
+        </Link>
+        <Link
+          to="/dashboardEmpresa/negociacoes"
           className={styles.atalho}
-          onClick={() => avisar("Histórico de Negociações")}
         >
           Histórico de Negociações
-        </button>
+        </Link>
       </div>
 
       <div className={styles.blocoBusca}>

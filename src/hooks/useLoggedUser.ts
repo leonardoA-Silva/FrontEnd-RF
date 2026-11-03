@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 // Campos que o front lê do usuário salvo no login (a API pode usar nomes variados).
 interface StoredUser {
@@ -12,15 +12,23 @@ interface StoredUser {
   avatar?: string;
 }
 
+function readStoredUser(): StoredUser | null {
+  try {
+    const raw = localStorage.getItem("user") ?? sessionStorage.getItem("user");
+    return raw ? (JSON.parse(raw) as StoredUser) : null;
+  } catch {
+    return null;
+  }
+}
+
 export function useLoggedUser({ fallbackName = "Usuário" }: { fallbackName?: string } = {}) {
-  const [user] = useState<StoredUser | null>(() => {
-    try {
-      const raw = localStorage.getItem("user") ?? sessionStorage.getItem("user");
-      return raw ? (JSON.parse(raw) as StoredUser) : null;
-    } catch {
-      return null;
-    }
-  });
+  const [user, setUser] = useState<StoredUser | null>(readStoredUser);
+
+  useEffect(() => {
+    const refresh = () => setUser(readStoredUser());
+    window.addEventListener("perfil-atualizado", refresh);
+    return () => window.removeEventListener("perfil-atualizado", refresh);
+  }, []);
 
   const displayName: string =
     user?.name ?? user?.nome ?? user?.razaoSocial ?? user?.email ?? fallbackName;

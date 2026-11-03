@@ -5,6 +5,7 @@ const navegacao = [
   { rotulo: "Início", href: "/" },
   { rotulo: "Como funciona", href: "/#como-funciona" },
   { rotulo: "Materiais", href: "/#materiais" },
+  { rotulo: "Sobre Nós", href: "/sobre" },
 ];
 
 export default function Header() {
@@ -12,7 +13,7 @@ export default function Header() {
     cabecalho: "sticky top-0 z-40 border-b border-areia bg-cru/95 backdrop-blur-sm",
     conteudo: "mx-auto flex max-w-6xl items-center justify-between gap-2 px-4 py-3 sm:gap-4 sm:px-8",
     marca: "flex shrink-0 items-center gap-2 no-underline sm:gap-3",
-    marcaTitulo: "font-display text-base font-semibold leading-none text-carvao sm:text-lg",
+    marcaTitulo: "sr-only font-display text-base font-semibold leading-none text-carvao min-[420px]:not-sr-only sm:text-lg",
     menu: "hidden items-center gap-7 md:flex",
     menuLink: "text-sm font-medium text-carvao-suave no-underline transition hover:text-carvao",
     acoes: "flex items-center gap-2.5",
