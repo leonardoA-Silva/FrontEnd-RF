@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ChevronDown, MapPin, Search, X } from "lucide-react";
+import { MapPin, Search, X } from "lucide-react";
 import * as L from "leaflet";
-import { Link } from "react-router-dom";
 import "leaflet/dist/leaflet.css";
 import AvisoEmBreve from "../../components/dashboard/AvisoEmBreve";
 import DashboardShell from "../../components/dashboard/DashboardShell";
@@ -94,6 +93,8 @@ export default function MapaEmpresas() {
   const [busca, setBusca] = useState("");
   const [selecionadaId, setSelecionadaId] = useState(empresasMapaDemo[0].id);
   const [aviso, setAviso] = useState<string | null>(null);
+  const [tileStatus, setTileStatus] = useState<"loading" | "ready" | "error">("loading");
+  const tilesRef = useRef<L.TileLayer | null>(null);
   const elementoMapaRef = useRef<HTMLDivElement>(null);
   const mapaRef = useRef<L.Map | null>(null);
   const marcadoresRef = useRef<L.LayerGroup | null>(null);
@@ -137,17 +138,23 @@ export default function MapaEmpresas() {
       })
       .addTo(mapa);
 
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    let tileFailure = false;
+    const tiles = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution:
         '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       maxZoom: 19,
-    }).addTo(mapa);
+    });
+    tiles.on("loading", () => { tileFailure = false; setTileStatus("loading"); });
+    tiles.on("tileerror", () => { tileFailure = true; setTileStatus("error"); });
+    tiles.on("load", () => setTileStatus(tileFailure ? "error" : "ready"));
+    tilesRef.current = tiles.addTo(mapa);
 
     mapaRef.current = mapa;
     marcadoresRef.current = L.layerGroup().addTo(mapa);
 
     return () => {
       mapaRef.current = null;
+      tilesRef.current = null;
       marcadoresRef.current = null;
       mapa.remove();
     };
@@ -188,76 +195,46 @@ export default function MapaEmpresas() {
   }, [avisar, empresaSelecionadaId, filtradas]);
 
   const styles = {
-    /* painel esquerdo */
-    painel: "flex flex-1 flex-col px-5 pb-6 pt-6 lg:px-6 lg:pb-7",
-    atalhos: "flex flex-col items-start gap-3",
-    atalho:
-      "text-[14px] font-medium text-tinta-suave transition-colors hover:text-verde-escuro",
-
-    blocoBusca: "mt-7",
-    titulo: "text-[21px] font-bold leading-tight tracking-tight text-verde-escuro",
-    campo:
-      "mt-3 flex items-center gap-2.5 rounded-lg border border-linha bg-white px-3 py-2.5 transition-colors focus-within:border-verde",
-    campoIcone: "shrink-0 text-tinta-clara",
-    campoInput:
-      "w-full min-w-0 bg-transparent text-[14px] text-tinta outline-none placeholder:text-tinta-clara",
-    campoLimpar:
-      "grid h-6 w-6 shrink-0 place-items-center rounded text-tinta-clara transition-colors hover:bg-bruma hover:text-tinta",
-    local:
-      "mt-3 inline-flex items-center gap-1.5 rounded-lg bg-bruma px-3 py-2 text-[13px] font-medium text-tinta-suave",
-    localIcone: "shrink-0 text-verde",
-    localSeta: "shrink-0 text-tinta-clara",
-
-    rotuloLista:
-      "text-[11px] font-semibold uppercase tracking-[0.14em] text-tinta-clara",
-    lista: "mt-3 flex flex-col gap-2.5",
-    cartao:
-      "w-full rounded-xl border px-4 py-3 text-left transition-colors duration-150",
-    cartaoAtivo: "border-verde bg-verde-claro/60",
-    cartaoInativo: "border-linha bg-white hover:border-verde/50",
-    cartaoTopo: "flex items-start justify-between gap-2",
-    cartaoNome: "min-w-0 text-[15px] font-bold leading-snug text-verde-escuro",
-    selo: "flex shrink-0 items-center gap-1.5 rounded-md border border-linha bg-white px-2 py-1 text-[11px] font-semibold text-tinta-suave",
-    seloPonto: "h-1.5 w-1.5 shrink-0 rounded-full",
-    cartaoRodape: "mt-2 flex items-center justify-between gap-2",
-    cartaoDistancia: "text-[13px] text-tinta-suave",
-    cartaoQtd: "shrink-0 text-[13px] font-semibold text-verde",
-
-    vazio:
-      "mt-3 rounded-xl border border-dashed border-linha px-4 py-6 text-[13px] leading-relaxed text-tinta-suave",
-    vazioBotao:
-      "mt-3 text-[13px] font-semibold text-verde transition-colors hover:text-verde-escuro",
-    nota: "mt-auto pt-6 text-[12px] leading-relaxed text-tinta-clara",
-
-    /* mapa */
-    mapa: "relative flex min-h-[560px] flex-1 flex-col overflow-hidden bg-areia-clara",
-    legenda:
-      "absolute right-3 top-3 z-20 w-[168px] rounded-xl border border-linha bg-white p-3.5 shadow-sm lg:right-5 lg:top-5 lg:w-[176px]",
-    legendaTitulo: "text-[13px] font-bold leading-snug text-verde-escuro",
-    legendaLista: "mt-2.5 flex flex-col gap-2",
-    legendaItem: "flex items-center gap-2 text-[12px] text-tinta-suave",
-    legendaPonto: "h-2.5 w-2.5 shrink-0 rounded-full",
-  };
+  "painel": "map-search-panel",
+  "atalhos": "map-shortcuts",
+  "atalho": "company-inline-link",
+  "blocoBusca": "map-search-heading",
+  "titulo": "map-title",
+  "campo": "map-search-field",
+  "campoIcone": "shrink-0 text-[#748276]",
+  "campoInput": "min-w-0 w-full bg-transparent py-2 text-sm outline-none",
+  "campoLimpar": "grid h-9 w-9 shrink-0 place-items-center rounded-full hover:bg-[#eeeee5]",
+  "local": "map-local",
+  "localIcone": "shrink-0",
+  "localSeta": "",
+  "rotuloLista": "company-eyebrow",
+  "lista": "map-company-list",
+  "cartao": "map-company-card",
+  "cartaoAtivo": "is-selected",
+  "cartaoInativo": "",
+  "cartaoTopo": "map-company-top",
+  "cartaoNome": "map-company-name",
+  "selo": "map-material-tag",
+  "seloPonto": "h-1.5 w-1.5 shrink-0 rounded-full",
+  "cartaoRodape": "map-company-bottom",
+  "cartaoDistancia": "text-xs text-[#66746b]",
+  "cartaoQtd": "text-xs text-[#0f3d2e]",
+  "vazio": "map-no-results",
+  "vazioBotao": "company-inline-link mt-3",
+  "nota": "map-footnote",
+  "mapa": "map-stage",
+  "legenda": "map-legend",
+  "legendaTitulo": "text-xs font-semibold",
+  "legendaLista": "mt-3 flex flex-col gap-2",
+  "legendaItem": "flex items-center gap-2 text-xs",
+  "legendaPonto": "h-2 w-2 rounded-full shrink-0"
+};
 
   const painel = (
     <div className={styles.painel}>
-      <div className={styles.atalhos}>
-        <Link
-          to="/dashboardEmpresa/indicadores"
-          className={styles.atalho}
-        >
-          Indicadores Ambientais
-        </Link>
-        <Link
-          to="/dashboardEmpresa/negociacoes"
-          className={styles.atalho}
-        >
-          Histórico de Negociações
-        </Link>
-      </div>
-
+      <p className="company-eyebrow">Conexões em Franca</p>
       <div className={styles.blocoBusca}>
-        <h1 className={styles.titulo}>Buscar Resíduos</h1>
+        <h1 className={styles.titulo}>Perto de você.<br /><em>Longe do fim.</em></h1><p className="workspace-description">Explore materiais e encontre possibilidades na cidade.</p>
 
         <label htmlFor="busca-residuos" className="sr-only">
           Buscar resíduos por empresa, material ou lote
@@ -287,13 +264,12 @@ export default function MapaEmpresas() {
 
         <div className={styles.local}>
           <MapPin size={15} strokeWidth={2.2} className={styles.localIcone} aria-hidden="true" />
-          <span>Franca - SP (Raio: 5km)</span>
-          <ChevronDown size={15} strokeWidth={2.2} className={styles.localSeta} aria-hidden="true" />
+          <span>Franca, SP · Mapa demonstrativo</span>
         </div>
       </div>
 
       <div className="mt-7 flex items-baseline justify-between gap-3">
-        <p className={styles.rotuloLista}>Empresas próximas</p>
+        <p className={styles.rotuloLista}>Empresas da rede · exemplo</p>
         <span
           className="text-[12px] tabular-nums text-tinta-suave"
           aria-live="polite"
@@ -325,7 +301,7 @@ export default function MapaEmpresas() {
                   ativa ? styles.cartaoAtivo : styles.cartaoInativo
                 }`}
               >
-                <div className={styles.cartaoTopo}>
+                <img src={empresa.imagem} alt="" width={56} height={56} loading="lazy" className="map-company-image" /><div className="min-w-0 flex-1"><div className={styles.cartaoTopo}>
                   <span className={styles.cartaoNome}>{empresa.nome}</span>
                   <span className={styles.selo}>
                     <span
@@ -340,7 +316,7 @@ export default function MapaEmpresas() {
                   <span className={styles.cartaoQtd}>
                     {empresa.residuos} resíduos disp.
                   </span>
-                </div>
+                </div></div>
               </button>
             );
           })}
@@ -370,6 +346,8 @@ export default function MapaEmpresas() {
           role="region"
           aria-label="Mapa interativo de Franca, São Paulo"
         />
+
+        {tileStatus !== "ready" && <div className="map-connection-status" role="status"><p>{tileStatus === "loading" ? "Carregando as ruas de Franca…" : "Não foi possível carregar parte do mapa. Você pode continuar explorando a lista de empresas."}</p>{tileStatus === "error" && <button type="button" className="company-inline-link" onClick={() => tilesRef.current?.redraw()}>Tentar carregar o mapa novamente</button>}</div>}
 
         {selecionada && (
           <div

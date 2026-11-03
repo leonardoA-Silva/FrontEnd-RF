@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Route, Routes } from "react-router-dom";
+import { lazy, Suspense, useEffect, useState } from "react";
+import { Navigate, Outlet, Route, Routes } from "react-router-dom";
 import { CompanyContext } from "./CompanyContext";
 import { readCompanyIdentity, loadCompanyProducts } from "./companyApi";
 import { accountError } from "../../components/account/accountError";
@@ -8,9 +8,13 @@ import CompanyShell from "./CompanyShell";
 import CompanyLibrary from "./CompanyLibrary";
 import CompanyEditor from "./CompanyEditor";
 import CompanyDetails from "./CompanyDetails";
-import CompanyAccount from "./CompanyAccount";
 import { CompanyMessage } from "./CompanyUi";
 import type { CompanyProduct, CompanyIdentity } from "./companyTypes";
+
+const MapaEmpresas = lazy(() => import("../dashboard/MapaEmpresas"));
+const IndicadoresAmbientais = lazy(() => import("../dashboard/IndicadoresAmbientais"));
+const HistoricoNegociacoes = lazy(() => import("../dashboard/HistoricoNegociacoes"));
+const PerfilEmpresa = lazy(() => import("../dashboard/PerfilEmpresa"));
 
 export default function CompanyWorkspace({ preview = false }: { preview?: boolean }) {
   const [identity, setIdentity] = useState<CompanyIdentity | null>(() => preview ? { id: "demo-company", name: "Empresa demonstrativa", email: "", cellphone: "" } : readCompanyIdentity());
@@ -40,13 +44,23 @@ export default function CompanyWorkspace({ preview = false }: { preview?: boolea
     setNotice("Material removido da prévia. Nenhum anúncio real foi excluído.");
   };
   return <CompanyContext.Provider value={{ preview, base, identity, products, loading: loading && !!identity, error: !preview && !identity ? "Não foi possível identificar sua conta. Entre novamente para carregar seus materiais." : error, notice, reload: () => { setError(""); setLoading(true); setVersion(value => value + 1); }, saveDemo, deleteDemo, updateIdentity: setIdentity, setNotice }}>
-    <CompanyShell><Routes>
-      <Route index element={<CompanyLibrary />} />
-      <Route path="publicar" element={<CompanyEditor />} />
-      <Route path="materiais/:id" element={<CompanyDetails />} />
-      <Route path="materiais/:id/editar" element={<CompanyEditor />} />
-      <Route path="conta" element={<CompanyAccount />} />
-      <Route path="*" element={<CompanyMessage title="Página não encontrada" text="Este endereço não faz parte da área da empresa." />} />
-    </Routes></CompanyShell>
+    <Suspense fallback={<div className="company-state" role="status">Carregando tela da empresa…</div>}><Routes>
+      {preview && <>
+        <Route path="explorar" element={<MapaEmpresas />} />
+        <Route path="indicadores" element={<IndicadoresAmbientais preview />} />
+        <Route path="negociacoes" element={<HistoricoNegociacoes preview />} />
+        <Route path="perfil" element={<PerfilEmpresa preview />} />
+      </>}
+      <Route element={<CompanyShell><Outlet /></CompanyShell>}>
+        <Route index element={<CompanyLibrary />} />
+        <Route path="publicar" element={<CompanyEditor />} />
+        <Route path="materiais" element={<Navigate to={base} replace />} />
+        <Route path="materiais/novo" element={<Navigate to={`${base}/publicar`} replace />} />
+        <Route path="materiais/:id" element={<CompanyDetails />} />
+        <Route path="materiais/:id/editar" element={<CompanyEditor />} />
+        <Route path="conta" element={<Navigate to={`${base}/perfil`} replace />} />
+        <Route path="*" element={<CompanyMessage title="Página não encontrada" text="Este endereço não faz parte da área da empresa." />} />
+      </Route>
+    </Routes></Suspense>
   </CompanyContext.Provider>;
 }

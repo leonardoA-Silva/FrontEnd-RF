@@ -1,23 +1,16 @@
-import { useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import DashboardShell from "../../components/dashboard/DashboardShell";
-import AvisoEmBreve from "../../components/dashboard/AvisoEmBreve";
-import { Info } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import { companyStyles } from "./companyStyles";
 
-export default function CompanyPage({ children, profile = false }: { children: ReactNode; profile?: boolean }) {
-  const [notice, setNotice] = useState<string | null>(null);
-  return <DashboardShell active={profile ? "perfil" : undefined} showSidebar={profile} onSoon={setNotice}>
-    {notice && <AvisoEmBreve texto={notice} onFechar={() => setNotice(null)} />}
-    <div className="mx-auto w-full max-w-7xl">{children}</div>
-  </DashboardShell>;
+export default function CompanyPage({ children }: { children: ReactNode; profile?: boolean }) {
+  return <DashboardShell onSoon={() => undefined}><div className="workspace-editorial">{children}</div></DashboardShell>;
+}
+
+export function WorkspaceHeading({ eyebrow, title, description, children }: { eyebrow: string; title: ReactNode; description: string; children?: ReactNode }) {
+  return <header className="workspace-heading"><div><p className="company-eyebrow">{eyebrow}</p><h1>{title}</h1><p className="workspace-description">{description}</p></div>{children}</header>;
 }
 
 export function DemoNotice({ active, onToggle, children }: { active: boolean; onToggle: () => void; children: ReactNode }) {
-  return <div className="my-6 flex flex-col gap-4 rounded-xl border border-linha bg-verde-claro/60 p-4 sm:flex-row sm:items-center sm:justify-between">
-    <div className="flex items-start gap-3">
-      <Info className="mt-0.5 shrink-0 text-verde" size={20} aria-hidden="true" />
-      <div className="text-sm leading-relaxed text-verde-escuro"><p className="font-bold">{active ? "Demonstração · dados fictícios" : "Dados ainda não disponíveis"}</p><p className="mt-1">{children}</p></div>
-    </div>
-    <button type="button" className={`${companyStyles.secondary} shrink-0`} aria-pressed={active} onClick={onToggle}>{active ? "Sair da demonstração" : "Visualizar exemplo"}</button>
-  </div>;
+  return <div className="workspace-demo"><div><span className="workspace-demo-dot" aria-hidden="true" /><div><p>{active ? "Você está explorando um exemplo" : "Uma visão do que vem pela frente"}</p><span>{children}</span></div></div><button type="button" className={companyStyles.secondary} aria-pressed={active} onClick={onToggle}>{active ? "Fechar exemplo" : "Visualizar exemplo"}<ArrowUpRight size={16} aria-hidden="true" /></button></div>;
 }

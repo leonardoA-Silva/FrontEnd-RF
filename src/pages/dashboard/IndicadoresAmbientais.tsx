@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Droplets, Factory, Leaf, Recycle, Sprout } from "lucide-react";
-import CompanyPage, { DemoNotice } from "./CompanyPage";
+import CompanyPage, { DemoNotice, WorkspaceHeading } from "./CompanyPage";
 import { companyStyles as styles } from "./companyStyles";
 
 const metrics = [
@@ -10,26 +10,25 @@ const metrics = [
   { label: "Empresas participantes", value: "340", icon: Factory },
 ];
 const distribution = [
-  { label: "Tecidos", value: 35, color: "bg-material-couro" },
-  { label: "Borracha", value: 30, color: "bg-material-tecido" },
-  { label: "Madeira", value: 20, color: "bg-material-eva" },
-  { label: "Outros materiais", value: 15, color: "bg-material-outros" },
+  { label: "Tecidos", value: 35, color: "bg-[#0f3d2e]" },
+  { label: "Borracha", value: 30, color: "bg-[#71947c]" },
+  { label: "Madeira", value: 20, color: "bg-[#ae6a41]" },
+  { label: "Outros materiais", value: 15, color: "bg-[#d9d5c8]" },
 ];
 const months = ["Jun", "Jul", "Ago", "Set", "Out", "Nov"];
 const evolution = [4, 10, 8, 16, 21, 29];
 
-export default function IndicadoresAmbientais() {
-  const [demo, setDemo] = useState(false);
+export default function IndicadoresAmbientais({ preview = false }: { preview?: boolean }) {
+  const [demo, setDemo] = useState(preview);
   return <CompanyPage>
-    <h1 className={styles.title}>Impacto Ambiental Coletivo</h1>
-    <p className={styles.description}>O potencial da economia circular e do reaproveitamento de materiais em Franca.</p>
+    <WorkspaceHeading eyebrow="O valor de cada ciclo" title={<> Pequenas escolhas. <em>Impacto coletivo.</em></>} description="Uma perspectiva sobre o reaproveitamento e as conexões que transformam Franca." />
     <DemoNotice active={demo} onToggle={() => setDemo(!demo)}>
       {demo ? "Os valores e gráficos abaixo ilustram a tela e não representam resultados medidos." : "Os indicadores dependem de dados ambientais verificados. Você pode conhecer a apresentação com um exemplo."}
     </DemoNotice>
-    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-      {metrics.map(({ label, value, icon: Icon }) => <section key={label} className={styles.card} aria-label={label}>
+    <div className="impact-metrics">
+      {metrics.map(({ label, value, icon: Icon }) => <section key={label} className="impact-metric" aria-label={label}>
         <div className="flex items-center justify-between gap-3"><h2 className="text-sm font-medium text-tinta-suave">{label}</h2><span className="rounded-lg bg-verde-claro p-2 text-verde"><Icon size={19} aria-hidden="true" /></span></div>
-        <p className="mt-4 text-3xl font-bold tracking-tight text-verde-escuro">{demo ? value : "—"}</p>
+        <p className="impact-value">{demo ? value : "—"}</p>
         <p className="mt-2 text-xs text-tinta-suave">{demo ? "Valor demonstrativo" : "Aguardando dados verificados"}</p>
       </section>)}
     </div>
@@ -54,13 +53,13 @@ export default function IndicadoresAmbientais() {
         <p className="mt-1 text-xs text-tinta-suave">Distribuição por tipo de resíduo</p>
         <div className="relative mx-auto my-7 grid h-40 w-40 place-items-center">
           {demo ? <svg viewBox="0 0 120 120" className="absolute inset-0 h-full w-full -rotate-90" role="img" aria-label="Distribuição demonstrativa por tipo de material">
-            {[{ value: 35, offset: 0, color: "stroke-material-couro" }, { value: 30, offset: 35, color: "stroke-material-tecido" }, { value: 20, offset: 65, color: "stroke-material-eva" }, { value: 15, offset: 85, color: "stroke-material-outros" }].map(part => <circle key={part.offset} cx="60" cy="60" r="48" fill="none" pathLength="100" strokeWidth="13" strokeDasharray={`${part.value} ${100 - part.value}`} strokeDashoffset={-part.offset} className={part.color} />)}
+            {[{ value: 35, offset: 0, color: "stroke-[#0f3d2e]" }, { value: 30, offset: 35, color: "stroke-[#71947c]" }, { value: 20, offset: 65, color: "stroke-[#ae6a41]" }, { value: 15, offset: 85, color: "stroke-[#d9d5c8]" }].map(part => <circle key={part.offset} cx="60" cy="60" r="48" fill="none" pathLength="100" strokeWidth="13" strokeDasharray={`${part.value} ${100 - part.value}`} strokeDashoffset={-part.offset} className={part.color} />)}
           </svg> : <span className="absolute inset-0 rounded-full border-[17px] border-linha" />}
           <div className="text-center"><p className="text-2xl font-bold text-verde-escuro">{demo ? "100%" : "—"}</p><p className="text-xs text-tinta-suave">{demo ? "Exemplo" : "Sem dados"}</p></div>
         </div>
         <ul className="space-y-3">{distribution.map(item => <li key={item.label} className="flex items-center gap-2 text-sm text-tinta-suave"><span className={`h-2.5 w-2.5 rounded-full ${item.color}`} aria-hidden="true" /><span className="flex-1">{item.label}</span><span className="font-semibold text-verde-escuro">{demo ? `${item.value}%` : "—"}</span></li>)}</ul>
       </section>
     </div>
-    <div className="mt-6 flex items-start gap-3 rounded-xl border border-linha bg-verde-claro p-5"><Sprout size={26} className="shrink-0 text-verde" aria-hidden="true" /><div><h2 className="font-bold text-verde-escuro">Um novo destino para cada material</h2><p className="mt-1 text-sm leading-relaxed text-tinta-suave">Reaproveitar aproxima empresas e comunidade. As estimativas de impacto precisarão de metodologia e dados de destinação confirmados.</p></div></div>
+    <div className="impact-footnote"><Sprout size={26} className="shrink-0 text-verde" aria-hidden="true" /><div><h2 className="font-bold text-verde-escuro">Um novo destino para cada material</h2><p className="mt-1 text-sm leading-relaxed text-tinta-suave">Reaproveitar aproxima empresas e comunidade. As estimativas de impacto precisarão de metodologia e dados de destinação confirmados.</p></div></div>
   </CompanyPage>;
 }
