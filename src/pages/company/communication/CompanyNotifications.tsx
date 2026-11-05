@@ -27,7 +27,9 @@ export default function CompanyNotifications() {
   filtered.forEach(item => { const key = dateGroup(item.at); groups.set(key, [...(groups.get(key) ?? []), item]); });
   const selected = notifications.find(item => item.id === selectedId);
   async function view(item: CompanyNotification) {
-    if (item.conversationId) {
+    if (item.disputeId) {
+      if (await markRead(item.id)) navigate(`${base}/disputas?disputa=${encodeURIComponent(item.disputeId)}`);
+    } else if (item.conversationId) {
       if (await markRead(item.id)) { openConversation(item.conversationId); navigate(`${base}/mensagens?conversa=${encodeURIComponent(item.conversationId)}`); }
     } else { setSelectedId(item.id); await markRead(item.id); }
   }

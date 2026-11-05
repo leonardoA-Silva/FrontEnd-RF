@@ -6,7 +6,7 @@ export interface Conversation {
 }
 export interface CompanyNotification {
   id: string; type: string; title: string; content: string; read: boolean; at: string;
-  image?: string; conversationId?: string; action?: string;
+  image?: string; conversationId?: string; disputeId?: string; action?: string;
 }
 export const notificationCategories = { all: "Todos os tipos", reservation: "Reservas", message: "Mensagens", system: "Sistema", other: "Outros avisos" };
 export type NotificationCategory = keyof typeof notificationCategories;

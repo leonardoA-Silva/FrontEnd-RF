@@ -7,7 +7,8 @@ function readNotification(value: unknown): CompanyNotification {
   if (!value || typeof value !== "object") throw new Error("Invalid notification");
   const row = value as Record<string, unknown>;
   if (typeof row.id !== "string" || !uuidPattern.test(row.id) || typeof row.title !== "string" || typeof row.type !== "string" || !["sim", "nao"].includes(String(row.read))) throw new Error("Invalid notification");
-  return { id: row.id, type: row.type, title: row.title, content: typeof row.content === "string" ? row.content : "", read: row.read === "sim", at: typeof row.created_in === "string" ? row.created_in : "", ...(row.reference_table === "conversation" && typeof row.reference_id === "string" && uuidPattern.test(row.reference_id) ? { conversationId: row.reference_id, action: "Abrir conversa" } : {}) };
+  const referenceId = typeof row.reference_id === "string" && uuidPattern.test(row.reference_id) ? row.reference_id : null;
+  return { id: row.id, type: row.type, title: row.title, content: typeof row.content === "string" ? row.content : "", read: row.read === "sim", at: typeof row.created_in === "string" ? row.created_in : "", ...(row.reference_table === "conversation" && referenceId ? { conversationId: referenceId, action: "Abrir conversa" } : {}), ...(row.reference_table === "dispute" && referenceId ? { disputeId: referenceId, action: "Abrir disputa" } : {}) };
 }
 export async function loadNotifications(signal: AbortSignal) {
   const { data } = await api.get<unknown>("/notification/", { signal });

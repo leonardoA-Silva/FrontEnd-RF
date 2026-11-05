@@ -14,7 +14,7 @@ export function readCompanyIdentity(): CompanyIdentity | null {
   } catch { return null; }
 }
 
-function parseProduct(value: unknown): CompanyProduct | null {
+export function parseProduct(value: unknown): CompanyProduct | null {
   const row = record(value);
   const quantity = numeric(row.quantity), weight = numeric(row.weight), price = numeric(row.price);
   if (!uuidPattern.test(text(row.id)) || !text(row.name) || !["sale", "donation"].includes(text(row.type_negotiation)) || !Number.isFinite(quantity) || !Number.isFinite(weight)) return null;

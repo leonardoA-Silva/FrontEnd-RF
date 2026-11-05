@@ -95,3 +95,13 @@ This reinspection supersedes the previous blanket restriction on product update/
 - Reservations received remain blocked: `/shopping/` lists buyer-owned purchases, and GET `/shopping/:id` restricts detail to buyer/admin. Seller acceptance/refusal exists but does not complete a seller consultation workflow. No workaround using another account or administrator credentials was added.
 
 Evidence and scope limits: [company-functional-integration.md](verification/company-functional-integration.md).
+
+## Company map and dispute notification follow-up — 2026-11-05
+
+- Authenticated `/mapaEmpresas` now consumes GET `/product/` and GET `/localization/product/:productId`. It shows product listings rather than fabricated seller names. Missing coordinates are counted/omitted; partial failures remain visible with retry. Coordinate lookups are bounded to six concurrent calls and abort on navigation. The map retains only approximate coordinates and area labels, discarding authorized exact-address fields.
+- The development map preview remains illustrative and network-free with respect to the project API. OpenStreetMap basemap requests are the existing external service, not a new geocoder.
+- Notification references with `reference_table = dispute` and a valid UUID navigate to the account-authorized dispute list/detail using `?disputa=` after confirmed read acknowledgement. Unavailable/unowned/invalid IDs show a controlled unavailable state. Arbitrary reference URLs are never followed.
+- Reconfirmed actual seller reservation gap: GET `/shopping/:id` returns 403 to its seller, and GET `/shopping/` excludes that received sale. Accept/refuse support does not supply the missing seller consultation. Publication remains disabled pending server company-role enforcement.
+- Real persisted impact and dispute records, map data, read acknowledgement and deep-link reload were verified locally with disposable fixtures. The completed-shopping state required for impact calculation was test data prepared directly in MySQL; no completed-sale or payment UI is claimed.
+
+Portuguese implementation report, evidence and backend handoff: [relatorio-empresa-sem-chat-2026-11-05.md](relatorio-empresa-sem-chat-2026-11-05.md).

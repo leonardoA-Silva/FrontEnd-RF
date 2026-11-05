@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { lazy, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { CompanyContext } from "../company/CompanyContext";
 import { MapPin, Search, X } from "lucide-react";
 import * as L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -89,7 +90,12 @@ function construirPopupEmpresa(
   return card;
 }
 
+const LiveMaterialMap = lazy(() => import("./LiveMaterialMap"));
 export default function MapaEmpresas() {
+  const company = useContext(CompanyContext);
+  return company?.preview ? <DemoCompanyMap /> : <LiveMaterialMap />;
+}
+function DemoCompanyMap() {
   const [busca, setBusca] = useState("");
   const [selecionadaId, setSelecionadaId] = useState(empresasMapaDemo[0].id);
   const [aviso, setAviso] = useState<string | null>(null);

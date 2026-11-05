@@ -1,11 +1,6 @@
-// Mapa de Empresas — dados de demonstração.
-//
-// Lacuna da API (conferida no backend): GET /product devolve os produtos com
-// id_user e id_localization, mas sem nome da empresa, sem endereço e sem
-// coordenadas; e não existe GET /localization. Para posicionar empresas reais,
-// a API precisa fornecer nome público, anúncios e coordenadas. Até lá, a tela
-// filtra os exemplos abaixo no navegador. O fundo cartográfico é carregado
-// publicamente do OpenStreetMap; as coordenadas são apenas demonstrativas.
+// Dados exclusivos da prévia demonstrativa do mapa.
+// A rota autenticada usa LiveMaterialMap e materialMapApi, com anúncios e
+// localizações retornados pela API. Nenhum ponto desta lista é usado no modo real.
 
 export type CategoriaMaterial = "Couro" | "Tecido" | "EVA / Borracha" | "Outros";
 
