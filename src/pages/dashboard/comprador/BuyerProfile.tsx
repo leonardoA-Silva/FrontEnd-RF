@@ -39,6 +39,8 @@ function ProfileForm({ profile }: { profile: UsuarioPerfil }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [dismissPendingNote, setDismissPendingNote] = useState(false);
+  const needsCompletion = (!profile.cellphone || !profile.birthday) && !dismissPendingNote;
   useEffect(() => {
     if (!success) return;
     const t = setTimeout(() => setSuccess(""), 4000);
@@ -97,6 +99,23 @@ function ProfileForm({ profile }: { profile: UsuarioPerfil }) {
     finally { setBusy(false); }
   }
   return <form onSubmit={submit} className={`${s.panel} max-w-3xl space-y-6`}>
+    {needsCompletion && (
+      <div role="status" className={`${s.notice} flex items-start justify-between gap-3`}>
+        <div>
+          <strong className="block font-semibold">Complete seus dados cadastrais</strong>
+          <p className="mt-1 text-sm">
+            Para sua segurança e privacidade, o Google não fornece telefone nem data de nascimento. Complete esses campos abaixo para finalizar seu perfil.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setDismissPendingNote(true)}
+          className="text-xs font-semibold text-gray-600 hover:text-black"
+        >
+          Dispensar
+        </button>
+      </div>
+    )}
     <p className={s.copy}>Atualize os dados da sua conta de comprador.</p>
     <section aria-label="Foto de perfil" className="flex flex-wrap items-center gap-5">
       <div className="relative shrink-0"><div className="flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[var(--buyer-soft)] text-[#1B4B3A]">

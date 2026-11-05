@@ -34,7 +34,7 @@ export default function RegistrationPage({ kind }: { kind: RegistrationKind }) {
     setGoogleRoleError("");
     const trocarSenha = data.mustChangePassword === true || data.user.status === "firstLogin";
     saveSession(data.token, { ...data.user, mustChangePassword: trocarSenha }, false);
-    navigate(trocarSenha ? "/primeiro-acesso" : "/dashboardUsuario", { replace: true });
+    navigate(trocarSenha ? "/primeiro-acesso" : "/dashboardUsuario?aba=perfil", { replace: true });
   }
 
   return (
