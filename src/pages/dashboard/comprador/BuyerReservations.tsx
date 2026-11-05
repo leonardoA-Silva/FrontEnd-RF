@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { cancelarReserva, listarReservas, obterReserva } from "../../../axios/Axios";
 import { apiError, apiStatus } from "../../../axios/apiError";
@@ -39,6 +39,16 @@ function ReservationDetail({ id }: { id: string }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  useEffect(() => {
+    if (!success) return;
+    const t = setTimeout(() => setSuccess(""), 4000);
+    return () => clearTimeout(t);
+  }, [success]);
+  useEffect(() => {
+    if (!error) return;
+    const t = setTimeout(() => setError(""), 6000);
+    return () => clearTimeout(t);
+  }, [error]);
   async function cancel() {
     if (busy) return;
     setBusy(true); setError("");

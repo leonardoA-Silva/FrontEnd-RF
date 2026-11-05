@@ -24,14 +24,15 @@ function NotificationItem({ notification, onClose }: NotificationItemProps) {
 
     // Auto-fechar após 5 segundos
     const closeTimer = setTimeout(() => {
-      handleClose();
+      setLeaving(true);
+      setTimeout(() => onClose(notification.id), 300);
     }, 5000);
 
     return () => {
       clearTimeout(enterTimer);
       clearTimeout(closeTimer);
     };
-  }, []);
+  }, [notification.id, onClose]);
 
   const handleClose = () => {
     setLeaving(true);

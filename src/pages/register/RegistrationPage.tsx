@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { ArrowLeft, Building2, UserRound, Check } from "lucide-react";
 import Header from "../../components/Header";
@@ -18,6 +18,11 @@ export default function RegistrationPage({ kind }: { kind: RegistrationKind }) {
   const form = useRegistrationForm(kind);
   const navigate = useNavigate();
   const [googleRoleError, setGoogleRoleError] = useState("");
+  useEffect(() => {
+    if (!googleRoleError) return;
+    const t = setTimeout(() => setGoogleRoleError(""), 6000);
+    return () => clearTimeout(t);
+  }, [googleRoleError]);
 
   // A API faz login-ou-cadastro em /user/login/google e devolve o token da sessão.
   function handleGoogleSuccess(data: LoginResponse) {

@@ -20,6 +20,16 @@ export default function BuyerNotifications({ socket }: { socket: BuyerSocket | n
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  useEffect(() => {
+    if (!success) return;
+    const t = setTimeout(() => setSuccess(""), 4000);
+    return () => clearTimeout(t);
+  }, [success]);
+  useEffect(() => {
+    if (!error) return;
+    const t = setTimeout(() => setError(""), 6000);
+    return () => clearTimeout(t);
+  }, [error]);
   const [selected, setSelected] = useState<BuyerNotification | null>(null);
   useEffect(() => {
     if (!socket) return;

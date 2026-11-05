@@ -39,6 +39,16 @@ function ProfileForm({ profile }: { profile: UsuarioPerfil }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  useEffect(() => {
+    if (!success) return;
+    const t = setTimeout(() => setSuccess(""), 4000);
+    return () => clearTimeout(t);
+  }, [success]);
+  useEffect(() => {
+    if (!error) return;
+    const t = setTimeout(() => setError(""), 6000);
+    return () => clearTimeout(t);
+  }, [error]);
   const [today] = useState(() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; });
   useEffect(() => {
     const urls = previewUrls.current;

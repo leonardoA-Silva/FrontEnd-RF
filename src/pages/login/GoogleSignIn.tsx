@@ -77,7 +77,7 @@ const variantText = {
     notaIndisponivel: "Criação com Google indisponível no momento. Use o formulário de cadastro.",
     gsiText: "signup_with",
     validando: "Criando sua conta...",
-    nota: "Ao continuar, o Google compartilha seu nome e e-mail para criar a conta. Você poderá completar celular, foto e endereço depois.",
+    nota: "Ao continuar, o Google compartilha apenas seu nome e e-mail. Por segurança e limitações da integração, a data de nascimento, telefone e foto de perfil não são importados automaticamente pelo Google e devem ser preenchidos no seu perfil após o acesso.",
     erroPadrao: "Não foi possível criar a conta com Google. Use o formulário ou tente novamente.",
   },
 } as const;
@@ -93,6 +93,11 @@ export default function GoogleSignIn({ onSuccess, remember, variant = "entrar" }
   const [attempt, setAttempt] = useState(0);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  useEffect(() => {
+    if (!error) return;
+    const t = setTimeout(() => setError(""), 6000);
+    return () => clearTimeout(t);
+  }, [error]);
   const [ready, setReady] = useState(false);
   useEffect(() => {
     if (!requested || !clientId) return;

@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { alterarSenha } from "../../../axios/Axios";
 import { apiError, apiStatus } from "../../../axios/apiError";
@@ -13,6 +13,16 @@ export default function PasswordForm({ firstAccess = false }: { firstAccess?: bo
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  useEffect(() => {
+    if (!success) return;
+    const t = setTimeout(() => setSuccess(false), 4000);
+    return () => clearTimeout(t);
+  }, [success]);
+  useEffect(() => {
+    if (!error) return;
+    const t = setTimeout(() => setError(""), 6000);
+    return () => clearTimeout(t);
+  }, [error]);
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); if (busy) return; setError(""); setSuccess(false);
     if (password.length < 6 || password !== confirm || password === current) { setError("A nova senha deve ter ao menos 6 caracteres, ser diferente da atual e coincidir com a confirmação."); return; }

@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Repeat2, Eye, EyeOff } from "lucide-react";
@@ -23,6 +23,11 @@ export default function Login() {
     const [mostrarSenha, setMostrarSenha] = useState(false);
     const [carregando, setCarregando] = useState(false);
     const [erro, setErro] = useState("");
+    useEffect(() => {
+        if (!erro) return;
+        const t = setTimeout(() => setErro(""), 6000);
+        return () => clearTimeout(t);
+    }, [erro]);
 
     const ehEmpresa = tipoUsuario === "empresa";
 

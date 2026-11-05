@@ -15,6 +15,16 @@ export default function BuyerAddresses({ userId }: { userId: string }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  useEffect(() => {
+    if (!success) return;
+    const t = setTimeout(() => setSuccess(""), 4000);
+    return () => clearTimeout(t);
+  }, [success]);
+  useEffect(() => {
+    if (!error) return;
+    const t = setTimeout(() => setError(""), 6000);
+    return () => clearTimeout(t);
+  }, [error]);
   async function remove() {
     if (busy || !selected) return;
     setBusy(true); setError("");
@@ -36,6 +46,16 @@ function AddressForm({ userId, address, cancel, saved }: { userId: string; addre
   const [cepBusy, setCepBusy] = useState(false);
   const [cepError, setCepError] = useState("");
   const [cepStatus, setCepStatus] = useState("");
+  useEffect(() => {
+    if (!error) return;
+    const t = setTimeout(() => setError(""), 6000);
+    return () => clearTimeout(t);
+  }, [error]);
+  useEffect(() => {
+    if (!cepStatus) return;
+    const t = setTimeout(() => setCepStatus(""), 4000);
+    return () => clearTimeout(t);
+  }, [cepStatus]);
   const cepRequest = useRef<AbortController | null>(null);
   const cepSequence = useRef(0);
   const resolvedCep = useRef(address?.zip_code ?? "");
