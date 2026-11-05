@@ -7,7 +7,7 @@ import { useCompany } from "./CompanyContext";
 export default function CompanyShell({ children }: { children: ReactNode }) {
   const { preview, base, identity, notice, setNotice } = useCompany();
   const { pathname } = useLocation();
-  const section = pathname.includes("/mensagens") ? "Mensagens" : pathname.includes("/notificacoes") ? "Notificações" : pathname.includes("/conta") ? "Conta" : pathname.includes("/editar") ? "Editar material" : pathname.includes("/publicar") ? "Publicar material" : pathname.includes("/materiais/") ? "Detalhes" : "Materiais";
+  const section = pathname.includes("/enderecos") ? "Endereços" : pathname.includes("/disputas") ? "Disputas" : pathname.includes("/mensagens") ? "Mensagens" : pathname.includes("/notificacoes") ? "Notificações" : pathname.includes("/conta") ? "Conta" : pathname.includes("/editar") ? "Editar material" : pathname.includes("/publicar") ? "Publicar material" : pathname.includes("/materiais/") ? "Detalhes" : "Materiais";
   return <WorkspaceFrame name={identity?.name || "Minha empresa"} section={section} preview={preview} base={base} accountTo={`${base}/perfil`}>
     <p className="company-mode">{preview ? "Prévia interativa · Alterações temporárias, sem API" : "Área da empresa"}</p>
     {notice && <div className="company-notice" role="status"><span>{notice}</span><button type="button" aria-label="Fechar aviso" onClick={() => setNotice("")}><X size={16} /></button></div>}{children}

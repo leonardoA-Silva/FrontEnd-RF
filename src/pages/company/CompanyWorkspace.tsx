@@ -12,6 +12,8 @@ import { CompanyMessage } from "./CompanyUi";
 import type { CompanyProduct, CompanyIdentity } from "./companyTypes";
 import CommunicationProvider from "./communication/CommunicationProvider";
 
+const CompanyAddresses = lazy(() => import("./CompanyAddresses"));
+const CompanyDisputes = lazy(() => import("./CompanyDisputes"));
 const MapaEmpresas = lazy(() => import("../dashboard/MapaEmpresas"));
 const IndicadoresAmbientais = lazy(() => import("../dashboard/IndicadoresAmbientais"));
 const HistoricoNegociacoes = lazy(() => import("../dashboard/HistoricoNegociacoes"));
@@ -56,6 +58,8 @@ export default function CompanyWorkspace({ preview = false }: { preview?: boolea
       </>}
       <Route element={<CompanyShell><Outlet /></CompanyShell>}>
         <Route index element={<CompanyLibrary />} />
+        <Route path="enderecos" element={<CompanyAddresses />} />
+        <Route path="disputas" element={<CompanyDisputes />} />
         <Route path="publicar" element={<CompanyEditor />} />
         <Route path="mensagens" element={<CompanyMessages />} />
         <Route path="notificacoes" element={<CompanyNotifications />} />

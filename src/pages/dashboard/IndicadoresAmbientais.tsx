@@ -1,3 +1,4 @@
+import CompanyImpact from "../company/CompanyImpact";
 import { useId, useRef, useState } from "react";
 import { Droplets, Factory, Leaf, Recycle, Sprout } from "lucide-react";
 import CompanyPage, { DemoNotice, WorkspaceHeading } from "./CompanyPage";
@@ -20,7 +21,10 @@ const months = ["Jun", "Jul", "Ago", "Set", "Out", "Nov"];
 const evolution = [4, 10, 8, 16, 21, 29];
 
 export default function IndicadoresAmbientais({ preview = false }: { preview?: boolean }) {
-  const [demo, setDemo] = useState(preview);
+  return preview ? <DemoImpact /> : <CompanyImpact />;
+}
+function DemoImpact() {
+  const [demo, setDemo] = useState(true);
   const charts = useRef<HTMLDivElement>(null);
   const clipId = useId();
   useImpactMotion(charts, demo);

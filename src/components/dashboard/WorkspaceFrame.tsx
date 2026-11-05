@@ -1,6 +1,6 @@
 import { useContext, useEffect, useRef, type ReactNode } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { ArrowLeft, Bell, ChartNoAxesCombined, Compass, History, Layers3, LogOut, MapPin, MessageSquare, Plus, UserRound } from "lucide-react";
+import { ArrowLeft, Bell, ChartNoAxesCombined, Compass, History, Layers3, LogOut, MapPin, MessageSquare, Plus, ShieldAlert, UserRound } from "lucide-react";
 import LegalLinks from "../LegalLinks";
 import { CommunicationContext } from "../../pages/company/communication/CommunicationContext";
 
@@ -39,6 +39,7 @@ export default function WorkspaceFrame({ children, name, section, preview = fals
     { to: preview ? `${base}/explorar` : "/mapaEmpresas", label: "Explorar", Icon: MapPin },
     { to: `${base}/indicadores`, label: "Impacto", Icon: ChartNoAxesCombined },
     { to: `${base}/negociacoes`, label: "Negociações", Icon: History },
+    { to: `${base}/disputas`, label: "Disputas", Icon: ShieldAlert },
     { to: `${base}/mensagens`, label: "Mensagens", Icon: MessageSquare, count: unreadMessages },
     { to: `${base}/notificacoes`, label: "Notificações", Icon: Bell, count: unreadNotifications },
     { to: `${base}/perfil`, label: "Conta", Icon: UserRound },
