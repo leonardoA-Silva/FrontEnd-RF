@@ -77,7 +77,7 @@ const variantText = {
     notaIndisponivel: "Criação com Google indisponível no momento. Use o formulário de cadastro.",
     gsiText: "signup_with",
     validando: "Criando sua conta...",
-    nota: "Ao continuar, o Google compartilha apenas seu nome e e-mail. Por segurança e limitações da integração, a data de nascimento, telefone e foto de perfil não são importados automaticamente pelo Google e devem ser preenchidos no seu perfil após o acesso.",
+    nota: "Ao continuar, o Google compartilha seu nome, e-mail e foto de perfil. A data de nascimento e o telefone não são fornecidos pelo Google por privacidade e podem ser completados no seu perfil após o acesso.",
     erroPadrao: "Não foi possível criar a conta com Google. Use o formulário ou tente novamente.",
   },
 } as const;
