@@ -56,3 +56,29 @@ This newer source inspection supersedes the earlier statements above about missi
 - Product creation requires `id_localization`, but no verified safe current-address listing/selection contract was established for the company workspace. The frontend does not ask users to enter raw UUIDs or silently create duplicate locations.
 
 Required backend-owner follow-up: enforce company-role creation and own-product/admin authorization for update/delete/photo mutations; expose/confirm a safe location selection contract. No backend files were modified. Other newly present routes were outside this change's verification scope and are not claimed delivered.
+
+## Company communication reinspection — 2026-11-05
+
+The current backend now mounts `/notification` and `/conversation` under the API prefix. This supersedes earlier missing-notification assumptions for these inspected routes.
+
+- `GET /notification/`: JWT required; array of the current user's notifications. Fields consumed by the frontend: UUID `id`, `type`, `title`, nullable `content`, `read` (`sim`/`nao`), `created_in`. Ownership derives from `req.userId`, not a frontend user parameter.
+- `PATCH /notification/:id/read`: owner-scoped service; response `{ message, notification }`. The frontend confirms matching id and `read: sim` before updating its read state.
+- `PATCH /notification/read-all`: owner-scoped service; response `{ message, updated }`. The frontend waits for a successful valid response before updating the loaded list. No notification creation or deletion UI is introduced.
+- Notification types verified in `notificationService`: `reserva_solicitada`, `reserva_aceita`, `reserva_recusada`, `pagamento_confirmado`, `nova_mensagem`, `nova_review`, `disputa_aberta`, `disputa_resolvida`, `sistema`. Generic server content is displayed as text; references are not converted into arbitrary links or unimplemented reservation actions.
+- The notification page loads on entry and explicit refresh. No Socket.IO connection, polling, background push or read-receipt subscription is claimed. Header/sidebar counts reflect the list loaded in the current company workspace, not a guaranteed live count across all routes.
+- Chat message loading/sending/marking read currently use Socket.IO (`load_messages`, `send_message`, `mark_read`, `join_conversation`), with server authentication and participant checks. The frontend has no installed Socket.IO client. No transport or new endpoint was invented.
+- `conversationService.listConversationsForUser` currently selects `other.id_user` / `otherUserId` through an undefined `other` alias, while the joined participant alias is `otherCp`. This requires a backend-owner correction and integration verification before connecting the conversation list.
+
+New company routes `/dashboardEmpresa/mensagens` and `/dashboardEmpresa/notificacoes` retain the existing company role guard. Both have development-only preview equivalents under `/previa/dashboard/empresa/`. Chat is explicitly local and illustrative in preview and unavailable for real sends. The real notification contract was checked with browser-intercepted responses, not a live authenticated server/database session. No backend files or dependencies were modified.
+
+## Live integration after API pull — 2026-11-05
+
+This section supersedes the preceding chat limitation. At the owner's request, the backend `main` was fast-forwarded from `cf23b5d` to `a8611b4`; that revision fixes the conversation query's participant alias. Its SQL already defines `conversation_participant`; the old local database had not applied that schema.
+
+After explicit approval to replace the local database, an encrypted external backup was created and decryption verified by hash. The API's current `RFScript.sql` recreated the configured local database with 19 tables. Two synthetic accounts without documents, phone or address records were inserted solely for integration checks. Passwords were generated in process memory and only their bcrypt hashes stored. No real credentials or person records were added to the repository.
+
+The owner explicitly approved `socket.io-client`. The frontend uses authenticated Socket.IO WebSocket connections through Vite's `/socket.io` proxy; JWTs travel in the handshake `auth` object, not URLs. `GET /conversation/` supplies the list; verified `join_conversation`, `load_messages` (latest 100), `mark_read` and `send_message` events supply the thread. Messages are deduplicated by server id; outgoing success requires server acknowledgement and does not automatically retry an uncertain send. Disconnect/retry/error states retain drafts. Actual message data has no product association, so the material context bar remains preview-only.
+
+**Important:** `leave_conversation` removes the participant from the database, rather than merely leaving a socket room. The frontend never emits it for navigation/cleanup; it disconnects its socket on leaving the chat page. It listens for new, edited and deleted message events without introducing edit/delete controls.
+
+Verified against the actual local API and MySQL: login through the browser, buyer-to-company delivery, company-to-buyer delivery, reply received without reload, persistence of three messages, preservation of both conversation participants after navigation, notification generation and persisted individual/all-read actions. No HTTP or WebSocket mocking was used for this live verification. Deployment still needs a same-origin `/socket.io` reverse proxy; Vite's proxy is development configuration.

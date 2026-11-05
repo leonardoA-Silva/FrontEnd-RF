@@ -78,3 +78,11 @@ Login now pairs a forest editorial panel containing the existing home material s
 ## Transparency documents
 
 Terms, privacy, data rights, contact and cookies use a shared editorial document layout: serif title, readable body, document navigation and a section index that stacks above the text on phones. All documents are explicitly preliminary while legal identity, institutional contact and review remain undefined. Footer links are shared across public/account/dashboard screens; registration links preserve input by opening a separate tab. No fake support submission, cookie preference controls or contractual consent record is introduced.
+
+## Company messages and notifications
+
+The approved image concepts are implemented inside the existing workspace frame. Messages use a searchable conversation list beside a material-context thread, quiet incoming/outgoing bubbles and a composer. On mobile, list and thread become separate views with a back control, and navigation remains at the bottom. Local drafts survive conversation and page changes within the company preview. No delivered/read receipts, online presence or attachment support is implied.
+
+Notifications use grouped operational rows with sage unread highlighting, type/unread filters, detail dialogs and read actions. The preview is explicitly fictional and in memory. Real notification reads use verified authenticated REST routes; no live push is claimed. The chat's real transport remains unavailable pending the server conversation-query correction and Socket.IO integration. Header and rail badges reflect loaded local state, with compact navigation to accommodate the additional destinations.
+
+After the approved API update and Socket.IO client installation, the same chat composition also displays real conversations. Server acknowledgements confirm outgoing messages; incoming events update the thread, and failures retain drafts. Real conversations omit the material bar because the API does not link conversations to a product. Preview remains isolated from network traffic. Notification detail actions may open a verified conversation reference; no arbitrary server-provided URL is used.

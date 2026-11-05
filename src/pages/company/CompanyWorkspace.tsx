@@ -10,11 +10,14 @@ import CompanyEditor from "./CompanyEditor";
 import CompanyDetails from "./CompanyDetails";
 import { CompanyMessage } from "./CompanyUi";
 import type { CompanyProduct, CompanyIdentity } from "./companyTypes";
+import CommunicationProvider from "./communication/CommunicationProvider";
 
 const MapaEmpresas = lazy(() => import("../dashboard/MapaEmpresas"));
 const IndicadoresAmbientais = lazy(() => import("../dashboard/IndicadoresAmbientais"));
 const HistoricoNegociacoes = lazy(() => import("../dashboard/HistoricoNegociacoes"));
 const PerfilEmpresa = lazy(() => import("../dashboard/PerfilEmpresa"));
+const CompanyMessages = lazy(() => import("./communication/CompanyMessages"));
+const CompanyNotifications = lazy(() => import("./communication/CompanyNotifications"));
 
 export default function CompanyWorkspace({ preview = false }: { preview?: boolean }) {
   const [identity, setIdentity] = useState<CompanyIdentity | null>(() => preview ? { id: "demo-company", name: "Empresa demonstrativa", email: "", cellphone: "" } : readCompanyIdentity());
@@ -44,7 +47,7 @@ export default function CompanyWorkspace({ preview = false }: { preview?: boolea
     setNotice("Material removido da prévia. Nenhum anúncio real foi excluído.");
   };
   return <CompanyContext.Provider value={{ preview, base, identity, products, loading: loading && !!identity, error: !preview && !identity ? "Não foi possível identificar sua conta. Entre novamente para carregar seus materiais." : error, notice, reload: () => { setError(""); setLoading(true); setVersion(value => value + 1); }, saveDemo, deleteDemo, updateIdentity: setIdentity, setNotice }}>
-    <Suspense fallback={<div className="company-state" role="status">Carregando tela da empresa…</div>}><Routes>
+    <CommunicationProvider preview={preview}><Suspense fallback={<div className="company-state" role="status">Carregando tela da empresa…</div>}><Routes>
       {preview && <>
         <Route path="explorar" element={<MapaEmpresas />} />
         <Route path="indicadores" element={<IndicadoresAmbientais preview />} />
@@ -54,6 +57,8 @@ export default function CompanyWorkspace({ preview = false }: { preview?: boolea
       <Route element={<CompanyShell><Outlet /></CompanyShell>}>
         <Route index element={<CompanyLibrary />} />
         <Route path="publicar" element={<CompanyEditor />} />
+        <Route path="mensagens" element={<CompanyMessages />} />
+        <Route path="notificacoes" element={<CompanyNotifications />} />
         <Route path="materiais" element={<Navigate to={base} replace />} />
         <Route path="materiais/novo" element={<Navigate to={`${base}/publicar`} replace />} />
         <Route path="materiais/:id" element={<CompanyDetails />} />
@@ -61,6 +66,6 @@ export default function CompanyWorkspace({ preview = false }: { preview?: boolea
         <Route path="conta" element={<Navigate to={`${base}/perfil`} replace />} />
         <Route path="*" element={<CompanyMessage title="Página não encontrada" text="Este endereço não faz parte da área da empresa." />} />
       </Route>
-    </Routes></Suspense>
+    </Routes></Suspense></CommunicationProvider>
   </CompanyContext.Provider>;
 }

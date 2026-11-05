@@ -12,6 +12,11 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
       },
+      '/socket.io': {
+        target: process.env.VITE_BACKEND_URL || 'http://localhost:5000',
+        changeOrigin: true,
+        ws: true,
+      },
     },
   },
 })
