@@ -1,7 +1,9 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+import api from "../../axios/Axios";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   ChevronDown,
+  Bell,
   Folder,
   LogOut,
   Menu,
@@ -12,7 +14,7 @@ import {
 import { useLoggedUser } from "../../hooks/useLoggedUser";
 import BrandIcon from "../BrandIcon";
 
-type SecaoPainel = "materiais" | "publicar" | "perfil";
+type SecaoPainel = "materiais" | "publicar" | "perfil" | "avaliacoes" | "disputas";
 
 interface DashboardShellProps {
   children: ReactNode;
@@ -34,15 +36,17 @@ interface SecaoNavegacao {
 const secoes: SecaoNavegacao[] = [
   { id: "materiais", rotulo: "Meus Materiais", icone: Folder, to: "/dashboardEmpresa/materiais" },
   { id: "publicar", rotulo: "Publicar Novo", icone: PlusCircle, to: "/dashboardEmpresa/materiais/novo" },
-  { id: "perfil", rotulo: "Perfil", icone: UserRound },
+  { id: "perfil", rotulo: "Perfil", icone: UserRound, to: "/dashboardEmpresa/perfil" },
+  { id: "avaliacoes", rotulo: "Avaliações", icone: Folder, to: "/dashboardEmpresa/avaliacoes" },
+  { id: "disputas", rotulo: "Disputas", icone: Folder, to: "/dashboardEmpresa/disputas" },
 ];
 
 const navegacao: { rotulo: string; to?: string }[] = [
+  { rotulo: "Recebimentos", to: "/dashboardEmpresa/recebimentos" },
   { rotulo: "Início", to: "/dashboardEmpresa" },
   { rotulo: "Mapa de Empresas", to: "/mapaEmpresas" },
-  { rotulo: "Indicadores Ambientais" },
-  { rotulo: "Histórico de Negociações" },
-  { rotulo: "Sobre Nós" },
+  { rotulo: "Indicadores", to: "/dashboardEmpresa/indicadores" },
+  { rotulo: "Negociações", to: "/dashboardEmpresa/negociacoes" },
 ];
 
 function Marca() {
@@ -73,8 +77,32 @@ export default function DashboardShell({
 }: DashboardShellProps) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
+  const activeSection = active ?? secoes.find(section => section.to === pathname)?.id;
   const [menuAberto, setMenuAberto] = useState(false);
   const { displayName, photoSrc } = useLoggedUser({ fallbackName: "Minha Empresa" });
+  const [unreadCount, setUnreadCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    let version = 0;
+    async function updateCount() {
+      const current = ++version;
+      try {
+        const { data } = await api.get<{ total: number }>("/notification/unread/count", { signal: controller.signal });
+        if (!controller.signal.aborted && current === version) setUnreadCount(Number(data.total));
+      } catch {
+        if (!controller.signal.aborted && current === version) setUnreadCount(null);
+      }
+    }
+    void updateCount();
+    window.addEventListener("focus", updateCount);
+    window.addEventListener("company-notifications-changed", updateCount);
+    return () => {
+      controller.abort();
+      window.removeEventListener("focus", updateCount);
+      window.removeEventListener("company-notifications-changed", updateCount);
+    };
+  }, [pathname]);
 
   const inicial = displayName.trim().charAt(0).toUpperCase() || "E";
 
@@ -93,7 +121,7 @@ export default function DashboardShell({
   }
 
   const styles = {
-    pagina: "flex min-h-screen flex-col bg-bruma font-app text-tinta",
+    pagina: "screen-enter flex min-h-screen flex-col bg-bruma font-app text-tinta",
     pular:
       "sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-verde-escuro focus:px-4 focus:py-3 focus:text-sm focus:font-semibold focus:text-white",
 
@@ -205,6 +233,7 @@ export default function DashboardShell({
           </nav>
 
           <div className={styles.acoes}>
+            <Link to="/dashboardEmpresa/notificacoes" className="inline-flex min-h-11 min-w-11 items-center justify-center gap-1 rounded-lg px-2 text-verde-escuro" aria-label={`Notificações${unreadCount === null ? "" : `, ${unreadCount} não lidas`}`}><Bell size={20} aria-hidden="true" />{unreadCount !== null && unreadCount > 0 && <span className="text-xs font-semibold tabular-nums">{unreadCount > 99 ? "99+" : unreadCount}</span>}</Link>
             <details className={styles.usuarioDetalhes}>
               <summary className={styles.usuarioPilha} title={displayName}>
                 <span className={styles.avatar}>
@@ -227,14 +256,13 @@ export default function DashboardShell({
                 />
               </summary>
               <div className={styles.usuarioMenu}>
-                <button
-                  type="button"
+                <Link
+                  to="/dashboardEmpresa/perfil"
                   className={styles.usuarioMenuItem}
-                  onClick={() => abrirTela("Perfil")}
                 >
                   <UserRound size={16} aria-hidden="true" />
                   Perfil
-                </button>
+                </Link>
                 <button
                   type="button"
                   className={styles.usuarioMenuItem}
@@ -302,9 +330,9 @@ export default function DashboardShell({
                 <Link
                   key={id}
                   to={to}
-                  aria-current={active === id ? "page" : undefined}
+                  aria-current={activeSection === id ? "page" : undefined}
                   className={`${styles.itemMovel} ${
-                    active === id ? styles.itemMovelAtivo : styles.itemMovelInativo
+                    activeSection === id ? styles.itemMovelAtivo : styles.itemMovelInativo
                   }`}
                 >
                   <Icone size={18} aria-hidden="true" />
@@ -335,9 +363,9 @@ export default function DashboardShell({
                   <Link
                     key={id}
                     to={to}
-                    aria-current={active === id ? "page" : undefined}
+                    aria-current={activeSection === id ? "page" : undefined}
                     className={`${styles.itemLateral} ${
-                      active === id
+                      activeSection === id
                         ? styles.itemLateralAtivo
                         : styles.itemLateralInativo
                     }`}
@@ -345,7 +373,7 @@ export default function DashboardShell({
                     <Icone
                       size={19}
                       strokeWidth={2}
-                      className={active === id ? "text-verde" : "text-tinta-clara"}
+                      className={activeSection === id ? "text-verde" : "text-tinta-clara"}
                       aria-hidden="true"
                     />
                     {rotulo}

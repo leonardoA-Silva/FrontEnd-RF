@@ -122,7 +122,7 @@ export default function NovoMaterial() {
     titulo: "text-[26px] font-bold leading-tight tracking-tight text-verde-escuro sm:text-[30px]",
     descricao: "mt-2 max-w-2xl text-sm leading-relaxed text-tinta-suave",
     voltar: "inline-flex min-h-10 items-center gap-2 text-sm font-semibold text-verde-escuro hover:text-verde",
-    painel: "mt-6 rounded-xl border border-linha bg-white p-5 sm:p-7",
+    painel: "screen-enter mt-6 rounded-2xl border border-linha bg-white p-5 transition-[border-color,transform] duration-200 hover:border-verde/40 sm:p-7",
     secaoTitulo: "text-lg font-bold text-tinta",
     secaoDescricao: "mt-1 text-sm leading-relaxed text-tinta-suave",
     grade: "mt-5 grid gap-5 sm:grid-cols-2",
@@ -151,7 +151,7 @@ export default function NovoMaterial() {
         </p>
       </div>
 
-      <form onSubmit={(event) => void enviar(event)}>
+      <form className="motion-stagger" onSubmit={(event) => void enviar(event)}>
         <section className={styles.painel} aria-labelledby="titulo-detalhes">
           <h2 id="titulo-detalhes" className={styles.secaoTitulo}>Detalhes do material</h2>
           <p className={styles.secaoDescricao}>Descreva o material e a quantidade disponível.</p>

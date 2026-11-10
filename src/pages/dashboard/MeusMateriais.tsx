@@ -212,9 +212,10 @@ export default function MeusMateriais() {
                   <th scope="col" className={styles.th}>Anúncio</th>
                   <th scope="col" className={`${styles.th} text-right`}>Valor</th>
                   <th scope="col" className={styles.th}>Status</th>
+                  <th scope="col" className={styles.th}>Ações</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="motion-stagger">
                 {filtrados.map((produto) => (
                   <tr key={produto.id} className="hover:bg-bruma/70">
                     <th scope="row" className={`${styles.td} min-w-52 font-semibold text-tinta`}>{produto.name}</th>
@@ -230,6 +231,7 @@ export default function MeusMateriais() {
                         {STATUS[produto.status] ?? "Status indisponível"}
                       </span>
                     </td>
+                    <td className={styles.td}><Link className="inline-flex min-h-11 items-center font-semibold text-verde-escuro underline" to={`/dashboardEmpresa/materiais/${produto.id}/editar`} aria-label={`Gerenciar ${produto.name}`}>Gerenciar</Link></td>
                   </tr>
                 ))}
               </tbody>

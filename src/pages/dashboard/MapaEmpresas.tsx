@@ -1,15 +1,21 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ChevronDown, MapPin, Search, X } from "lucide-react";
+import { MapPin, Search, X } from "lucide-react";
+import { Link } from "react-router-dom";
 import * as L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import AvisoEmBreve from "../../components/dashboard/AvisoEmBreve";
 import DashboardShell from "../../components/dashboard/DashboardShell";
 import {
-  empresasMapaDemo,
+  mapCompany,
+  type ApiCompanyMap,
   legendaMateriais,
   type CategoriaMaterial,
   type EmpresaMapa,
 } from "./mapaApi";
+import api from "../../axios/Axios";
+import { useRemoteData } from "../../hooks/useRemoteData";
+
+const loadCompanies = (signal: AbortSignal) => api.get<ApiCompanyMap[]>("/localization/companies", { signal }).then(r => r.data.map(mapCompany).filter((item): item is EmpresaMapa => item !== null));
 
 // Cor de cada tipo de resíduo (tokens em index.css).
 const MATERIAL: Record<CategoriaMaterial, { classe: string; token: string }> = {
@@ -51,13 +57,6 @@ function construirPopupEmpresa(
 
   const topo = document.createElement("div");
   topo.className = CLASSES_POPUP.topo;
-  const imagem = document.createElement("img");
-  imagem.src = empresa.imagem;
-  imagem.alt = "";
-  imagem.width = 44;
-  imagem.height = 44;
-  imagem.loading = "lazy";
-  imagem.className = CLASSES_POPUP.imagem;
 
   const textos = document.createElement("div");
   textos.className = CLASSES_POPUP.textos;
@@ -68,7 +67,7 @@ function construirPopupEmpresa(
   detalhe.className = CLASSES_POPUP.detalhe;
   detalhe.textContent = empresa.detalhe;
   textos.append(titulo, detalhe);
-  topo.append(imagem, textos);
+  topo.append(textos);
 
   const rodape = document.createElement("div");
   rodape.className = CLASSES_POPUP.rodape;
@@ -76,12 +75,12 @@ function construirPopupEmpresa(
   condicao.className = empresa.gratuito
     ? CLASSES_POPUP.gratuito
     : CLASSES_POPUP.combinar;
-  condicao.textContent = empresa.gratuito ? "Gratuito" : "A combinar";
+  condicao.textContent = "Localização aproximada";
   const botao = document.createElement("button");
   botao.type = "button";
   botao.className = CLASSES_POPUP.botao;
   botao.setAttribute("aria-label", `Ver detalhes de ${empresa.nomeCurto}`);
-  botao.textContent = "Ver Detalhes";
+  botao.textContent = "Centralizar";
   botao.addEventListener("click", aoVerDetalhes);
   rodape.append(condicao, botao);
 
@@ -91,7 +90,8 @@ function construirPopupEmpresa(
 
 export default function MapaEmpresas() {
   const [busca, setBusca] = useState("");
-  const [selecionadaId, setSelecionadaId] = useState(empresasMapaDemo[0].id);
+  const [selecionadaId, setSelecionadaId] = useState<string | number | null>(null);
+  const { data: empresas, loading, error, reload } = useRemoteData(loadCompanies);
   const [aviso, setAviso] = useState<string | null>(null);
   const elementoMapaRef = useRef<HTMLDivElement>(null);
   const mapaRef = useRef<L.Map | null>(null);
@@ -103,13 +103,13 @@ export default function MapaEmpresas() {
   // filtro local: nome da empresa, tipo de material ou descrição do lote
   const filtradas = useMemo(() => {
     const termo = busca.trim().toLowerCase();
-    if (!termo) return empresasMapaDemo;
-    return empresasMapaDemo.filter((empresa) =>
+    if (!termo) return empresas ?? [];
+    return (empresas ?? []).filter((empresa) =>
       `${empresa.nome} ${empresa.categoria} ${empresa.detalhe}`
         .toLowerCase()
         .includes(termo)
     );
-  }, [busca]);
+  }, [busca, empresas]);
 
   const selecionada =
     filtradas.find((empresa) => empresa.id === selecionadaId) ?? filtradas[0] ?? null;
@@ -153,6 +153,12 @@ export default function MapaEmpresas() {
   }, []);
 
   useEffect(() => {
+    if (empresas?.length && mapaRef.current) {
+      mapaRef.current.fitBounds(L.latLngBounds(empresas.map(item => [item.pos.lat, item.pos.lng] as [number, number])), { padding: [40, 40], maxZoom: 14, animate: false });
+    }
+  }, [empresas]);
+
+  useEffect(() => {
     const camada = marcadoresRef.current;
     if (!camada) return;
 
@@ -171,14 +177,14 @@ export default function MapaEmpresas() {
 
       const marcador = L.marker([empresa.pos.lat, empresa.pos.lng], {
         icon: icone,
-        title: `${empresa.nome} — localização demonstrativa`,
-        alt: `${empresa.nome}, marcador demonstrativo`,
+        title: `${empresa.nome} — localização aproximada`,
+        alt: `${empresa.nome}, localização aproximada`,
         keyboard: true,
       }).addTo(camada);
 
       marcador.on("click", () => setSelecionadaId(empresa.id));
       marcador.bindPopup(
-        construirPopupEmpresa(empresa, () => avisar("Detalhes do resíduo")),
+        construirPopupEmpresa(empresa, () => mapaRef.current?.setView([empresa.pos.lat, empresa.pos.lng], 14, { animate: !window.matchMedia("(prefers-reduced-motion: reduce)").matches })),
         { className: "mapa-popup", maxWidth: 280 }
       );
 
@@ -209,9 +215,9 @@ export default function MapaEmpresas() {
 
     rotuloLista:
       "text-[11px] font-semibold uppercase tracking-[0.14em] text-tinta-clara",
-    lista: "mt-3 flex flex-col gap-2.5",
+    lista: "motion-stagger mt-3 flex flex-col gap-2.5",
     cartao:
-      "w-full rounded-xl border px-4 py-3 text-left transition-colors duration-150",
+      "w-full rounded-xl border px-4 py-3 text-left transition-[background-color,border-color,transform] duration-200 active:scale-[0.99]",
     cartaoAtivo: "border-verde bg-verde-claro/60",
     cartaoInativo: "border-linha bg-white hover:border-verde/50",
     cartaoTopo: "flex items-start justify-between gap-2",
@@ -241,27 +247,25 @@ export default function MapaEmpresas() {
   const painel = (
     <div className={styles.painel}>
       <div className={styles.atalhos}>
-        <button
-          type="button"
+        <Link
+          to="/dashboardEmpresa/indicadores"
           className={styles.atalho}
-          onClick={() => avisar("Indicadores Ambientais")}
         >
           Indicadores Ambientais
-        </button>
-        <button
-          type="button"
+        </Link>
+        <Link
+          to="/dashboardEmpresa/negociacoes"
           className={styles.atalho}
-          onClick={() => avisar("Histórico de Negociações")}
         >
           Histórico de Negociações
-        </button>
+        </Link>
       </div>
 
       <div className={styles.blocoBusca}>
-        <h1 className={styles.titulo}>Buscar Resíduos</h1>
+        <h1 className={styles.titulo}>Buscar empresas</h1>
 
         <label htmlFor="busca-residuos" className="sr-only">
-          Buscar resíduos por empresa, material ou lote
+          Buscar empresas por nome, material ou localidade
         </label>
         <div className={styles.campo}>
           <Search size={17} strokeWidth={2.2} className={styles.campoIcone} aria-hidden="true" />
@@ -288,8 +292,7 @@ export default function MapaEmpresas() {
 
         <div className={styles.local}>
           <MapPin size={15} strokeWidth={2.2} className={styles.localIcone} aria-hidden="true" />
-          <span>Franca - SP (Raio: 5km)</span>
-          <ChevronDown size={15} strokeWidth={2.2} className={styles.localSeta} aria-hidden="true" />
+          <span>Localizações aproximadas · sem filtro de distância</span>
         </div>
       </div>
 
@@ -304,9 +307,11 @@ export default function MapaEmpresas() {
         </span>
       </div>
 
-      {filtradas.length === 0 ? (
+      {loading && <p role="status" className="py-5">Carregando empresas…</p>}
+      {error && <div role="alert" className="py-5"><p>{error}</p><button type="button" className="mt-3 min-h-11 underline" onClick={reload}>Tentar novamente</button></div>}
+      {!loading && !error && filtradas.length === 0 ? (
         <div className={styles.vazio}>
-          <p>Nenhuma empresa encontrada para “{busca.trim()}”.</p>
+          <p>{busca.trim() ? `Nenhuma empresa encontrada para “${busca.trim()}”.` : "Nenhuma empresa com localização disponível."}</p>
           <button type="button" className={styles.vazioBotao} onClick={() => setBusca("")}>
             Limpar busca
           </button>
@@ -339,7 +344,7 @@ export default function MapaEmpresas() {
                 <div className={styles.cartaoRodape}>
                   <span className={styles.cartaoDistancia}>{empresa.distancia}</span>
                   <span className={styles.cartaoQtd}>
-                    {empresa.residuos} resíduos disp.
+                    {empresa.residuos} anúncios disp.
                   </span>
                 </div>
               </button>
@@ -349,9 +354,7 @@ export default function MapaEmpresas() {
       )}
 
       <p className={styles.nota}>
-        Empresas, distâncias, lotes e pontos no mapa são demonstrativos. O mapa
-        mostra as ruas reais de Franca, mas os marcadores não indicam endereços
-        reais.
+        Os pontos são aproximados para preservar os endereços. A lista usa os dados fornecidos pelas empresas; não calculamos distância até você.
       </p>
     </div>
   );
@@ -378,14 +381,6 @@ export default function MapaEmpresas() {
             aria-live="polite"
           >
             <div className="flex items-center gap-3 rounded-xl border border-linha bg-white p-3 shadow-lg">
-              <img
-                src={selecionada.imagem}
-                alt=""
-                width={44}
-                height={44}
-                loading="lazy"
-                className="h-11 w-11 shrink-0 rounded-lg object-cover"
-              />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-[13px] font-bold leading-snug text-verde-escuro">
                   {selecionada.nomeCurto}
@@ -394,23 +389,23 @@ export default function MapaEmpresas() {
                   {selecionada.detalhe}
                 </p>
                 <p className="mt-1 text-[12px] font-semibold text-ambar">
-                  {selecionada.gratuito ? "Gratuito" : "A combinar"}
+                  Localização aproximada
                 </p>
               </div>
               <button
                 type="button"
                 className="min-h-11 shrink-0 rounded-full bg-verde px-3.5 text-[12px] font-semibold text-white transition-colors hover:bg-verde-escuro"
                 aria-label={`Ver detalhes de ${selecionada.nomeCurto}`}
-                onClick={() => avisar("Detalhes do resíduo")}
+                onClick={() => mapaRef.current?.setView([selecionada.pos.lat, selecionada.pos.lng], 14, { animate: !window.matchMedia("(prefers-reduced-motion: reduce)").matches })}
               >
-                Ver Detalhes
+                Centralizar
               </button>
             </div>
           </div>
         )}
 
         <p className="pointer-events-none absolute bottom-3 left-3 z-[1000] hidden max-w-[min(28rem,calc(100%-1.5rem))] rounded-lg bg-white/95 px-3 py-2 text-[11px] leading-relaxed text-tinta-suave lg:block">
-          Mapa real de Franca · pontos e informações de empresas são demonstrativos
+          Empresas cadastradas · localizações aproximadas
         </p>
 
         <div className={styles.legenda}>

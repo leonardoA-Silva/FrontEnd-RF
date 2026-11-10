@@ -10,7 +10,7 @@
 export type CategoriaMaterial = "Couro" | "Tecido" | "EVA / Borracha" | "Outros";
 
 export interface EmpresaMapa {
-  id: number;
+  id: number | string;
   nome: string;
   nomeCurto: string;
   categoria: CategoriaMaterial;
@@ -95,3 +95,18 @@ export const legendaMateriais: { categoria: CategoriaMaterial; rotulo: string }[
   { categoria: "EVA / Borracha", rotulo: "EVA / Borracha" },
   { categoria: "Outros", rotulo: "Outros Materiais" },
 ];
+
+export interface ApiCompanyMap {
+  id: string; name: string; neighborhood: string; city: string; state: string;
+  latitude: number | null; longitude: number | null; categories: string[]; availableProducts: number;
+}
+
+export function mapCompany(row: ApiCompanyMap): EmpresaMapa | null {
+  if (row.latitude === null || row.longitude === null || !Number.isFinite(Number(row.latitude)) || !Number.isFinite(Number(row.longitude)) || Math.abs(Number(row.latitude)) > 90 || Math.abs(Number(row.longitude)) > 180) return null;
+  const categories: Record<string, CategoriaMaterial> = { couro: "Couro", tecido: "Tecido", eva: "EVA / Borracha", borracha: "EVA / Borracha" };
+  const category = categories[row.categories[0]] ?? "Outros";
+  return { id: row.id, nome: row.name, nomeCurto: row.name, categoria: category,
+    distancia: [row.neighborhood, row.city, row.state].filter(Boolean).join(" · "),
+    residuos: Number(row.availableProducts), detalhe: `${Number(row.availableProducts)} anúncios disponíveis`,
+    gratuito: false, imagem: "", pos: { lat: Number(row.latitude), lng: Number(row.longitude) } };
+}

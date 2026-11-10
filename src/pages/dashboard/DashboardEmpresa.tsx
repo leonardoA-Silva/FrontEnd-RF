@@ -3,18 +3,17 @@ import { useNavigate } from "react-router-dom";
 import {
   AlarmClock,
   Bookmark,
-  CheckCircle2,
-  Coins,
   Leaf,
   Package,
   Plus,
-  Star,
 } from "lucide-react";
 import AvisoEmBreve from "../../components/dashboard/AvisoEmBreve";
 import DashboardShell from "../../components/dashboard/DashboardShell";
 import { useLoggedUser } from "../../hooks/useLoggedUser";
 import { mensagemDeErroApi } from "../../utils/apiError";
 import { listarProdutos, type ProdutoApi } from "./dashboardApi";
+import { useRemoteData } from "../../hooks/useRemoteData";
+import { displayDate, listNotifications } from "./companyApi";
 
 type EstadoCarga = "carregando" | "pronto" | "erro";
 
@@ -42,28 +41,6 @@ const SELOS: Record<string, { rotulo: string; classe: string }> = {
   unavailable: { rotulo: "Indisponível", classe: "bg-bruma text-tinta-suave" },
 };
 
-// Atividade ainda não tem rota na API. São exemplos de demonstração,
-// no mesmo formato que a futura resposta de /notification deve entregar.
-const ATIVIDADES_DEMO = [
-  {
-    icone: Bookmark,
-    destaque: "Silvana M. (Artesã)",
-    resto: " reservou os Retalhos de Couro",
-    tempo: "Há 10 min",
-  },
-  {
-    icone: CheckCircle2,
-    destaque: "Ateliê Reutiliza",
-    resto: " coletou 120 kg de Pallets",
-    tempo: "Ontem",
-  },
-  {
-    icone: Star,
-    destaque: "Assoc. Tecendo Franca",
-    resto: " avaliou seu curtume com 5 estrelas",
-    tempo: "Há 3 dias",
-  },
-];
 
 const formatadorPeso = new Intl.NumberFormat("pt-BR", {
   maximumFractionDigits: 2,
@@ -82,6 +59,7 @@ export default function DashboardEmpresa() {
   const [erro, setErro] = useState("");
   const [expandido, setExpandido] = useState(false);
   const [aviso, setAviso] = useState<string | null>(null);
+  const activities = useRemoteData(listNotifications);
 
   const avisar = useCallback((tela: string) => setAviso(tela), []);
   const fecharAviso = useCallback(() => setAviso(null), []);
@@ -153,21 +131,21 @@ export default function DashboardEmpresa() {
     },
     {
       icone: AlarmClock,
-      rotulo: "Reservas Ativas",
-      valor: "8",
-      detalhe: "Aguardando retirada",
+      rotulo: "Anúncios Reservados",
+      valor: carregando || estadoVisivel === "erro" ? "—" : String(produtos.filter(item => item.status === "reserved").length),
+      detalhe: "Anúncios com status reservado",
     },
     {
       icone: Leaf,
-      rotulo: "Resíduos Desviados",
-      valor: "1.450 kg",
-      detalhe: "Desviados do aterro local",
+      rotulo: "Materiais Disponíveis",
+      valor: carregando || estadoVisivel === "erro" ? "—" : String(produtos.filter(item => item.status === "available").length),
+      detalhe: "Anúncios disponíveis",
     },
     {
-      icone: Coins,
-      rotulo: "Valor Social Gerado",
-      valor: "R$ 12.300",
-      detalhe: "Economia para artesãos",
+      icone: Bookmark,
+      rotulo: "Avisos Não Lidos",
+      valor: activities.loading || activities.error ? "—" : String(activities.data?.filter(item => item.read === "nao").length ?? 0),
+      detalhe: "Notificações da empresa",
     },
   ];
 
@@ -180,9 +158,9 @@ export default function DashboardEmpresa() {
     subtitulo: "mt-2 max-w-2xl text-[14px] leading-relaxed text-tinta-suave sm:text-[15px]",
     botaoPrincipal:
       "inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-verde px-5 py-3 text-[14px] font-semibold text-white transition-colors hover:bg-verde-escuro",
-    gradeKpis: "mt-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-4",
+    gradeKpis: "motion-stagger mt-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-4",
     cartaoKpi:
-      "flex items-center gap-4 rounded-xl border border-linha bg-white px-5 py-4",
+      "flex items-center gap-4 rounded-xl border border-linha bg-white px-5 py-4 transition-colors hover:border-verde/40",
     iconeKpi:
       "grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-verde-claro text-verde",
     rotuloKpi: "truncate text-[13px] font-medium text-tinta-suave",
@@ -219,7 +197,7 @@ export default function DashboardEmpresa() {
     botaoContorno:
       "rounded-lg border border-linha px-4 py-2 text-[13px] font-semibold text-verde-escuro transition-colors hover:bg-bruma",
 
-    atividades: "mt-4 flex flex-col gap-4",
+    atividades: "motion-stagger mt-4 flex flex-col gap-4",
     atividade: "flex items-start gap-3",
     atividadeIcone:
       "mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-full bg-verde-claro text-verde",
@@ -269,8 +247,7 @@ export default function DashboardEmpresa() {
         </div>
 
         <p className={styles.notaDemo}>
-          Reservas, resíduos desviados e valor social são valores ilustrativos até a
-          integração desses indicadores à API.
+          As contagens de materiais são de anúncios, não de pedidos ou retiradas concluídas.
         </p>
       </section>
 
@@ -374,22 +351,23 @@ export default function DashboardEmpresa() {
               <h2 id="titulo-atividades" className={styles.painelTitulo}>
                 Atividade Circular Recente
               </h2>
-              <span className={styles.seloDemo}>Demonstração — dados ilustrativos</span>
             </div>
           </div>
 
+          {activities.loading && <p role="status" className="mt-4">Carregando atividades…</p>}
+          {activities.error && <div role="alert" className="mt-4"><p>{activities.error}</p><button className={styles.botaoContorno} type="button" onClick={activities.reload}>Tentar novamente</button></div>}
+          {activities.data?.length === 0 && <p className="mt-4">Sua empresa ainda não recebeu notificações.</p>}
           <ul className={styles.atividades}>
-            {ATIVIDADES_DEMO.map(({ icone: Icone, destaque, resto, tempo }) => (
-              <li key={`${destaque}-${tempo}`} className={styles.atividade}>
+            {activities.data?.slice(0, 4).map(item => (
+              <li key={item.id} className={styles.atividade}>
                 <span className={styles.atividadeIcone}>
-                  <Icone size={18} strokeWidth={2} aria-hidden="true" />
+                  <Bookmark size={18} strokeWidth={2} aria-hidden="true" />
                 </span>
                 <div className={styles.atividadeTexto}>
                   <p>
-                    <span className={styles.atividadeDestaque}>{destaque}</span>
-                    {resto}
+                    <span className={styles.atividadeDestaque}>{item.title}</span>
                   </p>
-                  <p className={styles.atividadeTempo}>{tempo}</p>
+                  <p className={styles.atividadeTempo}>{displayDate(item.created_in)}</p>
                 </div>
               </li>
             ))}
@@ -398,7 +376,7 @@ export default function DashboardEmpresa() {
           <button
             type="button"
             className={styles.atividadesLink}
-            onClick={() => avisar("Histórico de Atividades")}
+            onClick={() => navigate("/dashboardEmpresa/notificacoes")}
           >
             Ver todas as atividades
           </button>
