@@ -1,459 +1,109 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import {
-  Award,
-  Compass,
-  History,
-  LogOut,
-  Menu,
-  Package,
-  UserRound,
-  X,
-} from "lucide-react";
-import Footer from "../../components/Footer";
-import { useLoggedUser } from "../../hooks/useLoggedUser";
+import { useEffect, useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Bell, CreditCard, History, MapPin, MessagesSquare, Search, ShieldCheck, ShoppingBag, UserRound, LogOut, ArrowUpRight, X, Star, Leaf, Scale, Building2 } from "lucide-react";
 import BrandIcon from "../../components/BrandIcon";
+import AccountAvatar from "../../components/AccountAvatar";
+import { useLoggedUser } from "../../hooks/useLoggedUser";
+import { useBuyerSocket } from "../../hooks/useBuyerSocket";
+import ProductCatalog from "../marketplace/ProductCatalog";
+import BuyerProfile from "./comprador/BuyerProfile";
+import BuyerSecurity from "./comprador/BuyerSecurity";
+import BuyerReservations from "./comprador/BuyerReservations";
+import BuyerNotifications from "./comprador/BuyerNotifications";
+import BuyerAddresses from "./comprador/BuyerAddresses";
+import BuyerCards from "./comprador/BuyerCards";
+import BuyerConversations from "./comprador/BuyerConversations";
+import BuyerReviews from "./comprador/BuyerReviews";
+import BuyerDisputes from "./comprador/BuyerDisputes";
+import BuyerImpact from "./comprador/BuyerImpact";
+import BuyerCompanies from "./comprador/BuyerCompanies";
+import { buyerStyles as s } from "./comprador/buyerStyles";
 
-const estatisticas = [
-  {
-    rotulo: "Materiais Reservados",
-    valor: "12",
-    detalhe: "Retiradas concluídas",
-  },
-  {
-    rotulo: "Em Negociação",
-    valor: "3",
-    detalhe: "Aguardando curtume",
-  },
-  {
-    rotulo: "kg Adquiridos",
-    valor: "890 kg",
-    detalhe: "Insumo circular salvo",
-  },
+const tabs = [
+  { id: "explorar", label: "Explorar materiais", Icon: Search },
+  { id: "reservas", label: "Minhas reservas", Icon: ShoppingBag },
+  { id: "historico", label: "Histórico", Icon: History },
+  { id: "avaliacoes", label: "Avaliações", Icon: Star },
+  { id: "disputas", label: "Disputas", Icon: Scale },
+  { id: "impacto", label: "Impacto ambiental", Icon: Leaf },
+  { id: "empresas", label: "Encontrar empresas", Icon: Building2 },
+  { id: "notificacoes", label: "Notificações", Icon: Bell },
+  { id: "mensagens", label: "Mensagens", Icon: MessagesSquare },
+  { id: "enderecos", label: "Endereços", Icon: MapPin },
+  { id: "cartoes", label: "Cartões", Icon: CreditCard },
+  { id: "perfil", label: "Perfil", Icon: UserRound },
+  { id: "seguranca", label: "Segurança", Icon: ShieldCheck },
 ];
-
-const recomendados = [
-  {
-    imagem: "/retalho-couro-nobre.png",
-    imagemAlt: "Pilha de retalhos de couro marrom",
-    titulo: "Retalhos de Couro Nobre",
-    origem: "Curtume Franca Fino",
-    quantidade: "150 kg",
-    distancia: "2.3 km",
-  },
-  {
-    imagem: "/eva-camurca-premium.png",
-    imagemAlt: "Placas azuis de EVA empilhadas",
-    titulo: "EVA Camurça Premium",
-    origem: "Borrachas Estrela",
-    quantidade: "30 unid",
-    distancia: "4.5 km",
-  },
-  {
-    imagem: "/retalho-nobuck-macio.png",
-    imagemAlt: "Retalhos de tecido nobuck cinza dobrados",
-    titulo: "Retalho Nobuck Macio",
-    origem: "Calçados Franca Ltda",
-    quantidade: "60 kg",
-    distancia: "1.2 km",
-  },
-];
-
-const reservas = [
-  {
-    titulo: "Retalhos de Couro Premium",
-    status: "Confirmada",
-    origem: "Curtume Franca Fino",
-    quantidade: "150 kg",
-  },
-  {
-    titulo: "Pallets de Madeira Maciça",
-    status: "Pendente",
-    origem: "Calçados Franca Ltda",
-    quantidade: "12 unid",
-  },
-  {
-    titulo: "Fitas de Cetim e Gorgorão",
-    status: "Concluída",
-    origem: "Laços & Fitas S/A",
-    quantidade: "5 kg",
-  },
-];
-
-const menuLateral = [
-  { icone: Compass, rotulo: "Explorar Materiais", ativo: false },
-  { icone: Package, rotulo: "Minhas Reservas", ativo: true },
-  { icone: History, rotulo: "Histórico", ativo: false },
-  { icone: UserRound, rotulo: "Perfil", ativo: false },
-];
-
-const navegacaoTopo = ["Início", "Marketplace", "Sobre Nós"];
 
 export default function DashboardUsuario() {
+  const { user, token, displayName, logout } = useLoggedUser();
   const navigate = useNavigate();
-  const [menuAberto, setMenuAberto] = useState(false);
+  const realtime = useBuyerSocket(token);
+  const [params, setParams] = useSearchParams();
+  const tab = tabs.some(item => item.id === params.get("aba")) ? params.get("aba") : "explorar";
+  const [dismissedKey, setDismissedKey] = useState("");
+  const [expiredKey, setExpiredKey] = useState("");
 
-  // Nome e foto vêm do login (local/sessionStorage) e são atualizados via /user/me.
-  const { displayName, firstName, photoSrc } = useLoggedUser({
-    fallbackName: "Usuário",
-  });
+  const isRealtimeTab = tab === "mensagens" || tab === "notificacoes";
+  const realtimeKey = `${tab}:${realtime.connected}:${realtime.error}`;
+  const showRealtimeAlert = isRealtimeTab && dismissedKey !== realtimeKey && expiredKey !== realtimeKey;
 
-  function handleLogout() {
-    for (const storage of [localStorage, sessionStorage]) {
-      storage.removeItem("token");
-      storage.removeItem("user");
-      storage.removeItem("tipoUsuario");
-    }
-    navigate("/login");
-  }
+  useEffect(() => {
+    if (!isRealtimeTab) return;
+    const timer = setTimeout(() => {
+      setExpiredKey(realtimeKey);
+    }, 10000);
+    return () => clearTimeout(timer);
+  }, [isRealtimeTab, realtimeKey]);
 
-  // Estilos centralizados aqui dentro da função (sem arquivo .css).
-  // Cada chave tem um nome semântico e guarda as classes Tailwind correspondentes.
-  // Layout 100% fluido (w-full, sem max-width travado) para ocupar a tela em qualquer zoom.
-  const styles = {
-    pagina: "screen-enter flex min-h-screen w-full flex-col bg-papel text-carvao",
-
-    cabecalho: "w-full border-b border-areia bg-cru",
-    cabecalhoConteudo:
-      "flex w-full items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8",
-    marca: "flex min-w-0 shrink-0 items-center gap-2.5",
-    marcaTitulo: "font-display text-base font-semibold text-carvao sm:text-lg",
-    menuTopo: "hidden min-w-0 flex-1 items-center justify-center gap-8 lg:flex",
-    menuTopoLink:
-      "whitespace-nowrap text-[15px] font-medium text-carvao-suave transition hover:text-carvao",
-    cabecalhoAcoes: "flex shrink-0 items-center gap-2",
-    usuarioPilha:
-      "flex items-center gap-2 rounded-full border border-areia bg-papel py-1.5 pl-1.5 pr-3 sm:pr-4",
-    usuarioAvatar:
-      "flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-areia-clara",
-    usuarioAvatarIcone: "h-5 w-5 text-carvao-suave",
-    usuarioAvatarImg: "h-7 w-7 shrink-0 rounded-full object-cover",
-    usuarioNome:
-      "hidden max-w-40 truncate text-sm font-semibold text-carvao min-[420px]:block",
-    botaoMenu:
-      "flex h-10 w-10 items-center justify-center rounded-lg border border-areia text-carvao transition hover:bg-areia-clara lg:hidden",
-    menuMovel: "border-t border-areia bg-cru px-4 py-2 lg:hidden",
-    menuMovelLink:
-      "block rounded-lg px-3 py-2.5 text-sm font-medium text-carvao-suave transition hover:bg-areia-clara hover:text-carvao",
-
-    conteudo: "flex w-full flex-1 flex-col items-stretch lg:flex-row",
-
-    barraLateral: "hidden w-60 shrink-0 flex-col border-r border-areia bg-cru lg:flex xl:w-64",
-    barraLateralNav: "flex flex-col gap-1.5 px-4 py-6",
-    itemLateralBase: "flex items-center gap-3 rounded-xl px-4 py-2.5 text-[15px]",
-    itemLateralAtivo: "bg-canela/10 font-bold text-canela-escura",
-    itemLateralInativo: "font-medium text-carvao-suave transition hover:bg-areia-clara hover:text-carvao",
-    itemLateralIconeAtivo: "h-5 w-5 shrink-0 text-canela",
-    itemLateralIcone: "h-5 w-5 shrink-0 text-carvao-suave",
-    dicaCaixa:
-      "mx-4 mb-6 mt-auto rounded-xl border border-musgo/25 bg-musgo-claro p-4",
-    dicaTitulo: "text-sm font-bold text-musgo",
-    dicaTexto: "mt-2 text-[13px] leading-relaxed text-carvao-suave",
-
-    navegacaoMovel: "border-b border-areia bg-cru lg:hidden",
-    navegacaoMovelLista: "flex gap-2 overflow-x-auto px-4 py-3",
-    itemMovelBase:
-      "flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full border border-transparent px-4 py-2 text-sm",
-    itemMovelAtivo: "border-canela/30 bg-canela/10 font-bold text-canela-escura",
-    itemMovelInativo: "font-medium text-carvao-suave",
-
-    principal: "min-w-0 flex-1 px-4 py-6 sm:px-6 lg:px-8",
-    saudacao: "font-display text-2xl font-semibold tracking-tight text-carvao sm:text-3xl",
-    saudacaoDescricao: "mt-1.5 text-sm text-carvao-suave sm:text-[15px]",
-
-    gradeEstatisticas: "motion-stagger mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 2xl:grid-cols-4",
-    cartaoEstatistica:
-      "flex min-w-0 flex-col justify-center rounded-2xl border border-areia bg-cru p-5 transition-colors hover:border-canela/50",
-    estatisticaRotulo: "text-[13px] text-carvao-suave/80",
-    estatisticaValor: "mt-1 font-display text-2xl font-semibold text-carvao",
-    estatisticaDetalhe: "mt-1 text-[13px] text-carvao-suave",
-    pegadaCaixa:
-      "flex min-w-0 items-start gap-3 rounded-2xl border border-musgo/40 bg-musgo-claro/60 p-5",
-    pegadaIcone: "h-8 w-8 shrink-0 text-musgo",
-    pegadaTitulo: "text-[15px] font-bold text-carvao",
-    pegadaTexto: "mt-1 text-[13px] leading-relaxed text-carvao-suave",
-    pegadaDestaque: "font-bold text-musgo",
-
-    gradeConteudo: "mt-6 grid grid-cols-1 items-start gap-6 xl:grid-cols-[1.65fr_1fr]",
-    secaoTitulo: "text-base font-extrabold text-carvao sm:text-lg",
-
-    gradeRecomendados: "motion-stagger mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 2xl:grid-cols-3",
-    cartaoProduto: "dashboard-material-card min-w-0 overflow-hidden rounded-xl border border-areia bg-cru",
-    produtoImagem: "dashboard-material-image h-40 w-full object-cover",
-    produtoCorpo: "p-4",
-    produtoTitulo: "break-words text-[15px] font-bold text-carvao",
-    produtoOrigem: "mt-0.5 truncate text-[13px] text-carvao-suave/80",
-    produtoRodape: "mt-2 flex items-center justify-between gap-2",
-    produtoQuantidade: "text-sm font-bold text-canela",
-    produtoDistancia: "shrink-0 text-[13px] text-carvao-suave",
-
-    cartaoReservas: "min-w-0 rounded-2xl border border-areia bg-cru p-4 sm:p-6",
-    listaReservas: "motion-stagger mt-4 flex flex-col gap-3",
-    reservaItem: "rounded-xl border border-areia p-4",
-    reservaTopo: "flex flex-wrap items-start justify-between gap-2",
-    reservaTitulo: "min-w-0 flex-1 basis-40 break-words text-[15px] font-bold text-carvao",
-    reservaOrigemRotulo: "mt-2 text-xs text-carvao-suave/70",
-    reservaRodape: "mt-0.5 flex items-end justify-between gap-2",
-    reservaOrigem: "min-w-0 truncate text-sm text-carvao-suave",
-    reservaQuantidade: "shrink-0 whitespace-nowrap text-[15px] font-extrabold text-carvao",
-    seloBase: "shrink-0 whitespace-nowrap rounded-md px-2.5 py-1 text-xs font-semibold",
-    seloConfirmada: "bg-musgo-claro text-musgo",
-    seloPendente: "bg-canela-clara text-canela-escura",
-    seloConcluida: "bg-areia-clara text-carvao-suave",
-
-    dicaMovel: "mt-6 rounded-xl border border-musgo/25 bg-musgo-claro p-4 lg:hidden",
-  };
-
-  function estiloSelo(status: string) {
-    if (status === "Confirmada") return `${styles.seloBase} ${styles.seloConfirmada}`;
-    if (status === "Pendente") return `${styles.seloBase} ${styles.seloPendente}`;
-    return `${styles.seloBase} ${styles.seloConcluida}`;
-  }
-
-  return (
-    <div className={styles.pagina}>
-      {/* Topo do dashboard */}
-      <header className={styles.cabecalho}>
-        <div className={styles.cabecalhoConteudo}>
-          <div className={styles.marca}>
-            <BrandIcon className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-verde-escuro text-white" />
-            <p className={styles.marcaTitulo}>Reaproveita Franca</p>
-          </div>
-
-          <nav className={styles.menuTopo}>
-            {navegacaoTopo.map((item) => (
-              <a key={item} href="#" className={styles.menuTopoLink}>
-                {item}
-              </a>
-            ))}
-          </nav>
-
-          <div className={styles.cabecalhoAcoes}>
-            <div className={styles.usuarioPilha} title={displayName}>
-              <span className={styles.usuarioAvatar}>
-                {photoSrc ? (
-                  <img
-                    src={photoSrc}
-                    alt={`Foto de perfil de ${displayName}`}
-                    className={styles.usuarioAvatarImg}
-                  />
-                ) : (
-                  <UserRound className={styles.usuarioAvatarIcone} strokeWidth={2} />
-                )}
-              </span>
-              <span className={styles.usuarioNome}>{firstName}</span>
-            </div>
-            <button
-              type="button"
-              aria-label="Sair da conta"
-              title="Sair da conta"
-              onClick={handleLogout}
-              className={styles.botaoMenu}
-            >
-              <LogOut className="h-5 w-5" strokeWidth={2} />
-            </button>
-            <button
-              type="button"
-              aria-label={menuAberto ? "Fechar menu" : "Abrir menu"}
-              onClick={() => setMenuAberto((aberto) => !aberto)}
-              className={styles.botaoMenu}
-            >
-              {menuAberto ? (
-                <X className="h-5 w-5" strokeWidth={2} />
-              ) : (
-                <Menu className="h-5 w-5" strokeWidth={2} />
+  if (!user) return null;
+  const activeTab = tabs.find(item => item.id === tab)!;
+  const navigation = <nav aria-label="Área do comprador" className="mt-2 flex flex-col gap-1 [&_button]:flex [&_button]:items-center [&_button]:gap-3 [&_button]:rounded-xl [&_button]:px-3 [&_button]:py-2.5 [&_button]:text-left [&_button]:text-sm [&_button]:text-muted [&_button]:transition-colors [&_button:hover]:bg-canvas [&_button[aria-current=page]]:bg-primary [&_button[aria-current=page]]:font-semibold [&_button[aria-current=page]]:text-white">{tabs.map(({ id, label, Icon }) => <button key={id} type="button" aria-current={tab === id ? "page" : undefined} onClick={() => setParams({ aba: id })}><Icon size={20} strokeWidth={1.5} aria-hidden="true" /><span>{label}</span></button>)}</nav>;
+  return <div className="screen-enter flex min-h-screen flex-col bg-canvas font-app text-ink lg:flex-row">
+    <a href="#buyer-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-primary focus:p-3 focus:text-white">Pular para o conteúdo</a>
+    <aside className="flex shrink-0 flex-col gap-5 border-b border-line bg-surface p-5 lg:sticky lg:top-0 lg:h-screen lg:w-64 lg:overflow-y-auto lg:border-r lg:border-b-0"><Link to="/marketplace" className="flex items-center gap-3 text-lg font-bold text-primary [&_small]:block [&_small]:text-xs [&_small]:tracking-widest [&_small]:text-accent" aria-label="Reaproveita Franca — marketplace"><BrandIcon /><span>reaproveita.<small>FRANCA</small></span></Link><p className="text-xs font-semibold tracking-wider text-muted">Minha área</p>
+      <div className="hidden lg:block">{navigation}</div><details className="rounded-xl border border-line p-3 lg:hidden [&_summary]:cursor-pointer [&_summary]:font-semibold"><summary>Navegação · {activeTab.label}</summary>{navigation}</details>
+      <div className="mt-auto flex flex-col gap-3 border-t border-line pt-4 text-sm [&_a]:flex [&_a]:items-center [&_a]:gap-2 [&_button]:flex [&_button]:items-center [&_button]:gap-2"><Link to="/marketplace">Ir ao marketplace <ArrowUpRight size={16} /></Link><button type="button" onClick={() => { logout(); navigate("/login"); }}><LogOut size={18} />Sair da conta</button></div>
+    </aside>
+    <div className="flex min-w-0 flex-1 flex-col"><header className="flex flex-wrap items-center justify-between gap-4 border-b border-line bg-surface px-5 py-4 sm:px-8 [&>div]:flex [&>div]:items-center [&>div]:gap-3 [&>div]:text-sm [&>div]:text-muted"><div><Link to="/">Início</Link><span aria-hidden="true">/</span><span>{activeTab.label}</span></div><Link to="/dashboardUsuario?aba=perfil" className="inline-flex max-w-full items-center gap-2 rounded-full border border-line bg-surface px-3 py-1.5 text-sm font-semibold [&>span:last-child]:truncate"><AccountAvatar /><span>{displayName || "Minha conta"}</span></Link></header>
+      <main id="buyer-content" tabIndex={-1} className="mx-auto w-full max-w-[1440px] flex-1 space-y-6 px-5 py-7 sm:px-8 lg:p-10">
+        {(tab === "mensagens" || tab === "notificacoes") && showRealtimeAlert && (
+          <div role="status" className={`${s.notice} flex items-center justify-between gap-3 transition-opacity duration-300`}>
+            <p className="flex-1">
+              {realtime.connected
+                ? "Conectado às atualizações em tempo real."
+                : realtime.error || "Conectando às atualizações em tempo real..."}
+            </p>
+            <div className="flex items-center gap-2">
+              {!realtime.connected && (
+                <button type="button" onClick={realtime.reconnect} className={s.secondary}>
+                  Reconectar
+                </button>
               )}
-            </button>
-          </div>
-        </div>
-
-        {menuAberto && (
-          <nav className={styles.menuMovel}>
-            {navegacaoTopo.map((item) => (
-              <a key={item} href="#" className={styles.menuMovelLink}>
-                {item}
-              </a>
-            ))}
-          </nav>
-        )}
-      </header>
-
-      <div className={styles.conteudo}>
-        {/* Menu lateral (desktop) */}
-        <aside className={styles.barraLateral}>
-          <nav className={styles.barraLateralNav}>
-            {menuLateral.map(({ icone: Icone, rotulo, ativo }) => (
-              <a
-                key={rotulo}
-                href="#"
-                className={`${styles.itemLateralBase} ${
-                  ativo ? styles.itemLateralAtivo : styles.itemLateralInativo
-                }`}
+              <button
+                type="button"
+                aria-label="Fechar alerta"
+                onClick={() => setDismissedKey(realtimeKey)}
+                className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg text-gray-500 hover:bg-black/5 hover:text-gray-800"
               >
-                <Icone
-                  className={
-                    ativo ? styles.itemLateralIconeAtivo : styles.itemLateralIcone
-                  }
-                  strokeWidth={2}
-                />
-                {rotulo}
-              </a>
-            ))}
-          </nav>
-
-          <div className={styles.dicaCaixa}>
-            <p className={styles.dicaTitulo}>Dica de circularidade</p>
-            <p className={styles.dicaTexto}>
-              Retalhos de couro classificados como premium têm 3x mais
-              liquidez no artesanato de calçados finos.
-            </p>
-          </div>
-
-          <div className="px-4 pb-6">
-            <button
-              type="button"
-              onClick={handleLogout}
-              className={`${styles.itemLateralBase} ${styles.itemLateralInativo} w-full`}
-            >
-              <LogOut className={styles.itemLateralIcone} strokeWidth={2} />
-              Sair
-            </button>
-          </div>
-        </aside>
-
-        {/* Menu horizontal com rolagem (mobile/tablet) */}
-        <nav className={styles.navegacaoMovel}>
-          <div className={styles.navegacaoMovelLista}>
-            {menuLateral.map(({ icone: Icone, rotulo, ativo }) => (
-              <a
-                key={rotulo}
-                href="#"
-                className={`${styles.itemMovelBase} ${
-                  ativo ? styles.itemMovelAtivo : styles.itemMovelInativo
-                }`}
-              >
-                <Icone
-                  className={
-                    ativo ? styles.itemLateralIconeAtivo : styles.itemLateralIcone
-                  }
-                  strokeWidth={2}
-                />
-                {rotulo}
-              </a>
-            ))}
-          </div>
-        </nav>
-
-        {/* Conteúdo principal */}
-        <main className={styles.principal}>
-          <p className="mb-5 rounded-xl border border-canela/30 bg-canela/10 px-4 py-3 text-sm leading-relaxed text-canela-escura" role="note">
-            Esta tela contém conteúdo demonstrativo. Reservas, recomendações,
-            indicadores e dados de empresas ainda não vêm da API.
-          </p>
-          <div className="min-w-0">
-            <h1 className={styles.saudacao}>Olá, {firstName}!</h1>
-            <p className={styles.saudacaoDescricao}>
-              Artesã Autônoma • Confira suas reservas e novos materiais
-              recomendados para suas bolsas.
-            </p>
-          </div>
-
-          {/* Cartões de resumo */}
-          <div className={styles.gradeEstatisticas}>
-            {estatisticas.map(({ rotulo, valor, detalhe }) => (
-              <div key={rotulo} className={styles.cartaoEstatistica}>
-                <p className={styles.estatisticaRotulo}>{rotulo}</p>
-                <p className={styles.estatisticaValor}>{valor}</p>
-                <p className={styles.estatisticaDetalhe}>{detalhe}</p>
-              </div>
-            ))}
-
-            <div className={styles.pegadaCaixa}>
-              <Award className={styles.pegadaIcone} strokeWidth={1.8} />
-              <div className="min-w-0">
-                <p className={styles.pegadaTitulo}>Sua pegada poupada</p>
-                <p className={styles.pegadaTexto}>
-                  Você evitou{" "}
-                  <span className={styles.pegadaDestaque}>
-                    2.670 kg de CO₂
-                  </span>{" "}
-                  na atmosfera!
-                </p>
-              </div>
+                <X size={16} aria-hidden="true" />
+              </button>
             </div>
           </div>
-
-          <div className={styles.gradeConteudo}>
-            {/* Recomendados */}
-                <section className="min-w-0">
-              <h2 className={styles.secaoTitulo}>
-                Recomendados para seu perfil (couro e EVA)
-              </h2>
-
-              <div className={styles.gradeRecomendados}>
-                {recomendados.map(
-                  ({ imagem, imagemAlt, titulo, origem, quantidade, distancia }) => (
-                    <article key={titulo} className={styles.cartaoProduto}>
-                      <img
-                        src={imagem}
-                        alt={imagemAlt}
-                        loading="lazy"
-                        className={styles.produtoImagem}
-                      />
-                      <div className={styles.produtoCorpo}>
-                        <p className={styles.produtoTitulo}>{titulo}</p>
-                        <p className={styles.produtoOrigem}>{origem}</p>
-                        <div className={styles.produtoRodape}>
-                          <span className={styles.produtoQuantidade}>
-                            {quantidade}
-                          </span>
-                          <span className={styles.produtoDistancia}>
-                            {distancia}
-                          </span>
-                        </div>
-                      </div>
-                    </article>
-                  )
-                )}
-              </div>
-            </section>
-
-            {/* Reservas ativas */}
-            <section className={styles.cartaoReservas}>
-              <h2 className={styles.secaoTitulo}>Minhas reservas ativas</h2>
-
-              <div className={styles.listaReservas}>
-                {reservas.map(({ titulo, status, origem, quantidade }) => (
-                  <div key={titulo} className={styles.reservaItem}>
-                    <div className={styles.reservaTopo}>
-                      <p className={styles.reservaTitulo}>{titulo}</p>
-                      <span className={estiloSelo(status)}>{status}</span>
-                    </div>
-                    <p className={styles.reservaOrigemRotulo}>Doador / origem</p>
-                    <div className={styles.reservaRodape}>
-                      <span className={styles.reservaOrigem}>{origem}</span>
-                      <span className={styles.reservaQuantidade}>
-                        {quantidade}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
-          </div>
-
-          {/* Dica de circularidade (mobile/tablet) */}
-          <div className={styles.dicaMovel}>
-            <p className={styles.dicaTitulo}>Dica de circularidade</p>
-            <p className={styles.dicaTexto}>
-              Retalhos de couro classificados como premium têm 3x mais
-              liquidez no artesanato de calçados finos.
-            </p>
-          </div>
-        </main>
-      </div>
-
-      <Footer />
+        )}
+        {tab === "explorar" && <section className="space-y-8"><header className="space-y-3"><p className="text-xs font-bold uppercase tracking-wider text-accent">Materiais que continuam</p><h1 className={s.title}>Olá, {displayName || "Comprador"}</h1><p className={s.copy}>Sua próxima criação começa com uma nova possibilidade.</p></header>{params.get("empresa") && <div className={s.notice}>Exibindo materiais da empresa selecionada. <button className="underline" onClick={() => setParams({ aba: "explorar" })}>Ver todas as empresas</button></div>}<ProductCatalog key={params.get("empresa") ?? "all"} embedded companyId={params.get("empresa") ?? undefined} /></section>}
+        {(tab === "reservas" || tab === "historico") && <BuyerReservations key={`${user.id}:${tab}`} history={tab === "historico"} />}
+        {tab === "avaliacoes" && <BuyerReviews key={`${user.id}:${params.get("reserva") ?? ""}:${params.get("avaliacao") ?? ""}`} userId={user.id} />}
+        {tab === "disputas" && <BuyerDisputes key={`${user.id}:${params.get("reserva") ?? ""}:${params.get("disputa") ?? ""}`} userId={user.id} />}
+        {tab === "impacto" && <BuyerImpact key={`${user.id}:${params.get("reserva") ?? ""}`} />}
+        {tab === "empresas" && <BuyerCompanies key={user.id} />}
+        {tab === "notificacoes" && <BuyerNotifications key={user.id} socket={realtime.socket} />}
+        {tab === "mensagens" && <BuyerConversations key={user.id} userId={user.id} socket={realtime.socket} connected={realtime.connected} />}
+        {tab === "enderecos" && <BuyerAddresses key={user.id} userId={user.id} />}
+        {tab === "cartoes" && <BuyerCards key={user.id} />}
+        {tab === "perfil" && <BuyerProfile key={user.id} userId={user.id} />}
+        {tab === "seguranca" && <BuyerSecurity key={user.id} userId={user.id} />}
+      </main><footer className="flex flex-wrap justify-between gap-3 border-t border-line px-5 py-5 text-xs text-muted sm:px-8 [&_a]:flex [&_a]:items-center [&_a]:gap-2"><span>© {new Date().getFullYear()} Reaproveita Franca.</span><Link to="/sobre-nos">Conheça nossa proposta <ArrowUpRight size={14} /></Link></footer>
     </div>
-  );
+  </div>;
 }

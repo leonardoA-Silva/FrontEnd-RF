@@ -1,32 +1,37 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { FormEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
-import axios from "axios";
-import api from "../../axios/Axios";
+import api, { type LoginResponse } from "../../axios/Axios";
+import { apiError, apiStatus } from "../../axios/apiError";
+import { saveSession } from "../../auth/session";
+import GoogleSignIn from "./GoogleSignIn";
 import BrandIcon from "../../components/BrandIcon";
+import axios from "axios";
+import EmailVerificationModal from "../../components/EmailVerificationModal";
+
 
 type TipoUsuario = "empresa" | "comprador";
 
-const REMEMBERED_EMAIL_KEY = "rememberedEmail";
-
-function readRememberedEmail(): string {
-    try {
-        return localStorage.getItem(REMEMBERED_EMAIL_KEY) ?? "";
-    } catch {
-        return "";
-    }
-}
-
 export default function Login() {
     const navigate = useNavigate();
-    const [tipoUsuario, setTipoUsuario] = useState<TipoUsuario>("empresa");
-    const [email, setEmail] = useState(readRememberedEmail);
+    const location = useLocation();
+    const origem = location.state?.from;
+    const voltarAoMarketplace = typeof origem === "string" && /^\/marketplace(?:\/[A-Za-z0-9_-]+){0,3}$/.test(origem);
+    const [tipoUsuario, setTipoUsuario] = useState<TipoUsuario>(() => voltarAoMarketplace || location.state?.tipoUsuario === "comprador" ? "comprador" : "empresa");
+    const [email, setEmail] = useState("");
     const [senha, setSenha] = useState("");
-    const [lembrarDeMim, setLembrarDeMim] = useState(() => readRememberedEmail() !== "");
+    const [lembrarDeMim, setLembrarDeMim] = useState(false);
     const [mostrarSenha, setMostrarSenha] = useState(false);
     const [carregando, setCarregando] = useState(false);
     const [erro, setErro] = useState("");
+    const [verification, setVerification] = useState<{ id: string; email: string } | null>(null);
+    const [verificationOpen, setVerificationOpen] = useState(false);
+    useEffect(() => {
+        if (!erro || verification) return;
+        const t = setTimeout(() => setErro(""), 6000);
+        return () => clearTimeout(t);
+    }, [erro, verification]);
 
     const ehEmpresa = tipoUsuario === "empresa";
 
@@ -83,148 +88,51 @@ export default function Login() {
         rodapeCartao: "mt-7 text-center text-sm text-carvao-suave",
         linkCadastro:
             "font-bold text-canela no-underline transition hover:text-canela-escura",
-    };
-
-    function handleTrocaTipo(tipo: TipoUsuario) {
+    };    function handleTrocaTipo(tipo: TipoUsuario) {
         setTipoUsuario(tipo);
         setErro("");
+        setVerification(null);
     }
 
-    // Lê a resposta da API aceitando os vários nomes que ela pode usar.
-    function lerRespostaLogin(resposta: Record<string, unknown>) {
-        const token =
-            resposta["token"] ??
-            resposta["accessToken"] ??
-            resposta["access_token"] ??
-            resposta["jwt"];
-        const usuario =
-            resposta["user"] ??
-            resposta["usuario"] ??
-            resposta;
-        return {
-            token: typeof token === "string" ? token : null,
-            usuario,
-        };
-    }
-
-    // Tenta guardar o usuário; se a foto estourar o limite do navegador,
-    // guarda de novo sem a foto para não perder o resto.
-    function guardarUsuario(storage: Storage, usuario: unknown) {
-        try {
-            storage.setItem("user", JSON.stringify(usuario));
+    const handleLoginSuccess = useCallback((data: LoginResponse, remember: boolean) => {
+        if (!data.token || !data.user?.id) throw new Error("Resposta de login inválida.");
+        const expected = tipoUsuario === "empresa" ? "company" : "user";
+        if (data.user.role !== expected && data.user.role !== "admin") {
+            setErro(expected === "user" ? "Esta conta é de empresa. Selecione Empresa Geradora." : "Esta conta é de comprador. Selecione Comprador / Artesão.");
             return;
-        } catch {
-            // Cai aqui quando o storage está cheio (foto grande em base64).
         }
-        if (usuario !== null && typeof usuario === "object") {
-            const copia = { ...(usuario as Record<string, unknown>) };
-            delete copia["photo"];
-            storage.setItem("user", JSON.stringify(copia));
-        }
-    }
+        // Login social não informa mustChangePassword; firstLogin continua obrigatório nos dois fluxos.
+        const trocarSenha = data.mustChangePassword === true || data.user.status === "firstLogin";
+        saveSession(data.token, { ...data.user, mustChangePassword: trocarSenha }, remember);
+        navigate(trocarSenha ? "/primeiro-acesso" : data.user.role === "company" ? "/dashboardEmpresa" : voltarAoMarketplace ? origem : "/dashboardUsuario", { replace: true });
+    }, [navigate, tipoUsuario, voltarAoMarketplace, origem]);
 
-    // Guarda token + usuário + perfil no lugar certo:
-    // "Lembrar de mim" marcado -> localStorage (continua após fechar o navegador).
-    // Desmarcado -> sessionStorage (apaga ao fechar a aba).
-    function salvarSessao(token: string | null, usuario: unknown) {
-        const principal = lembrarDeMim ? localStorage : sessionStorage;
-        const outro = lembrarDeMim ? sessionStorage : localStorage;
+    const handleGoogleSuccess = useCallback((data: LoginResponse, remember: boolean) => {
+        if (!data.token || !data.user?.id) throw new Error("Resposta de login inválida.");
+        const trocarSenha = data.mustChangePassword === true || data.user.status === "firstLogin";
+        saveSession(data.token, { ...data.user, mustChangePassword: trocarSenha }, remember);
+        navigate(trocarSenha ? "/primeiro-acesso" : data.user.role === "company" ? "/dashboardEmpresa" : voltarAoMarketplace ? origem : "/dashboardUsuario", { replace: true });
+    }, [navigate, voltarAoMarketplace, origem]);
 
-        if (token) {
-            principal.setItem("token", token);
-            outro.removeItem("token");
-        }
-        if (usuario !== null && usuario !== undefined) {
-            guardarUsuario(principal, usuario);
-            outro.removeItem("user");
-        }
-        principal.setItem("tipoUsuario", tipoUsuario);
-        try {
-            if (lembrarDeMim && email.trim()) {
-                localStorage.setItem(REMEMBERED_EMAIL_KEY, email.trim());
-            } else if (!lembrarDeMim) {
-                localStorage.removeItem(REMEMBERED_EMAIL_KEY);
-            }
-        } catch {
-            // storage indisponível: login continua funcionando
-        }
-    }
-
-    // Leva para o dashboard conforme a aba escolhida na tela.
-    function irParaDashboard() {
-        if (tipoUsuario === "empresa") {
-            navigate("/dashboardEmpresa");
-        } else {
-            navigate("/dashboardUsuario");
-        }
-    }
-
-    // Transforma o erro em frase pronta para mostrar na tela.
-    function mensagemDeErroLogin(err: unknown): string {
-        if (!axios.isAxiosError(err)) {
-            return "Erro inesperado ao fazer login. Tente novamente.";
-        }
-        if (!err.response) {
-            return "Não foi possível conectar à API. Verifique sua conexão e se a API está rodando.";
-        }
-        const resposta = err.response.data as Record<string, unknown> | undefined;
-        // A API pode chamar o texto de 4 jeitos: procura em todos.
-        for (const chave of ["error", "message", "msg", "erros"]) {
-            const valor = resposta?.[chave];
-            if (valor) {
-                return Array.isArray(valor) ? valor.join(" ") : String(valor);
-            }
-        }
-        if (err.response.status === 401 || err.response.status === 404) {
-            return "E-mail ou senha inválidos.";
-        }
-        return "Erro ao fazer login. Tente novamente.";
-    }
-
-    async function handleSubmit(e: FormEvent) {
-        e.preventDefault();
+    async function handleSubmit(event: FormEvent) {
+        event.preventDefault();
+        if (carregando) return;
         setErro("");
-
-        // Passo 1: valida os campos antes de chamar a API.
-        if (!email.trim() || !senha) {
-            setErro("Informe e-mail e senha para continuar.");
-            return;
-        }
-
+        setVerification(null);
+        if (!email.trim() || !senha) { setErro("Informe e-mail e senha para continuar."); return; }
         setCarregando(true);
         try {
-            // Passo 2: envia e-mail + senha para a API.
-            const { data } = await api.post("/user/login", {
-                email: email.trim(),
-                password: senha,
-            });
-            const resposta = data as Record<string, unknown>;
-
-            // Passo 3: confere se o perfil da conta bate com a aba escolhida.
-            // O back retorna role "company" | "user" | "admin".
-            const { token, usuario } = lerRespostaLogin(resposta);
-            const role = (usuario as Record<string, unknown> | null)?.["role"];
-            const esperado = tipoUsuario === "empresa" ? "company" : "user";
-            if (typeof role === "string" && role !== esperado && role !== "admin") {
-                setErro(
-                    tipoUsuario === "empresa"
-                        ? "Esta conta é de comprador/artesão. Troque para a aba Comprador / Artesão."
-                        : "Esta conta é de empresa. Troque para a aba Empresa Geradora."
-                );
-                return;
+            const response = await api.post<LoginResponse>("/user/login", { email: email.trim(), password: senha });
+            handleLoginSuccess(response.data, lembrarDeMim);
+        } catch (error) {
+            const response = axios.isAxiosError(error) ? error.response : undefined;
+            const pending = response?.data?.verification;
+            const canVerify = response?.status === 403 && response.data?.code === "EMAIL_VERIFICATION_REQUIRED" && typeof pending?.id === "string" && /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(pending.id) && typeof pending?.email === "string";
+            if (canVerify) {
+                setVerification({ id: pending.id, email: pending.email });
             }
-
-            // Passo 4: salva token + usuário no navegador.
-            salvarSessao(token, usuario);
-
-            // Passo 5: entra no dashboard do perfil escolhido.
-            irParaDashboard();
-        } catch (err) {
-            // Passo 6: algo deu errado -> mostra a mensagem na tela.
-            setErro(mensagemDeErroLogin(err));
-        } finally {
-            setCarregando(false);
-        }
+            setErro(canVerify ? "Sua conta já foi criada. Confirme seu e-mail pelo código para liberar o acesso." : apiStatus(error) === 401 ? "E-mail ou senha inválidos. Se você usa login social, entre com o provedor." : apiStatus(error) === 403 ? "Sua conta está inativa ou não tem acesso. Entre em contato com o suporte." : apiError(error, "Não foi possível entrar. Tente novamente."));
+        } finally { setCarregando(false); }
     }
 
     return (
@@ -273,6 +181,7 @@ export default function Login() {
                 <div className={styles.formularioArea}>
                     <div className={styles.cartao}>
                         <h1 className={styles.titulo}>Acesse sua conta</h1>
+                        {location.state?.accountDeleted && <p role="status" className="mt-4 rounded-xl bg-success/10 p-4 text-sm text-primary">Sua conta foi excluída e sua sessão foi encerrada.</p>}
                         <p className={styles.descricao}>
                             Entre para publicar materiais ou conhecer os lotes disponíveis.
                         </p>
@@ -310,7 +219,7 @@ export default function Login() {
                         <form className={styles.formulario} onSubmit={handleSubmit}>
                             {erro && (
                                 <p role="alert" className={styles.erroBox}>
-                                    {erro}
+                                    {erro}{verification && <button id="resume-verification" type="button" className="mt-3 block cursor-pointer font-bold underline" onClick={() => setVerificationOpen(true)}>Confirmar conta com código</button>}
                                 </p>
                             )}
 
@@ -325,7 +234,7 @@ export default function Login() {
                                     required
                                     placeholder="voce@exemplo.com"
                                     value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
+                                    onChange={(e) => { setEmail(e.target.value); setVerification(null); setErro(""); }}
                                     disabled={carregando}
                                     className={styles.input}
                                 />
@@ -343,7 +252,7 @@ export default function Login() {
                                         required
                                         placeholder="Sua senha secreta"
                                         value={senha}
-                                        onChange={(e) => setSenha(e.target.value)}
+                                        onChange={(e) => { setSenha(e.target.value); setVerification(null); setErro(""); }}
                                         disabled={carregando}
                                         className={`${styles.input} ${styles.inputSenha}`}
                                     />
@@ -373,7 +282,7 @@ export default function Login() {
                                     />
                                     Lembrar de mim
                                 </label>
-                                <span className="text-carvao-suave">Use o e-mail cadastrado na sua conta.</span>
+                                <Link to="/recuperar-senha" className="font-semibold text-primary underline">Esqueci minha senha</Link>
                             </div>
 
                             <button
@@ -385,6 +294,7 @@ export default function Login() {
                             </button>
                         </form>
 
+                        <div className="mt-6"><GoogleSignIn key={tipoUsuario} onSuccess={handleGoogleSuccess} remember={lembrarDeMim} accountType={ehEmpresa ? "company" : undefined} /></div>
                         <p className={styles.rodapeCartao}>
                             Ainda não tem conta?{" "}
                             <Link to="/cadastro" className={styles.linkCadastro}>
@@ -394,6 +304,7 @@ export default function Login() {
                     </div>
                 </div>
             </main>
+            {verification && <EmailVerificationModal open={verificationOpen} userId={verification.id} email={verification.email} resuming onClose={() => setVerificationOpen(false)} onSuccess={() => { setVerificationOpen(false); setVerification(null); setErro(""); setSenha(""); }} />}
         </div>
     );
 }

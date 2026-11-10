@@ -8,6 +8,14 @@ import Login from "./pages/login/Login";
 import DashboardUsuario from "./pages/dashboard/DashboardUsuario";
 import DashboardEmpresa from "./pages/dashboard/DashboardEmpresa";
 import ProtectedRoute from "./components/ProtectedRoute";
+import MarketplaceLayout from "./pages/marketplace/MarketplaceLayout";
+import Marketplace from "./pages/marketplace/Marketplace";
+import LiveProductDetails from "./pages/marketplace/LiveProductDetails";
+import LiveReservationRequest from "./pages/marketplace/LiveReservationRequest";
+import About from "./pages/about/About";
+import FirstAccess from "./pages/login/FirstAccess";
+import PasswordRecovery from "./pages/login/PasswordRecovery";
+import ResetPassword from "./pages/login/ResetPassword";
 
 const MapaEmpresas = lazy(() => import("./pages/dashboard/MapaEmpresas"));
 const MeusMateriais = lazy(() => import("./pages/dashboard/MeusMateriais"));
@@ -32,6 +40,15 @@ function App() {
           <Route path="/cadastro-empresa" element={<RegisterCompany />} />
           <Route path="/cadastro-pessoal" element={<RegisterUser />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/sobre-nos" element={<About />} />
+          <Route path="/recuperar-senha" element={<PasswordRecovery />} />
+          <Route path="/redefinir-senha" element={<ResetPassword />} />
+          <Route path="/primeiro-acesso" element={<ProtectedRoute><FirstAccess /></ProtectedRoute>} />
+          <Route path="/marketplace" element={<MarketplaceLayout />}>
+            <Route index element={<Marketplace />} />
+            <Route path="produto/:productId" element={<LiveProductDetails />} />
+            <Route path="reserva/:productId" element={<ProtectedRoute allowedRoles={["user"]}><LiveReservationRequest /></ProtectedRoute>} />
+          </Route>
 
 
           {/* rotas privadas */}

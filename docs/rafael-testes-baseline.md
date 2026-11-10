@@ -15,6 +15,6 @@ Comparação das últimas alterações na área de empresa entre todas as branch
 
 A escolha considera o histórico e os arquivos da empresa, não apenas a data do último commit geral. As demais branches não apresentam alterações empresariais posteriores à origem escolhida.
 
-Esta é uma cópia da versão do Leonardo, sem integração automática com `Rafael/Sprint2----Comprador`. O trabalho do comprador permanece preservado nessa outra branch. Consulte `company-integration.md` para funcionalidades e limitações da versão empresarial.
+Esta branch começou como uma cópia da versão do Leonardo. A pedido do Rafael, as funcionalidades do comprador de `Rafael/Sprint2----Comprador` (base `258514d`) foram posteriormente integradas com os tokens visuais atuais. O trabalho original do comprador permanece preservado nessa outra branch. Consulte `buyer-testes-integration.md` para a integração e `company-integration.md` para funcionalidades e limitações da versão empresarial.
 
-O código da aplicação é o mesmo do commit de origem. A criação desta branch não altera a `main`, a API ou o mobile. Instale as dependências declaradas desta versão com `npm ci` ao alternar entre branches com arquivos de dependências diferentes.
+A integração preserva os arquivos dos fluxos empresariais e `DESIGN.md`, sem substituir o CSS global pelo visual antigo do comprador. Não altera a `main`, a API ou o mobile. Instale as dependências declaradas desta versão com `npm ci` ao alternar entre branches com arquivos de dependências diferentes.

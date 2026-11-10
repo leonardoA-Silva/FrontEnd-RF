@@ -7,6 +7,11 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
     proxy: {
+      '/socket.io': {
+        target: process.env.VITE_BACKEND_URL || 'http://localhost:5000',
+        changeOrigin: true,
+        ws: true,
+      },
       '/api': {
         target: process.env.VITE_BACKEND_URL || 'http://localhost:5000',
         changeOrigin: true,

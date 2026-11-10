@@ -1,36 +1,17 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { clearSession, readSession, sessionEvent } from "../auth/session";
+import { useProfilePhoto } from "../auth/profilePhoto";
 
-// Campos que o front lê do usuário salvo no login (a API pode usar nomes variados).
-interface StoredUser {
-  id?: string;
-  name?: string;
-  nome?: string;
-  razaoSocial?: string;
-  email?: string;
-  photo?: string;
-  foto?: string;
-  avatar?: string;
-}
-
-export function useLoggedUser({ fallbackName = "Usuário" }: { fallbackName?: string } = {}) {
-  const [user] = useState<StoredUser | null>(() => {
-    try {
-      const raw = localStorage.getItem("user") ?? sessionStorage.getItem("user");
-      return raw ? (JSON.parse(raw) as StoredUser) : null;
-    } catch {
-      return null;
-    }
-  });
-
-  const displayName: string =
-    user?.name ?? user?.nome ?? user?.razaoSocial ?? user?.email ?? fallbackName;
-  const photo = user?.photo ?? user?.foto ?? user?.avatar;
-
-  return {
-    displayName,
-    firstName: displayName.split(" ")[0] || fallbackName,
-    photoSrc: typeof photo === "string" && photo.trim() ? photo : null,
-    // Usado para filtrar os produtos da empresa em GET /product.
-    userId: typeof user?.id === "string" ? user.id : null,
-  };
+export function useLoggedUser({ fallbackName = "" }: { fallbackName?: string } = {}) {
+  const [session, setSession] = useState(readSession);
+  const syncUser = useCallback(() => setSession(readSession()), []);
+  useEffect(() => {
+    window.addEventListener("storage", syncUser);
+    window.addEventListener(sessionEvent, syncUser);
+    return () => { window.removeEventListener("storage", syncUser); window.removeEventListener(sessionEvent, syncUser); };
+  }, [syncUser]);
+  const { user, token } = session;
+  const photoSrc = useProfilePhoto(user?.id, token);
+  const displayName = user?.name || fallbackName;
+  return { userId: user?.id ?? null, user, token, role: user?.role ?? null, isLoggedIn: Boolean(token && user), displayName, firstName: displayName.split(" ")[0], photoSrc, logout: clearSession, syncUser };
 }

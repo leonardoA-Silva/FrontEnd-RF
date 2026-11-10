@@ -44,3 +44,6 @@ Auth middleware placement can be route-specific or router-level. Do not infer au
 API errors commonly return `{ error: string }`; success responses vary by endpoint. Parse defensively, show concise pt-BR copy, and retain field values safely after recoverable failures. Handle timeout/network loss separately from server validation. Do not assume every endpoint returns `{ success, data }`, and do not display raw backend exception details.
 
 If an implementation needs an unverified contract, inspect the backend controller/service/schema first. If the API lacks the needed capability, stop at the frontend boundary and report the required API change; do not fake persistence or a successful payment/reservation.
+# Comprador na Rafael/Testes
+
+O cliente recupera os contratos verificados da branch `Rafael/Sprint2----Comprador` para catálogo, reservas, Pix, perfil/foto, endereços, cartões existentes, Socket.IO, notificações, avaliações, disputas e impacto ambiental. O login pendente reconhece `EMAIL_VERIFICATION_REQUIRED` e o contexto `verification` somente após senha validada. Consulte [buyer-testes-integration.md](buyer-testes-integration.md) para o escopo, a aparência preservada e os limites dos testes. Nenhuma API foi alterada nesta integração.
