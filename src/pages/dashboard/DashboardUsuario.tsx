@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { Bell, CreditCard, History, MapPin, MessagesSquare, Search, ShieldCheck, ShoppingBag, UserRound, LogOut, ArrowUpRight, Repeat2, X } from "lucide-react";
+import { Bell, CreditCard, History, MapPin, MessagesSquare, Search, ShieldCheck, ShoppingBag, UserRound, LogOut, ArrowUpRight, Repeat2, X, Star, Leaf, Scale, Building2 } from "lucide-react";
 import AccountAvatar from "../../components/AccountAvatar";
 import { useLoggedUser } from "../../hooks/useLoggedUser";
 import { useBuyerSocket } from "../../hooks/useBuyerSocket";
@@ -12,12 +12,20 @@ import BuyerNotifications from "./comprador/BuyerNotifications";
 import BuyerAddresses from "./comprador/BuyerAddresses";
 import BuyerCards from "./comprador/BuyerCards";
 import BuyerConversations from "./comprador/BuyerConversations";
+import BuyerReviews from "./comprador/BuyerReviews";
+import BuyerDisputes from "./comprador/BuyerDisputes";
+import BuyerImpact from "./comprador/BuyerImpact";
+import BuyerCompanies from "./comprador/BuyerCompanies";
 import { buyerStyles as s } from "./comprador/buyerStyles";
 
 const tabs = [
   { id: "explorar", label: "Explorar materiais", Icon: Search },
   { id: "reservas", label: "Minhas reservas", Icon: ShoppingBag },
   { id: "historico", label: "Histórico", Icon: History },
+  { id: "avaliacoes", label: "Avaliações", Icon: Star },
+  { id: "disputas", label: "Disputas", Icon: Scale },
+  { id: "impacto", label: "Impacto ambiental", Icon: Leaf },
+  { id: "empresas", label: "Encontrar empresas", Icon: Building2 },
   { id: "notificacoes", label: "Notificações", Icon: Bell },
   { id: "mensagens", label: "Mensagens", Icon: MessagesSquare },
   { id: "enderecos", label: "Endereços", Icon: MapPin },
@@ -82,8 +90,12 @@ export default function DashboardUsuario() {
             </div>
           </div>
         )}
-        {tab === "explorar" && <section className="space-y-8"><header className="buyer-heading"><p className="buyer-kicker">Materiais que continuam</p><h1 className={s.title}>Olá, {displayName || "Comprador"}</h1><p className={s.copy}>Sua próxima criação começa com uma nova possibilidade.</p></header><ProductCatalog embedded /></section>}
+        {tab === "explorar" && <section className="space-y-8"><header className="buyer-heading"><p className="buyer-kicker">Materiais que continuam</p><h1 className={s.title}>Olá, {displayName || "Comprador"}</h1><p className={s.copy}>Sua próxima criação começa com uma nova possibilidade.</p></header>{params.get("empresa") && <div className={s.notice}>Exibindo materiais da empresa selecionada. <button className="underline" onClick={() => setParams({ aba: "explorar" })}>Ver todas as empresas</button></div>}<ProductCatalog key={params.get("empresa") ?? "all"} embedded companyId={params.get("empresa") ?? undefined} /></section>}
         {(tab === "reservas" || tab === "historico") && <BuyerReservations key={`${user.id}:${tab}`} history={tab === "historico"} />}
+        {tab === "avaliacoes" && <BuyerReviews key={`${user.id}:${params.get("reserva") ?? ""}:${params.get("avaliacao") ?? ""}`} userId={user.id} />}
+        {tab === "disputas" && <BuyerDisputes key={`${user.id}:${params.get("reserva") ?? ""}:${params.get("disputa") ?? ""}`} userId={user.id} />}
+        {tab === "impacto" && <BuyerImpact key={`${user.id}:${params.get("reserva") ?? ""}`} />}
+        {tab === "empresas" && <BuyerCompanies key={user.id} />}
         {tab === "notificacoes" && <BuyerNotifications key={user.id} socket={realtime.socket} />}
         {tab === "mensagens" && <BuyerConversations key={user.id} userId={user.id} socket={realtime.socket} connected={realtime.connected} />}
         {tab === "enderecos" && <BuyerAddresses key={user.id} userId={user.id} />}

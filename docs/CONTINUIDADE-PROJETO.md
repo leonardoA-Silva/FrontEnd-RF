@@ -283,3 +283,9 @@ As instruções atuais deste checkout limitam novas escritas ao frontend; não f
 ## Consolidação na main autorizada
 
 O usuário solicitou commit na main da API e do frontend, seguindo o histórico de cada projeto. Consolidar as correções locais descritas neste documento e preservar os commits anteriores da branch de comprador por avanço direto da main, sem reescrever histórico. A autorização atual é para commits locais; push não foi solicitado nesta etapa. Manter arquivos de ambiente e verificações locais ignorados fora do versionamento. Google passou na verificação de origem, mas login completo com conta real ainda depende de confirmação. LinkedIn e pagamento por cartão permanecem fora do escopo.
+
+## Integração posterior do comprador — 10/11/2026
+
+O checkout atual é `Rafael/Sprint2----Comprador`, base `f1c7bcd`; API local main `192bbaf`. Integrados somente no frontend: Pix na reserva usando as rotas novas (compra pending), avaliações enviadas/recebidas, disputas, estimativas ambientais por regra fixa, empresas com mapa externo aproximado e filtro do catálogo, geocodificação de endereços pela API e links/filtros das notificações novas. Detalhes e testes: `docs/buyer-api-update-2026-11-10.md`. Código do backend preservado, sem commit/push nesta tarefa; a autorização de publicação de etapas anteriores não deve ser presumida para estas novas mudanças. LinkedIn e pagamento por cartão permanecem fora do escopo.
+
+Testes reais de HTTP/MySQL/Socket.IO e navegador em banco descartável passaram; somente o provedor Pix é simulado e geocodificação/serviços externos não foram exercitados. Não executar o schema de inicialização no banco do projeto: contém DROP e seed administrativo. O teste local remove esse seed e aplica as migrações necessárias apenas no banco exclusivo `rf_buyer_update_*`. Não declarar Pix produtivo validado nem copiar credenciais/ambiente do teste para uso real.
