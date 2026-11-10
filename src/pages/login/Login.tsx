@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import type { FormEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Repeat2, Eye, EyeOff } from "lucide-react";
@@ -7,8 +7,6 @@ import { apiError, apiStatus } from "../../axios/apiError";
 import { saveSession } from "../../auth/session";
 import GoogleSignIn from "./GoogleSignIn";
 import Brand from "../../components/Brand";
-import axios from "axios";
-import EmailVerificationModal from "../../components/EmailVerificationModal";
 
 
 type TipoUsuario = "empresa" | "comprador";
@@ -25,13 +23,6 @@ export default function Login() {
     const [mostrarSenha, setMostrarSenha] = useState(false);
     const [carregando, setCarregando] = useState(false);
     const [erro, setErro] = useState("");
-    const [verification, setVerification] = useState<{ id: string; email: string } | null>(null);
-    const [verificationOpen, setVerificationOpen] = useState(false);
-    useEffect(() => {
-        if (!erro || verification) return;
-        const t = setTimeout(() => setErro(""), 6000);
-        return () => clearTimeout(t);
-    }, [erro, verification]);
 
     const ehEmpresa = tipoUsuario === "empresa";
 
@@ -91,7 +82,6 @@ export default function Login() {
     function handleTrocaTipo(tipo: TipoUsuario) {
         setTipoUsuario(tipo);
         setErro("");
-        setVerification(null);
     }
 
     const handleLoginSuccess = useCallback((data: LoginResponse, remember: boolean) => {
@@ -118,20 +108,13 @@ export default function Login() {
         event.preventDefault();
         if (carregando) return;
         setErro("");
-        setVerification(null);
         if (!email.trim() || !senha) { setErro("Informe e-mail e senha para continuar."); return; }
         setCarregando(true);
         try {
             const response = await api.post<LoginResponse>("/user/login", { email: email.trim(), password: senha });
             handleLoginSuccess(response.data, lembrarDeMim);
         } catch (error) {
-            const response = axios.isAxiosError(error) ? error.response : undefined;
-            const pending = response?.data?.verification;
-            const canVerify = response?.status === 403 && response.data?.code === "EMAIL_VERIFICATION_REQUIRED" && typeof pending?.id === "string" && /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(pending.id) && typeof pending?.email === "string";
-            if (canVerify) {
-                setVerification({ id: pending.id, email: pending.email });
-            }
-            setErro(canVerify ? "Sua conta já foi criada. Confirme seu e-mail pelo código para liberar o acesso." : apiStatus(error) === 401 ? "E-mail ou senha inválidos. Se você usa login social, entre com o provedor." : apiStatus(error) === 403 ? "Sua conta está inativa ou não tem acesso. Entre em contato com o suporte." : apiError(error, "Não foi possível entrar. Tente novamente."));
+            setErro(apiStatus(error) === 401 ? "E-mail ou senha inválidos. Se você usa login social, entre com o provedor." : apiStatus(error) === 403 ? "Sua conta ainda não está ativa ou não tem acesso. Confira a confirmação por e-mail." : apiError(error, "Não foi possível entrar. Tente novamente."));
         } finally { setCarregando(false); }
     }
 
@@ -187,10 +170,9 @@ export default function Login() {
 
                     <form className={styles.formulario} onSubmit={handleSubmit}>
                         {erro && (
-                            <div role="alert" className={styles.erroBox}>
-                                <p>{erro}</p>
-                                {verification && <button id="resume-verification" type="button" className="mt-3 cursor-pointer font-bold underline" onClick={() => setVerificationOpen(true)}>Confirmar conta com código</button>}
-                            </div>
+                            <p role="alert" className={styles.erroBox}>
+                                {erro}
+                            </p>
                         )}
 
                         <div className={styles.campoGrupo}>
@@ -204,7 +186,7 @@ export default function Login() {
                                 required
                                 placeholder="voce@exemplo.com"
                                 value={email}
-                                onChange={(e) => { setEmail(e.target.value); setVerification(null); setErro(""); }}
+                                onChange={(e) => setEmail(e.target.value)}
                                 disabled={carregando}
                                 className={styles.input}
                             />
@@ -222,7 +204,7 @@ export default function Login() {
                                     required
                                     placeholder="Sua senha secreta"
                                     value={senha}
-                                    onChange={(e) => { setSenha(e.target.value); setVerification(null); setErro(""); }}
+                                    onChange={(e) => setSenha(e.target.value)}
                                     disabled={carregando}
                                     className={`${styles.input} ${styles.inputSenha}`}
                                 />
@@ -266,11 +248,11 @@ export default function Login() {
                         </button>
                     </form>
 
-                    <div className="mt-7 space-y-5">
+                    {!ehEmpresa && <div className="mt-7 space-y-5">
                         <div className={styles.divisor}><span className={styles.divisorLinha} /><span>OU ENTRAR COM</span><span className={styles.divisorLinha} /></div>
-                        <GoogleSignIn key={tipoUsuario} onSuccess={handleGoogleSuccess} remember={lembrarDeMim} accountType={ehEmpresa ? "company" : undefined} />
+                        <GoogleSignIn onSuccess={handleGoogleSuccess} remember={lembrarDeMim} />
                         <p className="text-xs text-gray-600">A entrada com LinkedIn ainda está indisponível. Use e-mail e senha ou Google.</p>
-                    </div>
+                    </div>}
 
                     <p className={styles.rodapeCartao}>
                         Ainda não tem conta?{" "}
@@ -281,7 +263,6 @@ export default function Login() {
                 </div>
             </main>
 
-            {verification && <EmailVerificationModal open={verificationOpen} userId={verification.id} email={verification.email} resuming onClose={() => { setVerificationOpen(false); window.requestAnimationFrame(() => document.getElementById("resume-verification")?.focus()); }} onSuccess={() => { setVerificationOpen(false); setVerification(null); setErro(""); setSenha(""); }} />}
             <footer className="login-footer">© {new Date().getFullYear()} Reaproveita Franca.</footer>
         </div>
     );

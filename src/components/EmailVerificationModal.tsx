@@ -1,4 +1,3 @@
-import axios from "axios";
 import { useEffect, useState } from "react";
 import { Dialog } from "@mui/material";
 import { ArrowRight, CheckCircle2, LoaderCircle, Mail, RefreshCw, X } from "lucide-react";
@@ -11,7 +10,6 @@ interface EmailVerificationModalProps {
   userId: string;
   email: string;
   emailSent?: boolean;
-  resuming?: boolean;
   onSuccess: () => void;
   onClose?: () => void;
 }
@@ -21,13 +19,13 @@ export default function EmailVerificationModal(props: EmailVerificationModalProp
   return props.open ? <VerificationContent {...props} /> : null;
 }
 
-function VerificationContent({ open, userId, email, emailSent = true, resuming = false, onSuccess, onClose }: EmailVerificationModalProps) {
+function VerificationContent({ open, userId, email, emailSent = true, onSuccess, onClose }: EmailVerificationModalProps) {
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState<"verify" | "resend" | null>(null);
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
   const [success, setSuccess] = useState(false);
-  const [remaining, setRemaining] = useState(emailSent && !resuming ? 30 : 0);
+  const [remaining, setRemaining] = useState(emailSent ? 30 : 0);
 
   useEffect(() => {
     if (remaining <= 0) return;
@@ -45,7 +43,7 @@ function VerificationContent({ open, userId, email, emailSent = true, resuming =
     if (busy || success || code.length !== 6 || !userId) return;
     setBusy("verify"); setError(""); setInfo("");
     try { await verificarCodigoOtp(userId, code); setSuccess(true); }
-    catch (failure) { setError(axios.isAxiosError(failure) && [400, 401].includes(failure.response?.status ?? 0) ? "Código incorreto ou expirado. Confira ou solicite um novo código." : accountError(failure, "Não foi possível confirmar o código. Tente novamente.")); }
+    catch (failure) { setError(accountError(failure, "Código incorreto ou expirado. Confira e tente novamente.")); }
     finally { setBusy(null); }
   }
 

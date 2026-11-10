@@ -1,18 +1,15 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
-import { cadastrarEmpresa, cadastrarEmpresaGoogle, cadastrarUsuario, type LoginResponse } from "../../axios/Axios";
-import { registrationError } from "./registrationError";
+import { cadastrarEmpresa, cadastrarUsuario } from "../../axios/Axios";
+import { accountError } from "../../components/account/accountError";
 import { emptyRegistration, validateRegistration } from "./registrationData";
 import type { RegistrationData, RegistrationErrors, RegistrationKind } from "./registrationData";
 import { useRegistrationAddress } from "./useRegistrationAddress";
 
-export function useRegistrationForm(kind: RegistrationKind, onGoogleCreated?: (session: LoginResponse) => void) {
+export function useRegistrationForm(kind: RegistrationKind) {
   const [data, setData] = useState({ ...emptyRegistration });
   const [errors, setErrors] = useState<RegistrationErrors>({});
   const [error, setError] = useState("");
-  const [conflict, setConflict] = useState(false);
-  const submitting = useRef(false);
-  const [googleCompany, setGoogleCompany] = useState(false);
   const [busy, setBusy] = useState(false);
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoUrl, setPhotoUrl] = useState("");
@@ -27,7 +24,6 @@ export function useRegistrationForm(kind: RegistrationKind, onGoogleCreated?: (s
     setData(previous => ({ ...previous, [key]: value, ...(key === "state" ? { city: "" } : {}) }));
     setErrors(previous => ({ ...previous, [key]: undefined }));
     setError("");
-    setConflict(false);
   }
 
   function changePhoto(file: File | null) {
@@ -39,22 +35,15 @@ export function useRegistrationForm(kind: RegistrationKind, onGoogleCreated?: (s
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (googleCompany) { setErrors(validateRegistration(data, kind, true)); setError("Preencha os dados da empresa e use o botão Criar conta com Google."); return; }
-    await send();
-  }
-
-  async function send(idToken?: string) {
-    if (submitting.current || busy || created) return;
-    const nextErrors = validateRegistration(data, kind, !!idToken);
+    if (busy || created) return;
+    const nextErrors = validateRegistration(data, kind);
     setErrors(nextErrors);
     setError("");
-    setConflict(false);
     if (Object.keys(nextErrors).length) {
       document.getElementById(Object.keys(nextErrors)[0])?.focus();
       return;
     }
     setBusy(true);
-    submitting.current = true;
     const payload = {
       name: data.name.trim(), cpf: data.cpf.replace(/\D/g, ""), email: data.email.trim(), password: data.password,
       cellphone: data.cellphone.replace(/\D/g, ""), zip_code: data.zip_code.replace(/\D/g, ""),
@@ -62,11 +51,6 @@ export function useRegistrationForm(kind: RegistrationKind, onGoogleCreated?: (s
       city: data.city.trim(), state: data.state.trim().toUpperCase(),
     };
     try {
-      if (idToken && kind === "company") {
-        const response = await cadastrarEmpresaGoogle({ name: payload.name, cpf: payload.cpf, cnpj: data.cnpj.replace(/\D/g, ""), cellphone: payload.cellphone, zip_code: payload.zip_code, street: payload.street, neighborhood: payload.neighborhood, number: payload.number, city: payload.city, state: payload.state, idToken }, photo);
-        onGoogleCreated?.(response.data);
-        return;
-      }
       const response = kind === "company"
         ? await cadastrarEmpresa({ ...payload, cnpj: data.cnpj.replace(/\D/g, "") }, photo)
         : await cadastrarUsuario({ ...payload, birthday: data.birthday }, photo);
@@ -78,13 +62,9 @@ export function useRegistrationForm(kind: RegistrationKind, onGoogleCreated?: (s
       setData(previous => ({ ...previous, password: "" }));
       setVerificationOpen(true);
     } catch (failure) {
-      const result = registrationError(failure, kind);
-      setError(result.message);
-      setErrors(result.fields);
-      setConflict(result.conflict);
-      window.requestAnimationFrame(() => document.getElementById("registration-error")?.focus());
-    } finally { submitting.current = false; setBusy(false); }
+      setError(accountError(failure, "Não foi possível concluir o cadastro agora. Seus dados continuam no formulário para tentar novamente."));
+    } finally { setBusy(false); }
   }
 
-  return { data, errors, error, conflict, busy, googleCompany, setGoogleCompany, submitGoogle: (idToken: string) => send(idToken), photoUrl, photoError, created, verificationOpen, setVerificationOpen, setField, changePhoto, submit, address };
+  return { data, errors, error, busy, photoUrl, photoError, created, verificationOpen, setVerificationOpen, setField, changePhoto, submit, address };
 }

@@ -15,16 +15,6 @@ export default function BuyerAddresses({ userId }: { userId: string }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  useEffect(() => {
-    if (!success) return;
-    const t = setTimeout(() => setSuccess(""), 4000);
-    return () => clearTimeout(t);
-  }, [success]);
-  useEffect(() => {
-    if (!error) return;
-    const t = setTimeout(() => setError(""), 6000);
-    return () => clearTimeout(t);
-  }, [error]);
   async function remove() {
     if (busy || !selected) return;
     setBusy(true); setError("");
@@ -41,22 +31,11 @@ export default function BuyerAddresses({ userId }: { userId: string }) {
 
 function AddressForm({ userId, address, cancel, saved }: { userId: string; address: BuyerAddress | null; cancel: () => void; saved: () => void }) {
   const [fields, setFields] = useState({ zipCode: address?.zip_code ?? "", street: address?.street ?? "", neighborhood: address?.neighborhood ?? "", number: address?.number ?? "", city: address?.city ?? "", state: address?.state ?? "", latitude: String(address?.latitude ?? ""), longitude: String(address?.longitude ?? "") });
-  const [manualCoordinates, setManualCoordinates] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [cepBusy, setCepBusy] = useState(false);
   const [cepError, setCepError] = useState("");
   const [cepStatus, setCepStatus] = useState("");
-  useEffect(() => {
-    if (!error) return;
-    const t = setTimeout(() => setError(""), 6000);
-    return () => clearTimeout(t);
-  }, [error]);
-  useEffect(() => {
-    if (!cepStatus) return;
-    const t = setTimeout(() => setCepStatus(""), 4000);
-    return () => clearTimeout(t);
-  }, [cepStatus]);
   const cepRequest = useRef<AbortController | null>(null);
   const cepSequence = useRef(0);
   const resolvedCep = useRef(address?.zip_code ?? "");
@@ -71,6 +50,10 @@ function AddressForm({ userId, address, cancel, saved }: { userId: string; addre
       setCepBusy(false);
       setCepError("");
       setCepStatus("");
+      const clean = value.replace(/\D/g, "");
+      if (clean.length === 8) {
+        setTimeout(() => lookupCep(), 0);
+      }
     }
     setFields(current => ({ ...current, [key]: value }));
   }
@@ -97,8 +80,8 @@ function AddressForm({ userId, address, cancel, saved }: { userId: string; addre
   }
   async function submit(event: FormEvent) {
     event.preventDefault(); if (busy || cepBusy) return;
-    const input: AddressInput = { ...fields, zipCode: fields.zipCode.replace(/\D/g, ""), state: fields.state.trim().toUpperCase(), latitude: manualCoordinates ? (fields.latitude.trim() ? Number(fields.latitude) : null) : undefined, longitude: manualCoordinates ? (fields.longitude.trim() ? Number(fields.longitude) : null) : undefined };
-    if (!/^\d{8}$/.test(input.zipCode) || !/^[A-Z]{2}$/.test(input.state) || definitions.some(([key]) => !fields[key].trim()) || (input.latitude != null && (!Number.isFinite(input.latitude) || Math.abs(input.latitude) > 90)) || (input.longitude != null && (!Number.isFinite(input.longitude) || Math.abs(input.longitude) > 180))) { setError("Confira os campos obrigatórios, o CEP com 8 dígitos, a UF e as coordenadas opcionais."); return; }
+    const input: AddressInput = { ...fields, zipCode: fields.zipCode.replace(/\D/g, ""), state: fields.state.trim().toUpperCase(), latitude: fields.latitude.trim() ? Number(fields.latitude) : null, longitude: fields.longitude.trim() ? Number(fields.longitude) : null };
+    if (!/^\d{8}$/.test(input.zipCode) || !/^[A-Z]{2}$/.test(input.state) || definitions.some(([key]) => !fields[key].trim()) || (input.latitude !== null && (!Number.isFinite(input.latitude) || Math.abs(input.latitude) > 90)) || (input.longitude !== null && (!Number.isFinite(input.longitude) || Math.abs(input.longitude) > 180))) { setError("Confira os campos obrigatórios, o CEP com 8 dígitos, a UF e as coordenadas opcionais."); return; }
     input.street = input.street.trim(); input.number = input.number.trim(); input.neighborhood = input.neighborhood.trim(); input.city = input.city.trim();
     setBusy(true); setError("");
     try { if (address) await atualizarEndereco(address.id, input); else await criarEndereco(userId, input); saved(); }
@@ -110,11 +93,10 @@ function AddressForm({ userId, address, cancel, saved }: { userId: string; addre
       <p id="cep-help" className={s.copy}>Ao sair do campo CEP, consultamos o ViaCEP para preencher o endereço. Somente o CEP é enviado ao serviço; você pode ajustar os dados manualmente.</p>
       <fieldset disabled={busy} className="grid gap-5 sm:grid-cols-2"><legend className="sr-only">Dados do endereço</legend>
         {definitions.map(([key, label, limit]) => <label key={key} className={s.label}>{label} *<input required maxLength={limit} autoComplete={key === "zipCode" ? "postal-code" : key === "street" ? "address-line1" : "off"} value={fields[key]} onChange={e => changeField(key, e.target.value)} onBlur={key === "zipCode" ? () => lookupCep() : undefined} aria-describedby={key === "zipCode" ? "cep-help cep-feedback" : undefined} className={s.input} /></label>)}
-        <label className={`${s.copy} flex items-center gap-3 sm:col-span-2`}><input type="checkbox" checked={manualCoordinates} onChange={event => setManualCoordinates(event.target.checked)} />Informar ou limpar coordenadas manualmente</label>
-        {manualCoordinates && (["latitude", "longitude"] as const).map(key => <label key={key} className={s.label}>{key === "latitude" ? "Latitude" : "Longitude"} (opcional)<input type="number" step="any" min={key === "latitude" ? -90 : -180} max={key === "latitude" ? 90 : 180} value={fields[key]} onChange={e => { const value = e.target.value; setFields(current => ({ ...current, [key]: value })); }} className={s.input} /></label>)}
+        {(["latitude", "longitude"] as const).map(key => <label key={key} className={s.label}>{key === "latitude" ? "Latitude" : "Longitude"} (opcional)<input type="number" step="any" min={key === "latitude" ? -90 : -180} max={key === "latitude" ? 90 : 180} value={fields[key]} onChange={e => changeField(key, e.target.value)} className={s.input} /></label>)}
       </fieldset>
       <div id="cep-feedback" className="space-y-3" aria-busy={cepBusy}>{cepBusy && <p role="status" className={s.copy}>Buscando endereço pelo CEP...</p>}{cepError && <p role="alert" className={s.error}>{cepError}</p>}{cepStatus && <p role="status" className={s.success}>{cepStatus}</p>}</div>
-      <p className={s.copy}>Sem coordenadas manuais, a API pode consultar o OpenStreetMap para localizar o endereço informado. Não usamos a localização do seu dispositivo. Se a consulta falhar, o endereço ainda pode ser salvo.</p>
+      <p className={s.copy}>Deixe as coordenadas vazias se não souber informá-las. Nenhuma localização é coletada automaticamente.</p>
       {error && <p role="alert" className={s.error}>{error}</p>}
       <div className="flex flex-wrap gap-3"><button disabled={busy || cepBusy} className={s.button}>{busy ? "Salvando..." : "Salvar endereço"}</button><button type="button" disabled={busy} onClick={cancel} className={s.secondary}>Voltar aos endereços</button></div>
     </form>

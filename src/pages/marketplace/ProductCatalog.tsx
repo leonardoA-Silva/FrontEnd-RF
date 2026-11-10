@@ -6,7 +6,7 @@ import { productCondition, productPhotos, productPrice, productStatus } from "./
 import MaterialImage from "./MaterialImage";
 import { marketplaceTheme, styles } from "./marketplaceStyles";
 
-export default function ProductCatalog({ embedded = false, companyId }: { embedded?: boolean; companyId?: string }) {
+export default function ProductCatalog({ embedded = false }: { embedded?: boolean }) {
   const { products, loading, error, reload } = useProducts();
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -16,7 +16,7 @@ export default function ProductCatalog({ embedded = false, companyId }: { embedd
   const [sort, setSort] = useState("api");
   const [page, setPage] = useState(1);
   const categories = [...new Set(products.map(p => p.category))].sort();
-  const filtered = useMemo(() => products.filter(p => (!companyId || p.id_user?.toLowerCase() === companyId.toLowerCase()) && `${p.name} ${p.description ?? ""} ${p.category}`.toLocaleLowerCase("pt-BR").includes(search.toLocaleLowerCase("pt-BR")) && (!category || p.category === category) && (!type || p.type_negotiation === type) && (!status || p.status === status)).sort((a, b) => sort === "name" ? a.name.localeCompare(b.name, "pt-BR") : sort === "quantity" ? Number(b.quantity) - Number(a.quantity) : 0), [products, companyId, search, category, type, status, sort]);
+  const filtered = useMemo(() => products.filter(p => `${p.name} ${p.description ?? ""} ${p.category}`.toLocaleLowerCase("pt-BR").includes(search.toLocaleLowerCase("pt-BR")) && (!category || p.category === category) && (!type || p.type_negotiation === type) && (!status || p.status === status)).sort((a, b) => sort === "name" ? a.name.localeCompare(b.name, "pt-BR") : sort === "quantity" ? Number(b.quantity) - Number(a.quantity) : 0), [products, search, category, type, status, sort]);
   const pages = Math.max(1, Math.ceil(filtered.length / 8));
   const current = Math.min(page, pages);
   const reset = () => { setSearch(""); setCategory(""); setType(""); setStatus("available"); setPage(1); };

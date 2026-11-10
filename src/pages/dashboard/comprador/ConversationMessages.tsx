@@ -36,16 +36,6 @@ function MessageThread({ id, userId, socket }: { id: string; userId: string; soc
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   useEffect(() => {
-    if (!success) return;
-    const t = setTimeout(() => setSuccess(""), 4000);
-    return () => clearTimeout(t);
-  }, [success]);
-  useEffect(() => {
-    if (!error) return;
-    const t = setTimeout(() => setError(""), 6000);
-    return () => clearTimeout(t);
-  }, [error]);
-  useEffect(() => {
     const update = (payload?: unknown) => {
       if (payload && typeof payload === "object" && "id_conversation" in payload && payload.id_conversation === id) { setOlder([]); reload(); }
     };

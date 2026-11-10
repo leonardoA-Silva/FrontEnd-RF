@@ -1,7 +1,6 @@
 import { useRef, useState } from "react";
 import type { ChangeEvent } from "react";
 import { ArrowLeft, ArrowUpRight, Camera, Eye, EyeOff, LoaderCircle, X } from "lucide-react";
-import GoogleSignIn from "../../login/GoogleSignIn";
 import { Link } from "react-router-dom";
 import AccountField from "../../../components/account/AccountField";
 import type { RegistrationData, RegistrationKind } from "../registrationData";
@@ -18,10 +17,9 @@ export default function RegistrationForm({ kind, form }: { kind: RegistrationKin
   const shared = (key: keyof RegistrationData) => ({ id: key, name: key, value: data[key], onChange: change(key), error: errors[key], required: true });
   return (
     <form noValidate onSubmit={form.submit} className="account-registration-form" aria-busy={busy}>
-      {form.error && <div id="registration-error" tabIndex={-1} className="account-alert account-alert-error" role="alert"><p>{form.error}</p>{form.conflict && <Link to="/login">Entrar na conta existente <ArrowUpRight size={15} /></Link>}</div>}
+      {form.error && <p className="account-alert account-alert-error" role="alert">{form.error}</p>}
       {created && <div className="account-alert account-alert-success" role="status"><strong>Cadastro recebido.</strong><p>{created.emailSent ? "Confirme seu e-mail para ativar a conta." : "O e-mail não foi enviado. Abra a confirmação e solicite um novo código."}</p><button id="reopen-verification" type="button" onClick={() => form.setVerificationOpen(true)}>Confirmar meu e-mail <ArrowUpRight size={15} /></button></div>}
       {!!Object.keys(errors).filter(key => errors[key as keyof RegistrationData]).length && <p role="alert" className="account-validation-summary">Confira os campos destacados antes de continuar.</p>}
-      {company && !created && <div className="account-alert"><label className="flex items-center gap-2"><input type="checkbox" checked={form.googleCompany} disabled={busy} onChange={event => { form.setGoogleCompany(event.target.checked); form.setField("password", ""); form.setField("email", ""); }} /> Usar Google para cadastrar a empresa, sem senha</label><p>Preencha os dados obrigatórios abaixo. O e-mail será o da conta Google escolhida. Uma conta pessoal existente não será convertida em empresa.</p></div>}
       <fieldset className="account-form-fields" disabled={busy || !!created}>
         <legend className="sr-only">Dados para o cadastro</legend>
         <div className="account-photo-row">
@@ -36,7 +34,7 @@ export default function RegistrationForm({ kind, form }: { kind: RegistrationKin
           {company && <AccountField {...shared("cnpj")} label="CNPJ" inputMode="numeric" maxLength={14} onChange={change("cnpj", 14)} hint="Apenas os 14 dígitos." />}
           <AccountField {...shared("cpf")} label={company ? "CPF do responsável legal" : "CPF"} inputMode="numeric" maxLength={11} onChange={change("cpf", 11)} hint="Apenas os 11 dígitos." />
           {!company && <AccountField {...shared("birthday")} label="Data de nascimento" type="date" autoComplete="bday" />}
-          {!form.googleCompany && <AccountField {...shared("email")} label={company ? "E-mail da empresa" : "E-mail"} type="email" autoComplete="email" />}
+          <AccountField {...shared("email")} label={company ? "E-mail da empresa" : "E-mail"} type="email" autoComplete="email" />
           <AccountField {...shared("cellphone")} label="Celular com DDD" type="tel" inputMode="numeric" maxLength={11} onChange={change("cellphone", 11)} autoComplete="tel-national" hint="DDD e número, com 11 dígitos." />
         </div>
         <div className="account-section-title"><span>02</span><div><h2>Seu endereço</h2><p>Consulte pelo CEP ou preencha manualmente.</p></div></div>
@@ -55,13 +53,12 @@ export default function RegistrationForm({ kind, form }: { kind: RegistrationKin
           {address.statesStatus === "error" && <p role="status" className="account-location-note account-field-wide">A lista de estados não ficou disponível. Você pode digitar a sigla. <button type="button" onClick={address.retryStates}>Tentar carregar novamente</button></p>}
           {address.citiesError && <p role="status" className="account-location-note account-field-wide">A lista de cidades não ficou disponível. Você pode digitar o nome. <button type="button" onClick={address.retryCities}>Tentar carregar novamente</button></p>}
         </div>
-        {!form.googleCompany && <><div className="account-section-title"><span>03</span><div><h2>Seu acesso</h2><p>Escolha uma senha para entrar na plataforma.</p></div></div>
+        <div className="account-section-title"><span>03</span><div><h2>Seu acesso</h2><p>Escolha uma senha para entrar na plataforma.</p></div></div>
         <AccountField id="password" label="Senha" error={errors.password} hint="Use pelo menos 6 caracteres." required>
           <div className="account-password"><input id="password" name="password" type={showPassword ? "text" : "password"} value={data.password} onChange={change("password")} autoComplete="new-password" required minLength={6} className="account-input" aria-invalid={!!errors.password} aria-describedby={errors.password ? "password-error" : "password-hint"} /><button type="button" onClick={() => setShowPassword(value => !value)} aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}>{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button></div>
-        </AccountField></>}
+        </AccountField>
       </fieldset>
-      {form.googleCompany && !created && <div className={busy ? "pointer-events-none opacity-60" : ""}><GoogleSignIn variant="criar" remember={false} onSuccess={() => {}} onCredential={form.submitGoogle} /></div>}
-      {!created && <><p className="account-data-note">Seus dados serão enviados para criar a conta. {form.googleCompany ? "O Google confirmará seu e-mail." : "Na próxima etapa, você confirma seu e-mail."}</p><div className="account-form-actions"><Link to="/cadastro" className="account-back" aria-disabled={busy} onClick={event => { if (busy) event.preventDefault(); }}><ArrowLeft size={16} /> Alterar perfil</Link>{!form.googleCompany && <button type="submit" className="home-button" disabled={busy}>{busy ? <><LoaderCircle className="account-spinner" size={17} /> Criando conta…</> : <>Criar conta <ArrowUpRight size={17} /></>}</button>}</div></>}
+      {!created && <><p className="account-data-note">Seus dados serão enviados para criar a conta. Na próxima etapa, você confirma seu e-mail.</p><div className="account-form-actions"><Link to="/cadastro" className="account-back" aria-disabled={busy} onClick={event => { if (busy) event.preventDefault(); }}><ArrowLeft size={16} /> Alterar perfil</Link><button type="submit" className="home-button" disabled={busy}>{busy ? <><LoaderCircle className="account-spinner" size={17} /> Criando conta…</> : <>Criar conta <ArrowUpRight size={17} /></>}</button></div></>}
     </form>
   );
 }

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { useCallback, useState, type FormEvent } from "react";
 import { atualizarCartao, excluirCartao, listarCartoes, type BuyerCard } from "../../../axios/Axios";
 import { apiError } from "../../../axios/apiError";
 import { requireArray, useApiResource } from "../../../hooks/useApiResource";
@@ -14,16 +14,6 @@ export default function BuyerCards() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  useEffect(() => {
-    if (!success) return;
-    const t = setTimeout(() => setSuccess(""), 4000);
-    return () => clearTimeout(t);
-  }, [success]);
-  useEffect(() => {
-    if (!error) return;
-    const t = setTimeout(() => setError(""), 6000);
-    return () => clearTimeout(t);
-  }, [error]);
   async function remove() {
     if (busy || !selected) return;
     setBusy(true); setError("");
@@ -32,7 +22,7 @@ export default function BuyerCards() {
     finally { setBusy(false); }
   }
   if (editing) return <CardForm card={editing} cancel={() => setEditing(null)} saved={() => { setEditing(null); setSuccess("Dados do cartão atualizados."); resource.reload(); }} />;
-  return <section className="space-y-6"><h1 className={s.title}>Meus cartões</h1><p className={s.notice}>Você pode consultar e gerenciar cartões já vinculados à sua conta. O cadastro de novos cartões depende da integração com o provedor de pagamento; cobranças ainda não estão disponíveis.</p><button disabled={resource.loading} onClick={resource.reload} className={s.secondary}>Atualizar cartões</button>{success && <p role="status" className={s.success}>{success}</p>}<RequestState {...resource} retry={resource.reload} />
+  return <section className="space-y-6"><h1 className={s.title}>Meus cartões</h1><p role="alert" className={s.notice}>Você pode consultar e gerenciar cartões já vinculados à sua conta. O cadastro de novos cartões depende da integração com o provedor de pagamento; cobranças ainda não estão disponíveis.</p><button disabled={resource.loading} onClick={resource.reload} className={s.secondary}>Atualizar cartões</button>{success && <p role="status" className={s.success}>{success}</p>}<RequestState {...resource} retry={resource.reload} />
     {!resource.loading && !resource.error && (!resource.data?.length ? <p className={s.copy}>Nenhum cartão cadastrado.</p> : <ul className="grid gap-5 lg:grid-cols-2">{resource.data.map(card => <li key={card.id} className={`${s.panel} space-y-4`}><h2 className={s.subtitle}>{card.brand} · final {card.last_digits}</h2><p className={s.copy}>{card.type === "credit" ? "Crédito" : "Débito"} · validade {String(card.expiration_month).padStart(2, "0")}/{card.expiration_year}</p><p className={s.copy}>{card.holder_name}</p><div className="flex flex-wrap gap-3"><button onClick={() => setEditing(card)} className={s.secondary}>Editar cartão</button><button onClick={() => { setError(""); setSelected(card); }} className={s.secondary}>Remover cartão</button></div></li>)}</ul>)}
     {selected && <ConfirmAction title="Remover cartão?" description="O cartão será desvinculado da sua conta. Nenhuma cobrança é realizada nesta ação." busy={busy} error={error} confirm={remove} cancel={() => setSelected(null)} />}
   </section>;
@@ -43,11 +33,6 @@ function CardForm({ card, saved, cancel }: { card: BuyerCard; saved: () => void;
   const [expiry, setExpiry] = useState(`${card.expiration_year}-${String(card.expiration_month).padStart(2, "0")}`);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  useEffect(() => {
-    if (!error) return;
-    const t = setTimeout(() => setError(""), 6000);
-    return () => clearTimeout(t);
-  }, [error]);
   async function submit(event: FormEvent) {
     event.preventDefault(); if (busy) return;
     const [year, month] = expiry.split("-").map(Number);
