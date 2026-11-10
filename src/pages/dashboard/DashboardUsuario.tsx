@@ -111,7 +111,7 @@ export default function DashboardUsuario() {
   // Cada chave tem um nome semântico e guarda as classes Tailwind correspondentes.
   // Layout 100% fluido (w-full, sem max-width travado) para ocupar a tela em qualquer zoom.
   const styles = {
-    pagina: "flex min-h-screen w-full flex-col bg-papel text-carvao",
+    pagina: "screen-enter flex min-h-screen w-full flex-col bg-papel text-carvao",
 
     cabecalho: "w-full border-b border-areia bg-cru",
     cabecalhoConteudo:
@@ -161,9 +161,9 @@ export default function DashboardUsuario() {
     saudacao: "font-display text-2xl font-semibold tracking-tight text-carvao sm:text-3xl",
     saudacaoDescricao: "mt-1.5 text-sm text-carvao-suave sm:text-[15px]",
 
-    gradeEstatisticas: "mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 2xl:grid-cols-4",
+    gradeEstatisticas: "motion-stagger mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 2xl:grid-cols-4",
     cartaoEstatistica:
-      "flex min-w-0 flex-col justify-center rounded-2xl border border-areia bg-cru p-5",
+      "flex min-w-0 flex-col justify-center rounded-2xl border border-areia bg-cru p-5 transition-colors hover:border-canela/50",
     estatisticaRotulo: "text-[13px] text-carvao-suave/80",
     estatisticaValor: "mt-1 font-display text-2xl font-semibold text-carvao",
     estatisticaDetalhe: "mt-1 text-[13px] text-carvao-suave",
@@ -177,9 +177,9 @@ export default function DashboardUsuario() {
     gradeConteudo: "mt-6 grid grid-cols-1 items-start gap-6 xl:grid-cols-[1.65fr_1fr]",
     secaoTitulo: "text-base font-extrabold text-carvao sm:text-lg",
 
-    gradeRecomendados: "mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 2xl:grid-cols-3",
-    cartaoProduto: "min-w-0 overflow-hidden rounded-xl border border-areia bg-cru",
-    produtoImagem: "h-40 w-full object-cover",
+    gradeRecomendados: "motion-stagger mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 2xl:grid-cols-3",
+    cartaoProduto: "dashboard-material-card min-w-0 overflow-hidden rounded-xl border border-areia bg-cru",
+    produtoImagem: "dashboard-material-image h-40 w-full object-cover",
     produtoCorpo: "p-4",
     produtoTitulo: "break-words text-[15px] font-bold text-carvao",
     produtoOrigem: "mt-0.5 truncate text-[13px] text-carvao-suave/80",
@@ -188,7 +188,7 @@ export default function DashboardUsuario() {
     produtoDistancia: "shrink-0 text-[13px] text-carvao-suave",
 
     cartaoReservas: "min-w-0 rounded-2xl border border-areia bg-cru p-4 sm:p-6",
-    listaReservas: "mt-4 flex flex-col gap-3",
+    listaReservas: "motion-stagger mt-4 flex flex-col gap-3",
     reservaItem: "rounded-xl border border-areia p-4",
     reservaTopo: "flex flex-wrap items-start justify-between gap-2",
     reservaTitulo: "min-w-0 flex-1 basis-40 break-words text-[15px] font-bold text-carvao",
@@ -346,6 +346,10 @@ export default function DashboardUsuario() {
 
         {/* Conteúdo principal */}
         <main className={styles.principal}>
+          <p className="mb-5 rounded-xl border border-canela/30 bg-canela/10 px-4 py-3 text-sm leading-relaxed text-canela-escura" role="note">
+            Esta tela contém conteúdo demonstrativo. Reservas, recomendações,
+            indicadores e dados de empresas ainda não vêm da API.
+          </p>
           <div className="min-w-0">
             <h1 className={styles.saudacao}>Olá, {firstName}!</h1>
             <p className={styles.saudacaoDescricao}>
@@ -381,7 +385,7 @@ export default function DashboardUsuario() {
 
           <div className={styles.gradeConteudo}>
             {/* Recomendados */}
-            <section className="min-w-0">
+                <section className="min-w-0">
               <h2 className={styles.secaoTitulo}>
                 Recomendados para seu perfil (couro e EVA)
               </h2>

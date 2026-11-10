@@ -3,18 +3,18 @@ import BrandIcon from "./BrandIcon";
 
 export default function Footer() {
   const styles = {
-    rodape: "border-t border-areia/60 bg-carvao text-cru",
+    rodape: "bg-carvao text-cru",
     conteudo:
       "mx-auto flex max-w-6xl flex-col gap-10 px-5 py-12 sm:px-8 lg:flex-row lg:justify-between",
     marca: "max-w-sm",
     marcaCabecalho: "flex items-center gap-3",
     marcaTitulo: "font-display text-xl font-semibold",
-    marcaTexto: "mt-3 text-sm leading-relaxed text-cru/70",
+    marcaTexto: "mt-3 text-sm leading-relaxed text-cru/85",
     colunas: "flex flex-col gap-10 sm:flex-row sm:gap-16",
     colunaTitulo: "text-sm font-bold text-cru",
     colunaLista: "mt-4 flex flex-col gap-2.5 text-sm",
-    colunaLink: "text-cru/70 no-underline transition hover:text-cru",
-    base: "border-t border-cru/15 py-5 text-center text-xs text-cru/50",
+    colunaLink: "text-cru/85 no-underline transition hover:text-cru",
+    base: "mx-auto max-w-[34ch] px-5 py-5 text-center text-[13px] text-cru/75",
   };
 
   return (

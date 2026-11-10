@@ -50,7 +50,7 @@
   --font-body: "Manrope", system-ui, sans-serif;
   --font-app: "Manrope", system-ui, sans-serif;
 
-  /* Única animação da página: os retalhos "assentam" na mesa. */
+  /* Animações compartilhadas: motion seguro para superfícies da plataforma. */
   --animate-assentar: assentar 0.7s cubic-bezier(0.22, 0.8, 0.24, 1) both;
 
   @keyframes assentar {
@@ -63,6 +63,12 @@
       transform: translateY(0);
     }
   }
+}
+
+:root {
+  --ease-ui: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-page: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-scene: cubic-bezier(0.76, 0, 0.24, 1);
 }
 
 @layer base {
@@ -84,6 +90,10 @@
     outline-offset: 2px;
   }
 
+  :where(button, a, [role="button"]) {
+    -webkit-tap-highlight-color: transparent;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
@@ -94,6 +104,39 @@
       transition-duration: 0.01ms !important;
     }
   }
+}
+
+/* Entrada curta ao trocar de rota: conteúdo continua visível sem JavaScript. */
+.screen-enter {
+  animation: screen-enter 420ms var(--ease-page) both;
+}
+
+@keyframes screen-enter {
+  from { opacity: 0.72; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Ritmo discreto para grupos de informação, sem atrasar a interação. */
+.motion-stagger > * {
+  animation: screen-enter 520ms var(--ease-page) both;
+}
+
+.motion-stagger > :nth-child(2) { animation-delay: 55ms; }
+.motion-stagger > :nth-child(3) { animation-delay: 110ms; }
+.motion-stagger > :nth-child(4) { animation-delay: 165ms; }
+.motion-stagger > :nth-child(5) { animation-delay: 220ms; }
+
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  :where(button, a, [role="button"]) {
+    transition-property: color, background-color, border-color, transform, box-shadow;
+    transition-duration: 180ms;
+    transition-timing-function: var(--ease-ui);
+  }
+
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :where(button, a, [role="button"]):active { transform: scale(0.98); }
 }
 
 .mapa-real {
@@ -143,14 +186,58 @@
   }
 }
 
-@media (hover: hover) and (pointer: fine) {
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
   .mapa-marker-icon:hover .mapa-marker-dot {
     transform: scale(1.15);
   }
+
+  .home-hero-photo:hover {
+    transform: scale(1.035);
+  }
+
+  .dashboard-material-image {
+    transition: transform 500ms var(--ease-ui);
+  }
+
+  .dashboard-material-card:hover .dashboard-material-image {
+    transform: scale(1.04);
+  }
+}
+
+/* Abertura inspirada em transições cinematográficas, aplicada só à foto principal. */
+@media (prefers-reduced-motion: no-preference) {
+  .home-hero-shutter {
+    clip-path: inset(0 0 100% 0);
+    animation: hero-shutter-open 1050ms var(--ease-scene) 120ms forwards;
+  }
+
+  .material-image-transition {
+    clip-path: inset(0 0 100% 0);
+    animation: material-shutter-open 420ms var(--ease-scene) both;
+  }
+}
+
+@keyframes hero-shutter-open {
+  to { clip-path: inset(0); }
+}
+
+@keyframes material-shutter-open {
+  to { clip-path: inset(0); }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .screen-enter,
+  .motion-stagger > * {
+    animation: none !important;
+  }
   .mapa-marker-dot {
     transition: none;
   }
+
+  .material-image-transition {
+    animation: none;
+    clip-path: none;
+    will-change: auto;
+  }
+  .home-hero-shutter { animation: none; clip-path: none; }
 }

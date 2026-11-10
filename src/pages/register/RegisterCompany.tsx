@@ -262,9 +262,9 @@ export default function RegisterCompany() {
   };
 
   const styles = {
-    pagina: "flex min-h-screen flex-col bg-papel text-carvao",
-    area: "flex flex-1 items-start justify-center px-5 py-10 sm:px-8",
-    cartao: "w-full max-w-2xl rounded-2xl border border-areia bg-cru p-6 sm:p-10",
+    pagina: "screen-enter flex min-h-screen flex-col bg-papel text-carvao",
+    area: "flex flex-1 items-start justify-center px-5 py-8 sm:px-8 sm:py-12",
+    cartao: "w-full max-w-3xl rounded-[28px] border border-areia bg-cru p-6 sm:p-10 lg:p-12",
 
     indicadorEtapa: "flex flex-col gap-3",
     etapaRotulo: "flex items-baseline justify-between gap-3",
@@ -278,7 +278,7 @@ export default function RegisterCompany() {
     titulo: "font-display text-2xl font-semibold tracking-tight sm:text-3xl",
     descricao: "mt-2 text-[15px] text-carvao-suave",
 
-    formulario: "mt-8 flex flex-col gap-8",
+    formulario: "motion-stagger mt-8 flex flex-col gap-8",
     secao: "flex flex-col gap-4",
     secaoTitulo: "font-display text-lg font-semibold text-carvao",
     campoGrupo: "flex flex-col gap-2",

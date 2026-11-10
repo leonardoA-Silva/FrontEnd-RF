@@ -9,8 +9,8 @@ const navegacao = [
 
 export default function Header() {
   const styles = {
-    cabecalho: "sticky top-0 z-40 border-b border-areia bg-cru/95 backdrop-blur-sm",
-    conteudo: "mx-auto flex max-w-6xl items-center justify-between gap-2 px-4 py-3 sm:gap-4 sm:px-8",
+    cabecalho: "sticky top-0 z-40 bg-cru",
+    conteudo: "mx-auto flex max-w-[1440px] items-center justify-between gap-2 px-5 py-3 sm:gap-4 sm:px-8 lg:px-12",
     marca: "flex shrink-0 items-center gap-2 no-underline sm:gap-3",
     marcaTitulo: "font-display text-base font-semibold leading-none text-carvao sm:text-lg",
     menu: "hidden items-center gap-7 md:flex",
@@ -19,7 +19,7 @@ export default function Header() {
     botaoEntrar:
       "rounded-lg border border-areia px-3 py-2 text-xs font-semibold text-carvao no-underline transition hover:border-carvao-suave hover:bg-areia-clara sm:px-4 sm:text-sm",
     botaoCadastrar:
-      "rounded-lg bg-canela px-3 py-2 text-xs font-semibold text-cru no-underline transition hover:bg-canela-escura sm:px-4 sm:text-sm",
+      "rounded-full bg-verde-escuro px-3 py-2 text-xs font-semibold text-white no-underline transition hover:bg-verde sm:px-4 sm:text-sm",
   };
 
   return (

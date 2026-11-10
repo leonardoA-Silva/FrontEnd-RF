@@ -35,46 +35,46 @@ export default function RegisterType() {
       imagemAlt: "Pilha de retalhos de couro marrom",
       titulo: "Comprador / artesão",
       descricao:
-        "Artesãos, cooperativas, escolas e pequenos negócios que reservam material.",
+        "Pessoas e organizações que procuram materiais para reaproveitar.",
     },
   ];
 
   const styles = {
-    pagina: "flex min-h-screen flex-col bg-papel text-carvao",
+    pagina: "screen-enter flex min-h-svh flex-col bg-papel text-carvao",
     area: "flex flex-1 items-center justify-center px-5 py-10 sm:px-8",
-    cartao: "w-full max-w-3xl rounded-2xl border border-areia bg-cru p-6 sm:p-10",
+    cartao: "w-full max-w-4xl bg-cru p-6 sm:p-10 lg:p-12",
 
     indicadorEtapa: "flex flex-col gap-3",
     etapaRotulo: "flex items-baseline justify-between gap-3",
-    etapaAtual: "text-sm font-semibold text-canela-escura",
+    etapaAtual: "text-sm font-semibold text-verde-escuro",
     etapaProxima: "text-xs text-carvao-suave/70",
     etapaBarra: "flex gap-1.5",
-    etapaSegmentoPreenchido: "h-1.5 flex-1 rounded-full bg-canela",
+    etapaSegmentoPreenchido: "h-1.5 flex-1 rounded-full bg-verde-escuro",
     etapaSegmentoVazio: "h-1.5 flex-1 rounded-full bg-areia",
 
     cabecalho: "mt-8",
     titulo: "font-display text-2xl font-semibold tracking-tight sm:text-3xl",
-    descricao: "mt-2 text-[15px] text-carvao-suave",
+    descricao: "mt-3 max-w-[58ch] text-base leading-7 text-carvao-suave",
 
-    gradeOpcoes: "mt-8 grid gap-5 sm:grid-cols-2",
+    gradeOpcoes: "motion-stagger mt-8 grid gap-5 sm:grid-cols-2",
     opcao: "relative block cursor-pointer",
     opcaoInput: "sr-only",
     opcaoCartao:
-      "relative overflow-hidden rounded-2xl border-2 transition",
-    opcaoSelecionada: "border-canela outline-2 outline-dashed outline-canela/50 outline-offset-4",
-    opcaoVazia: "border-areia hover:border-carvao-suave/50",
-    opcaoImagem: "h-40 w-full object-cover sm:h-44",
-    opcaoCorpo: "p-5",
+      "relative overflow-hidden border-2 transition-[border-color,transform] duration-200 ease-out active:scale-[0.99]",
+    opcaoSelecionada: "border-verde-escuro",
+    opcaoVazia: "border-areia hover:border-carvao-suave/70",
+    opcaoImagem: "h-48 w-full object-cover sm:h-56",
+    opcaoCorpo: "p-5 sm:p-6",
     opcaoTitulo: "font-display text-lg font-semibold text-carvao",
-    opcaoDescricao: "mt-1 text-sm leading-relaxed text-carvao-suave",
+    opcaoDescricao: "mt-2 text-base leading-7 text-carvao-suave",
     opcaoSelo:
-      "absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-canela text-cru shadow-sm",
+      "absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-verde-escuro text-white",
 
     acoes: "mt-8 flex flex-wrap items-center justify-between gap-3",
     botaoVoltar:
-      "rounded-xl border border-areia px-5 py-3 text-sm font-semibold text-carvao transition hover:border-carvao-suave hover:bg-areia-clara",
+      "rounded-full border border-areia px-5 py-3 text-sm font-semibold text-carvao transition hover:border-carvao-suave hover:bg-areia-clara",
     botaoContinuar:
-      "flex items-center gap-2 rounded-xl bg-canela px-6 py-3 text-sm font-bold text-cru transition hover:bg-canela-escura",
+      "flex items-center gap-2 rounded-full bg-verde-escuro px-6 py-3 text-sm font-bold text-white transition-[transform,background-color] duration-150 hover:bg-verde active:scale-[0.98]",
   };
 
   return (
@@ -100,8 +100,7 @@ export default function RegisterType() {
           <div className={styles.cabecalho}>
             <h1 className={styles.titulo}>Como você vai usar a plataforma?</h1>
             <p className={styles.descricao}>
-              Escolha o tipo de conta: empresas publicam resíduos; compradores
-              reservam.
+              Empresas publicam materiais; pessoas e organizações procuram opções para reaproveitar.
             </p>
           </div>
 

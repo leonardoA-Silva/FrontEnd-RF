@@ -31,7 +31,7 @@ export default function Login() {
     const ehEmpresa = tipoUsuario === "empresa";
 
     const styles = {
-        pagina: "flex min-h-screen bg-papel text-carvao",
+        pagina: "screen-enter flex min-h-svh bg-papel text-carvao",
 
         painelFoto: "relative hidden w-[44%] shrink-0 lg:block",
         painelImagem: "absolute inset-0 h-full w-full object-cover",
@@ -54,18 +54,18 @@ export default function Login() {
         cartao: "w-full max-w-md",
 
         titulo: "font-display text-3xl font-semibold tracking-tight",
-        descricao: "mt-2 text-[15px] text-carvao-suave",
+        descricao: "mt-2 text-base leading-7 text-carvao-suave",
 
-        abas: "mt-8 grid grid-cols-2 gap-1 rounded-xl border border-areia bg-papel p-1",
-        abaAtiva: "rounded-lg bg-carvao px-4 py-2.5 text-sm font-semibold text-cru",
+        abas: "mt-8 grid grid-cols-2 gap-1 rounded-full bg-papel p-1",
+        abaAtiva: "rounded-full bg-verde-escuro px-4 py-2.5 text-sm font-semibold text-white",
         abaInativa:
-            "rounded-lg px-4 py-2.5 text-sm font-medium text-carvao-suave transition hover:text-carvao",
+            "rounded-full px-4 py-2.5 text-sm font-medium text-carvao-suave transition hover:text-carvao",
 
         formulario: "mt-7 flex flex-col gap-5",
         campoGrupo: "flex flex-col gap-2",
         rotulo: "text-[15px] font-medium text-carvao-suave",
         input:
-            "w-full rounded-xl border border-areia bg-cru px-4 py-3.5 text-[15px] text-carvao outline-none transition placeholder:text-carvao-suave/50 focus:border-canela focus:outline-none focus:ring-4 focus:ring-canela/15 disabled:opacity-60",
+            "w-full rounded-xl border border-areia bg-cru px-4 py-3.5 text-base text-carvao outline-none transition placeholder:text-carvao-suave/70 focus:border-verde-escuro focus:ring-4 focus:ring-verde-escuro/15 disabled:opacity-60",
         inputSenhaWrapper: "relative",
         inputSenha: "pr-12",
         botaoOlho:
@@ -74,22 +74,11 @@ export default function Login() {
         linhaOpcoes: "flex items-center justify-between text-sm",
         lembrarLabel: "flex cursor-pointer items-center gap-2 text-carvao-suave",
         checkbox: "h-[18px] w-[18px] cursor-pointer rounded accent-canela",
-        linkEsqueceu:
-            "font-semibold text-canela no-underline transition hover:text-canela-escura",
-
         botaoEntrar:
-            "rounded-xl bg-canela px-6 py-4 text-base font-bold text-cru transition hover:bg-canela-escura focus:outline-none focus:ring-4 focus:ring-canela/25 disabled:cursor-not-allowed disabled:opacity-70",
+            "rounded-full bg-verde-escuro px-6 py-4 text-base font-bold text-white transition-[transform,background-color] duration-150 ease-out hover:bg-verde active:scale-[0.98] focus:outline-none focus:ring-4 focus:ring-verde-escuro/25 disabled:cursor-not-allowed disabled:opacity-70",
 
         erroBox:
             "rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm font-medium text-red-700",
-
-        divisor: "mt-7 flex items-center gap-4 text-xs text-carvao-suave/70",
-        divisorLinha: "h-px flex-1 bg-areia",
-
-        sociais: "mt-6 grid grid-cols-2 gap-4",
-        botaoSocial:
-            "flex items-center justify-center gap-2.5 rounded-xl border border-areia bg-cru px-4 py-3 text-[15px] font-medium text-carvao transition hover:bg-papel",
-        iconeSocial: "h-5 w-5",
 
         rodapeCartao: "mt-7 text-center text-sm text-carvao-suave",
         linkCadastro:
@@ -179,7 +168,6 @@ export default function Login() {
             return "Não foi possível conectar à API. Verifique sua conexão e se a API está rodando.";
         }
         const resposta = err.response.data as Record<string, unknown> | undefined;
-        console.error("[login] erro da API", err.response.status, resposta);
         // A API pode chamar o texto de 4 jeitos: procura em todos.
         for (const chave of ["error", "message", "msg", "erros"]) {
             const valor = resposta?.[chave];
@@ -286,7 +274,7 @@ export default function Login() {
                     <div className={styles.cartao}>
                         <h1 className={styles.titulo}>Acesse sua conta</h1>
                         <p className={styles.descricao}>
-                            Entre para publicar lotes ou reservar material.
+                            Entre para publicar materiais ou conhecer os lotes disponíveis.
                         </p>
 
                         {/* Alternador de perfil */}
@@ -385,9 +373,7 @@ export default function Login() {
                                     />
                                     Lembrar de mim
                                 </label>
-                                <Link to="/recuperar-senha" className={styles.linkEsqueceu}>
-                                    Esqueceu a senha?
-                                </Link>
+                                <span className="text-carvao-suave">Use o e-mail cadastrado na sua conta.</span>
                             </div>
 
                             <button
@@ -398,46 +384,6 @@ export default function Login() {
                                 {carregando ? "Entrando…" : "Entrar na plataforma"}
                             </button>
                         </form>
-
-                        <div className={styles.divisor}>
-                            <span className={styles.divisorLinha} />
-                            <span>ou entre com</span>
-                            <span className={styles.divisorLinha} />
-                        </div>
-
-                        <div className={styles.sociais}>
-                            <button type="button" className={styles.botaoSocial}>
-                                <svg viewBox="0 0 24 24" className={styles.iconeSocial} aria-hidden="true">
-                                    <path
-                                        fill="#4285F4"
-                                        d="M23.5 12.27c0-.85-.08-1.66-.22-2.45H12v4.64h6.45a5.52 5.52 0 0 1-2.39 3.62v3h3.87c2.26-2.09 3.57-5.16 3.57-8.81Z"
-                                    />
-                                    <path
-                                        fill="#34A853"
-                                        d="M12 24c3.24 0 5.96-1.07 7.94-2.91l-3.87-3c-1.07.72-2.45 1.15-4.07 1.15-3.13 0-5.78-2.11-6.73-4.96H1.29v3.1A12 12 0 0 0 12 24Z"
-                                    />
-                                    <path
-                                        fill="#FBBC05"
-                                        d="M5.27 14.28A7.2 7.2 0 0 1 4.89 12c0-.79.14-1.56.38-2.28v-3.1H1.29a12 12 0 0 0 0 10.76l3.98-3.1Z"
-                                    />
-                                    <path
-                                        fill="#EA4335"
-                                        d="M12 4.77c1.76 0 3.35.61 4.6 1.8l3.42-3.42A11.97 11.97 0 0 0 12 0 12 12 0 0 0 1.29 6.62l3.98 3.1c.95-2.84 3.6-4.95 6.73-4.95Z"
-                                    />
-                                </svg>
-                                Google
-                            </button>
-                            <button type="button" className={styles.botaoSocial}>
-                                <svg viewBox="0 0 24 24" className={styles.iconeSocial} aria-hidden="true">
-                                    <rect width="24" height="24" rx="4" fill="#0A66C2" />
-                                    <path
-                                        fill="#fff"
-                                        d="M6.94 8.5H4.06V20h2.88V8.5ZM5.5 7.3a1.67 1.67 0 1 0 0-3.34 1.67 1.67 0 0 0 0 3.34Zm6.14 6.13c0-1.06.57-1.92 1.9-1.92 1.27 0 1.8.86 1.8 1.92V20h2.88v-7.04c0-2.68-1.43-3.93-3.34-3.93-1.54 0-2.23.85-2.62 1.45V8.5H8.78c.04.82 0 11.5 0 11.5h2.86v-6.57Z"
-                                    />
-                                </svg>
-                                LinkedIn
-                            </button>
-                        </div>
 
                         <p className={styles.rodapeCartao}>
                             Ainda não tem conta?{" "}
