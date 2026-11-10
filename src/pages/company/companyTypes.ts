@@ -8,6 +8,7 @@ export type Negotiation = "sale" | "donation";
 export interface CompanyProduct {
   id: string; name: string; description: string; category: string; type: Negotiation;
   quantity: number; weight: number; price: number | null; condition: string; status: string; images: string[];
+  localizationId?: string; priority?: number;
 }
 export interface CompanyIdentity { id: string; name: string; email: string; cellphone: string }
 export const categoryLabel = (key: string) => categories[key as keyof typeof categories] ?? "Categoria não informada";

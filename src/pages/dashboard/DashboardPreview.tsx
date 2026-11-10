@@ -15,7 +15,7 @@ export default function DashboardPreview({ kind }: { kind: "company" | "user" })
   };
   return <>
     <div className={styles.bar}>
-      <div><p className={styles.title}><Eye size={17} aria-hidden="true" />Prévia local · Sem API</p><p className={styles.note}>{kind === "company" ? "Prévia interativa com alterações temporárias. Nada é enviado à API; recarregar restaura os exemplos." : "Somente visualização, com dados fictícios. Esta prévia não usa sua conta nem envia ações para a API."}</p></div>
+      <div><p className={styles.title}><Eye size={17} aria-hidden="true" />Prévia local · Sem API</p><p className={styles.note}>{kind === "company" ? "Prévia interativa com alterações temporárias. Nada é enviado à API; recarregar restaura os exemplos." : "Explore materiais, filtros e reservas fictícias. Esta prévia não usa sua conta nem envia ações para a API."}</p></div>
       <nav aria-label="Escolher painel de demonstração" className={styles.nav}>
         <Link to="/previa/dashboard/empresa" aria-current={kind === "company" ? "page" : undefined} className={`${styles.tab} ${kind === "company" ? styles.active : ""}`}>Empresa</Link>
         <Link to="/previa/dashboard/usuario" aria-current={kind === "user" ? "page" : undefined} className={`${styles.tab} ${kind === "user" ? styles.active : ""}`}>Usuário</Link>

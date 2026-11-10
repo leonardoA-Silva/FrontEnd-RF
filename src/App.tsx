@@ -17,7 +17,16 @@ import LiveReservationRequest from "./pages/marketplace/LiveReservationRequest";
 import { FlowUnavailable } from "./pages/marketplace/FlowNotice";
 import DashboardUsuario from "./pages/dashboard/DashboardUsuario";
 import DashboardEmpresa from "./pages/dashboard/DashboardEmpresa";
+import DashboardPreview from "./pages/dashboard/DashboardPreview";
 import ProtectedRoute from "./components/ProtectedRoute";
+
+const MapaEmpresas = lazy(() => import("./pages/dashboard/MapaEmpresas"));
+const MeusMateriais = lazy(() => import("./pages/dashboard/MeusMateriais"));
+const IndicadoresAmbientais = lazy(() => import("./pages/dashboard/IndicadoresAmbientais"));
+const HistoricoNegociacoes = lazy(() => import("./pages/dashboard/HistoricoNegociacoes"));
+const PerfilEmpresa = lazy(() => import("./pages/dashboard/PerfilEmpresa"));
+const SobreNos = lazy(() => import("./pages/home/SobreNos"));
+const LegalPage = lazy(() => import("./pages/legal/LegalPage"));
 
 function App() {
   return (
@@ -26,6 +35,7 @@ function App() {
         <Routes>
           {/* rotas publicas */}
           <Route path="/" element={<Suspense fallback={<main className="buyer-panel" role="status">Carregando início...</main>}><Home /></Suspense>} />
+          <Route path="/sobre-nos" element={<About />} />
           <Route path="/sobre-nos" element={<About />} />
           <Route path="/marketplace" element={<MarketplaceLayout />}>
             <Route index element={<Marketplace />} />
@@ -44,10 +54,20 @@ function App() {
           <Route path="/recuperar-senha" element={<PasswordRecovery />} />
           <Route path="/redefinir-senha" element={<ResetPassword />} />
           <Route path="/primeiro-acesso" element={<ProtectedRoute><FirstAccess /></ProtectedRoute>} />
+          {(["termos", "privacidade", "direitos", "contato", "cookies"] as const).map(kind => <Route key={kind} path={`/${kind}`} element={<Suspense fallback={<main role="status" className="p-8">Carregando informações…</main>}><LegalPage kind={kind} /></Suspense>} />)}
+          <Route path="/sobre" element={<Suspense fallback={<main role="status" className="p-8">Carregando…</main>}><SobreNos /></Suspense>} />
+          {[
+            { path: "/dashboardEmpresa/indicadores", element: <IndicadoresAmbientais /> },
+            { path: "/dashboardEmpresa/negociacoes", element: <HistoricoNegociacoes /> },
+            { path: "/dashboardEmpresa/perfil", element: <PerfilEmpresa /> },
+          ].map(({ path, element }) => <Route key={path} path={path} element={<ProtectedRoute allowedRoles={["company"]}><Suspense fallback={<main role="status" className="grid min-h-screen place-items-center bg-bruma text-sm text-tinta-suave">Carregando…</main>}>{element}</Suspense></ProtectedRoute>} />)}
 
 
           {/* Prévia visual somente no servidor de desenvolvimento. */}
-          {import.meta.env.DEV && <Route path="/previa/dashboard/empresa/*" element={<DashboardEmpresa preview />} />}
+          {import.meta.env.DEV && <>
+            <Route path="/previa/dashboard/empresa/*" element={<DashboardPreview kind="company" />} />
+            <Route path="/previa/dashboard/usuario" element={<DashboardPreview kind="user" />} />
+          </>}
 
           {/* rotas privadas */}
           <Route
@@ -63,6 +83,45 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={["company"]}>
                 <DashboardEmpresa/>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboardEmpresa/materiais"
+            element={
+              <ProtectedRoute allowedRoles={["company"]}>
+                <Suspense fallback={<main role="status" className="grid min-h-screen place-items-center bg-bruma px-6 text-sm text-tinta-suave">Carregando materiais…</main>}>
+                  <MeusMateriais />
+                </Suspense>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboardEmpresa/materiais/novo"
+            element={
+              <ProtectedRoute allowedRoles={["company"]}>
+                <Suspense fallback={<main role="status" className="grid min-h-screen place-items-center bg-bruma px-6 text-sm text-tinta-suave">Carregando cadastro…</main>}>
+                  <Navigate to="/dashboardEmpresa/publicar" replace />
+                </Suspense>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/mapaEmpresas"
+            element={
+              <ProtectedRoute allowedRoles={["company"]}>
+                <Suspense
+                  fallback={
+                    <main
+                      role="status"
+                      className="grid min-h-screen place-items-center bg-bruma px-6 text-sm text-tinta-suave"
+                    >
+                      Carregando mapa...
+                    </main>
+                  }
+                >
+                  <MapaEmpresas />
+                </Suspense>
               </ProtectedRoute>
             }
           />

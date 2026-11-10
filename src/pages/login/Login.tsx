@@ -1,269 +1,129 @@
 import { useCallback, useState } from "react";
 import type { FormEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Repeat2, Eye, EyeOff } from "lucide-react";
+import { ArrowLeft, ArrowRight, ArrowUpRight, Building2, Check, Eye, EyeOff, LoaderCircle, Scissors } from "lucide-react";
 import api, { type LoginResponse } from "../../axios/Axios";
 import { apiError, apiStatus } from "../../axios/apiError";
 import { saveSession } from "../../auth/session";
-import GoogleSignIn from "./GoogleSignIn";
 import Brand from "../../components/Brand";
-
+import LegalLinks from "../../components/LegalLinks";
+import GoogleSignIn from "./GoogleSignIn";
 
 type TipoUsuario = "empresa" | "comprador";
+const REMEMBERED_EMAIL_KEY = "rememberedEmail";
+
+function readRememberedEmail() {
+  try { return localStorage.getItem(REMEMBERED_EMAIL_KEY) ?? ""; } catch { return ""; }
+}
+
+function saveRememberedEmail(remember: boolean, email: string) {
+  try {
+    if (remember && email.trim()) localStorage.setItem(REMEMBERED_EMAIL_KEY, email.trim());
+    else localStorage.removeItem(REMEMBERED_EMAIL_KEY);
+  } catch { /* Session login must still work when storage is unavailable. */ }
+}
 
 export default function Login() {
-    const navigate = useNavigate();
-    const location = useLocation();
-    const origem = location.state?.from;
-    const voltarAoMarketplace = typeof origem === "string" && /^\/marketplace(?:\/[A-Za-z0-9_-]+){0,3}$/.test(origem);
-    const [tipoUsuario, setTipoUsuario] = useState<TipoUsuario>(() => voltarAoMarketplace || location.state?.tipoUsuario === "comprador" ? "comprador" : "empresa");
-    const [email, setEmail] = useState("");
-    const [senha, setSenha] = useState("");
-    const [lembrarDeMim, setLembrarDeMim] = useState(false);
-    const [mostrarSenha, setMostrarSenha] = useState(false);
-    const [carregando, setCarregando] = useState(false);
-    const [erro, setErro] = useState("");
+  const navigate = useNavigate();
+  const location = useLocation();
+  const origem = location.state?.from;
+  const voltarAoMarketplace = typeof origem === "string" && /^\/marketplace(?:\/[A-Za-z0-9_-]+){0,3}$/.test(origem);
+  const [tipoUsuario, setTipoUsuario] = useState<TipoUsuario>(() => voltarAoMarketplace || location.state?.tipoUsuario === "comprador" ? "comprador" : "empresa");
+  const [email, setEmail] = useState(readRememberedEmail);
+  const [senha, setSenha] = useState("");
+  const [lembrarDeMim, setLembrarDeMim] = useState(() => readRememberedEmail() !== "");
+  const [mostrarSenha, setMostrarSenha] = useState(false);
+  const [carregando, setCarregando] = useState(false);
+  const [erro, setErro] = useState("");
+  const ehEmpresa = tipoUsuario === "empresa";
+  const styles = { field: "account-field", input: "account-input", error: "account-alert account-alert-error" };
 
-    const ehEmpresa = tipoUsuario === "empresa";
+  function handleTrocaTipo(tipo: TipoUsuario) {
+    setTipoUsuario(tipo);
+    setErro("");
+  }
 
-    const styles = {
-        pagina: "login-page",
-
-        conteudo: "login-main",
-        cartao:
-            "login-card",
-
-        marca: "flex items-center justify-center gap-2.5",
-        marcaIcone:
-            "flex h-9 w-9 items-center justify-center rounded-full bg-[#0F3D2E] text-white",
-        marcaTextos: "leading-tight text-left",
-        marcaTitulo: "text-lg font-extrabold text-[#1B4B3A]",
-        marcaSubtitulo: "text-[13px] font-extrabold tracking-wide text-[#D97706]",
-
-        titulo: "mt-4 text-center font-serif text-4xl font-normal text-[#0F3D2E]",
-
-        abasContainer:
-            "mt-6 grid grid-cols-2 rounded-xl bg-[#F7F5EF] p-1.5 text-sm font-medium",
-        abaAtiva:
-            "cursor-pointer rounded-lg bg-white px-4 py-2.5 text-center font-bold text-[#0F3D2E] shadow-sm",
-        abaInativa:
-            "cursor-pointer rounded-lg px-4 py-2.5 text-center text-[#6B7670] transition hover:text-[#0F3D2E]",
-
-        formulario: "mt-7 flex flex-col gap-5",
-        campoGrupo: "flex flex-col gap-2",
-        rotulo: "text-[15px] font-medium text-[#2F3D38]",
-        input:
-            "w-full rounded-xl border border-[#D9D5C8] bg-white px-4 py-3.5 text-[15px] text-[#1B4B3A] placeholder:text-[#A8B0AB] outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 disabled:opacity-60",
-        inputSenhaWrapper: "relative",
-        inputSenha: "pr-12",
-        botaoOlho:
-            "absolute right-4 top-1/2 -translate-y-1/2 text-[#A8B0AB] transition hover:text-[#1B4B3A]",
-
-        linhaOpcoes: "flex items-center justify-between text-sm",
-        lembrarLabel: "flex cursor-pointer items-center gap-2 text-[#4B5A55]",
-        checkbox:
-            "h-[18px] w-[18px] cursor-pointer rounded accent-emerald-600",
-        linkEsqueceu: "font-semibold text-emerald-600 transition hover:text-emerald-700",
-
-        botaoEntrar:
-            "mt-1 w-full rounded-xl bg-[#0F3D2E] px-6 py-4 text-base font-bold text-white transition hover:bg-[#1B4B3A] focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-70",
-
-        erroBox:
-            "rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700",
-
-        divisor: "flex items-center gap-4 text-xs text-[#A8B0AB]",
-        divisorLinha: "h-px flex-1 bg-[#E7E4DA]",
-        divisorTexto: "tracking-wide",
-
-        rodapeCartao: "mt-6 text-center text-sm text-[#6B7670]",
-        linkCadastro: "font-bold text-emerald-600 transition hover:text-emerald-700",
-    };
-
-    function handleTrocaTipo(tipo: TipoUsuario) {
-        setTipoUsuario(tipo);
-        setErro("");
+  const handleLoginSuccess = useCallback((data: LoginResponse, remember: boolean) => {
+    if (!data.token || !data.user?.id) throw new Error("Resposta de login inválida.");
+    const expected = tipoUsuario === "empresa" ? "company" : "user";
+    if (data.user.role !== expected && data.user.role !== "admin") {
+      setErro(expected === "user" ? "Esta conta é de empresa. Selecione Empresa Geradora." : "Esta conta é de comprador. Selecione Comprador / Artesão.");
+      return;
     }
+    const mustChangePassword = data.mustChangePassword === true || data.user.status === "firstLogin";
+    saveSession(data.token, { ...data.user, mustChangePassword }, remember);
+    saveRememberedEmail(remember, email);
+    navigate(mustChangePassword ? "/primeiro-acesso" : data.user.role === "company" ? "/dashboardEmpresa" : voltarAoMarketplace ? origem : "/dashboardUsuario", { replace: true });
+  }, [email, navigate, origem, tipoUsuario, voltarAoMarketplace]);
 
-    const handleLoginSuccess = useCallback((data: LoginResponse, remember: boolean) => {
-        if (!data.token || !data.user?.id) throw new Error("Resposta de login inválida.");
-        const expected = tipoUsuario === "empresa" ? "company" : "user";
-        if (data.user.role !== expected && data.user.role !== "admin") {
-            setErro(expected === "user" ? "Esta conta é de empresa. Selecione Empresa Geradora." : "Esta conta é de comprador. Selecione Comprador / Artesão.");
-            return;
-        }
-        // Login social não informa mustChangePassword; firstLogin continua obrigatório nos dois fluxos.
-        const trocarSenha = data.mustChangePassword === true || data.user.status === "firstLogin";
-        saveSession(data.token, { ...data.user, mustChangePassword: trocarSenha }, remember);
-        navigate(trocarSenha ? "/primeiro-acesso" : data.user.role === "company" ? "/dashboardEmpresa" : voltarAoMarketplace ? origem : "/dashboardUsuario", { replace: true });
-    }, [navigate, tipoUsuario, voltarAoMarketplace, origem]);
+  const handleGoogleSuccess = useCallback((data: LoginResponse, remember: boolean) => {
+    if (!data.token || !data.user?.id) throw new Error("Resposta de login inválida.");
+    const mustChangePassword = data.mustChangePassword === true || data.user.status === "firstLogin";
+    saveSession(data.token, { ...data.user, mustChangePassword }, remember);
+    saveRememberedEmail(remember, email);
+    navigate(mustChangePassword ? "/primeiro-acesso" : data.user.role === "company" ? "/dashboardEmpresa" : voltarAoMarketplace ? origem : "/dashboardUsuario", { replace: true });
+  }, [email, navigate, origem, voltarAoMarketplace]);
 
-    const handleGoogleSuccess = useCallback((data: LoginResponse, remember: boolean) => {
-        if (!data.token || !data.user?.id) throw new Error("Resposta de login inválida.");
-        const trocarSenha = data.mustChangePassword === true || data.user.status === "firstLogin";
-        saveSession(data.token, { ...data.user, mustChangePassword: trocarSenha }, remember);
-        navigate(trocarSenha ? "/primeiro-acesso" : data.user.role === "company" ? "/dashboardEmpresa" : voltarAoMarketplace ? origem : "/dashboardUsuario", { replace: true });
-    }, [navigate, voltarAoMarketplace, origem]);
+  async function handleSubmit(event: FormEvent) {
+    event.preventDefault();
+    if (carregando) return;
+    setErro("");
+    if (!email.trim() || !senha) { setErro("Informe e-mail e senha para continuar."); return; }
+    setCarregando(true);
+    try {
+      const response = await api.post<LoginResponse>("/user/login", { email: email.trim(), password: senha });
+      handleLoginSuccess(response.data, lembrarDeMim);
+    } catch (error) {
+      setErro(apiStatus(error) === 401 ? "E-mail ou senha inválidos. Se você usa login social, entre com o provedor." : apiStatus(error) === 403 ? "Sua conta ainda não está ativa ou não tem acesso. Confira a confirmação por e-mail." : apiError(error, "Não foi possível entrar. Tente novamente."));
+    } finally { setCarregando(false); }
+  }
 
-    async function handleSubmit(event: FormEvent) {
-        event.preventDefault();
-        if (carregando) return;
-        setErro("");
-        if (!email.trim() || !senha) { setErro("Informe e-mail e senha para continuar."); return; }
-        setCarregando(true);
-        try {
-            const response = await api.post<LoginResponse>("/user/login", { email: email.trim(), password: senha });
-            handleLoginSuccess(response.data, lembrarDeMim);
-        } catch (error) {
-            setErro(apiStatus(error) === 401 ? "E-mail ou senha inválidos. Se você usa login social, entre com o provedor." : apiStatus(error) === 403 ? "Sua conta ainda não está ativa ou não tem acesso. Confira a confirmação por e-mail." : apiError(error, "Não foi possível entrar. Tente novamente."));
-        } finally { setCarregando(false); }
-    }
-
-    return (
-        <div className={styles.pagina}>
-            <header className="login-topbar"><Brand footer /><Link to="/" className="login-back">Voltar ao site</Link></header>
-
-            <main className={styles.conteudo}>
-                <div className={styles.cartao}>
-                    {/* Logo centralizada */}
-                    <div className={styles.marca}>
-                        <span className={styles.marcaIcone}>
-                            <Repeat2 className="h-5 w-5" strokeWidth={2.4} />
-                        </span>
-                        <div className={styles.marcaTextos}>
-                            <p className={styles.marcaTitulo}>Reaproveita</p>
-                            <p className={styles.marcaSubtitulo}>FRANCA</p>
-                        </div>
-                    </div>
-
-                    <h1 className={styles.titulo}>Acesse sua conta</h1>
-                    {location.state?.accountDeleted && <p role="status" className="mt-5 rounded-xl bg-emerald-50 p-4 text-sm text-emerald-900">Sua conta foi excluída e sua sessão foi encerrada.</p>}
-
-                    {/* Alternador de perfil */}
-                    <div className={styles.abasContainer} role="tablist">
-                        <button
-                            type="button"
-                            role="tab"
-                            aria-selected={tipoUsuario === "empresa"}
-                            onClick={() => handleTrocaTipo("empresa")}
-                            className={
-                                tipoUsuario === "empresa"
-                                    ? styles.abaAtiva
-                                    : styles.abaInativa
-                            }
-                        >
-                            Empresa Geradora
-                        </button>
-                        <button
-                            type="button"
-                            role="tab"
-                            aria-selected={tipoUsuario === "comprador"}
-                            onClick={() => handleTrocaTipo("comprador")}
-                            className={
-                                tipoUsuario === "comprador"
-                                    ? styles.abaAtiva
-                                    : styles.abaInativa
-                            }
-                        >
-                            Comprador / Artesão
-                        </button>
-                    </div>
-
-                    <form className={styles.formulario} onSubmit={handleSubmit}>
-                        {erro && (
-                            <p role="alert" className={styles.erroBox}>
-                                {erro}
-                            </p>
-                        )}
-
-                        <div className={styles.campoGrupo}>
-                            <label htmlFor="email" className={styles.rotulo}>
-                                {ehEmpresa ? "E-mail da empresa" : "E-mail"}
-                            </label>
-                            <input
-                                id="email"
-                                type="email"
-                                autoComplete="email"
-                                required
-                                placeholder="voce@exemplo.com"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                disabled={carregando}
-                                className={styles.input}
-                            />
-                        </div>
-
-                        <div className={styles.campoGrupo}>
-                            <label htmlFor="senha" className={styles.rotulo}>
-                                Senha de acesso
-                            </label>
-                            <div className={styles.inputSenhaWrapper}>
-                                <input
-                                    id="senha"
-                                    type={mostrarSenha ? "text" : "password"}
-                                    autoComplete="current-password"
-                                    required
-                                    placeholder="Sua senha secreta"
-                                    value={senha}
-                                    onChange={(e) => setSenha(e.target.value)}
-                                    disabled={carregando}
-                                    className={`${styles.input} ${styles.inputSenha}`}
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setMostrarSenha((v) => !v)}
-                                    aria-label={mostrarSenha ? "Ocultar senha" : "Mostrar senha"}
-                                    className={styles.botaoOlho}
-                                >
-                                    {mostrarSenha ? (
-                                        <EyeOff className="h-5 w-5" />
-                                    ) : (
-                                        <Eye className="h-5 w-5" />
-                                    )}
-                                </button>
-                            </div>
-                        </div>
-
-                        <div className={styles.linhaOpcoes}>
-                            <label className={styles.lembrarLabel}>
-                                <input
-                                    type="checkbox"
-                                    checked={lembrarDeMim}
-                                    onChange={(e) => setLembrarDeMim(e.target.checked)}
-                                    disabled={carregando}
-                                    className={styles.checkbox}
-                                />
-                                Lembrar de mim
-                            </label>
-                            <Link to="/recuperar-senha" className={styles.linkEsqueceu}>
-                                Esqueceu a senha?
-                            </Link>
-                        </div>
-
-                        <button
-                            type="submit"
-                            disabled={carregando}
-                            className={styles.botaoEntrar}
-                        >
-                            {carregando ? "Entrando..." : "Entrar na Plataforma"}
-                        </button>
-                    </form>
-
-                    {!ehEmpresa && <div className="mt-7 space-y-5">
-                        <div className={styles.divisor}><span className={styles.divisorLinha} /><span>OU ENTRAR COM</span><span className={styles.divisorLinha} /></div>
-                        <GoogleSignIn onSuccess={handleGoogleSuccess} remember={lembrarDeMim} />
-                        <p className="text-xs text-gray-600">A entrada com LinkedIn ainda está indisponível. Use e-mail e senha ou Google.</p>
-                    </div>}
-
-                    <p className={styles.rodapeCartao}>
-                        Ainda não tem conta?{" "}
-                        <Link to="/cadastro" className={styles.linkCadastro}>
-                            Cadastre-se agora
-                        </Link>
-                    </p>
-                </div>
-            </main>
-
-            <footer className="login-footer">© {new Date().getFullYear()} Reaproveita Franca.</footer>
-        </div>
-    );
+  return <div className="login-page login-refined">
+    <a href="#conteudo" className="rf-skip">Pular para o conteúdo</a>
+    <header className="login-header"><Brand /><Link to="/" className="login-home-link"><ArrowLeft size={16} aria-hidden="true" /> Voltar ao início</Link></header>
+    <main id="conteudo" className="login-main" tabIndex={-1}>
+      <div className="login-layout">
+        <aside className="login-editorial" aria-labelledby="login-editorial-title">
+          <div className="login-editorial-heading"><p className="login-kicker">Reaproveita Franca · Economia circular</p><h2 id="login-editorial-title">Boas ideias<br />merecem um<br /><em>novo começo.</em></h2><p>Conectamos quem tem materiais<br />a quem enxerga possibilidades.</p></div>
+          <figure className="login-material-art"><img src="/images/home/hero.webp" alt="" width={1536} height={1024} fetchPriority="high" /><figcaption>Couro, tecido e EVA.<br /><span>Outras formas de continuar.</span></figcaption></figure>
+          <div className="login-editorial-bottom"><span>Da indústria<br />para a criatividade.</span><Link to="/sobre">Conheça o projeto<ArrowUpRight size={17} aria-hidden="true" /></Link></div>
+        </aside>
+        <section className="login-card" aria-labelledby="login-title">
+          <div className="login-intro"><p className="login-kicker">Seu espaço na rede</p><h1 id="login-title">Bom ter você<br /><em>de volta.</em></h1><p>Entre com os dados da sua conta.</p></div>
+          {location.state?.accountDeleted && <p role="status" className="account-alert account-alert-success">Sua conta foi excluída e sua sessão foi encerrada.</p>}
+          <form onSubmit={handleSubmit} className="account-login-form" aria-busy={carregando}>
+            <fieldset className="account-profile-toggle" disabled={carregando} aria-describedby="login-profile-hint">
+              <legend>Como você participa?</legend>
+              {[{ value: "empresa" as const, label: "Empresa", Icon: Building2 }, { value: "comprador" as const, label: "Comprador / Artesão", Icon: Scissors }].map(({ value, label, Icon }) => <label key={value} className={tipoUsuario === value ? "is-selected" : ""}>
+                <input type="radio" name="perfil-login" checked={tipoUsuario === value} onChange={() => handleTrocaTipo(value)} />
+                <Icon size={19} strokeWidth={1.5} aria-hidden="true" /><span>{label}</span>{tipoUsuario === value && <Check className="login-profile-check" size={14} aria-hidden="true" />}
+              </label>)}
+            </fieldset>
+            <p id="login-profile-hint" className="login-profile-hint">{ehEmpresa ? "Acesse o espaço da sua empresa." : "Acesse seu espaço de comprador ou artesão."}</p>
+            {erro && <p id="login-error" role="alert" className={styles.error}>{erro}</p>}
+            <div className={styles.field}>
+              <label htmlFor="email">{ehEmpresa ? "E-mail da empresa" : "E-mail"}</label>
+              <input id="email" type="email" autoComplete="email" autoCapitalize="none" spellCheck={false} required placeholder="Seu e-mail de cadastro" value={email} onChange={event => setEmail(event.target.value)} disabled={carregando} className={styles.input} aria-describedby={erro ? "login-error" : undefined} />
+            </div>
+            <div className={styles.field}>
+              <label htmlFor="senha">Senha</label>
+              <div className="account-password">
+                <input id="senha" type={mostrarSenha ? "text" : "password"} autoComplete="current-password" required placeholder="Digite sua senha" value={senha} onChange={event => setSenha(event.target.value)} disabled={carregando} className={styles.input} aria-describedby={erro ? "login-error" : undefined} />
+                <button type="button" disabled={carregando} onClick={() => setMostrarSenha(value => !value)} aria-label={mostrarSenha ? "Ocultar senha" : "Mostrar senha"} aria-pressed={mostrarSenha}>{mostrarSenha ? <EyeOff size={19} aria-hidden="true" /> : <Eye size={19} aria-hidden="true" />}</button>
+              </div>
+            </div>
+            <div className="account-login-options">
+              <label className="account-remember"><input type="checkbox" checked={lembrarDeMim} onChange={event => setLembrarDeMim(event.target.checked)} disabled={carregando} />Lembrar de mim</label>
+              <Link to="/recuperar-senha">Esqueceu a senha?</Link>
+            </div>
+            <button type="submit" className="home-button account-submit" disabled={carregando}>{carregando ? <><LoaderCircle size={18} className="account-spinner" aria-hidden="true" /> Entrando…</> : <>Entrar na minha conta <ArrowRight size={19} aria-hidden="true" /></>}</button>
+          </form>
+          {!ehEmpresa && <div className="account-social-login"><p className="login-kicker">Ou entre com</p><GoogleSignIn onSuccess={handleGoogleSuccess} remember={lembrarDeMim} /><p>O acesso com LinkedIn ainda está indisponível. Use e-mail e senha ou Google.</p></div>}
+          <div className="account-switch"><p>Ainda não tem uma conta?</p><Link to="/cadastro">Faça parte da rede<ArrowUpRight size={16} aria-hidden="true" /></Link></div>
+        </section>
+      </div>
+      {import.meta.env.DEV && <nav aria-label="Prévias locais dos painéis" className="login-preview-links"><span>Prévia sem API</span><Link to="/previa/dashboard/empresa">Empresa<ArrowUpRight size={13} aria-hidden="true" /></Link><Link to="/previa/dashboard/usuario">Comprador<ArrowUpRight size={13} aria-hidden="true" /></Link></nav>}
+    </main>
+    <footer className="login-footer"><span>© {new Date().getFullYear()} Reaproveita Franca.</span><span>Uma conexão de cada vez. Um novo ciclo a cada encontro.</span><LegalLinks /></footer>
+  </div>;
 }
