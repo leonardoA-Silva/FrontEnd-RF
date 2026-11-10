@@ -70,3 +70,9 @@ Eventos recebidos: `new_message`, `message_edited`, `message_deleted`, `notifica
 | Notificações | Novos filtros nova_review/disputa_aberta/disputa_resolvida/pagamento_confirmado. Referências review/dispute abrem as telas correspondentes. Referência payment é resolvida por `GET /payment/:id` antes de abrir a reserva. |
 
 Nenhuma rota de vinculação de vendedor, comissão administrativa, reembolso, simulação ou pagamento por cartão foi adicionada à UI. A rota simulate é usada exclusivamente pelo teste isolado para confirmar que a interface segue a aprovação da API. Falha incerta na criação não dispara retry automático nem nova cobrança. QR/code Pix ficam em memória, sem armazenamento persistente ou logs.
+# Atualização de autenticação — 10/11/2026
+
+- Login com senha: HTTP 403 com `code: EMAIL_VERIFICATION_REQUIRED` e `verification: { id, email }` habilita retomar o modal OTP. Outros 403 não habilitam confirmação. Após confirmar, a pessoa tenta entrar novamente; o código não é uma sessão.
+- Cadastro empresarial com Google: `POST /user/create/empresa/google` multipart com `idToken`, nome, CPF, CNPJ, celular, endereço e foto opcional. Não envia senha nem e-mail digitado. A API determina e-mail e papel, valida a identidade e devolve o formato `LoginResponse` em HTTP 201. Conta pessoal existente não é convertida.
+- Login empresarial com Google envia `accountType: company` em `/user/login/google`, recusando conta pessoal e identidade ainda não cadastrada como empresa.
+- O token Google só permanece em memória durante a requisição; documentos e códigos não são persistidos pelo frontend. A verificação automatizada usa Google/SMTP controlados, sem comprovar autorização externa ou entrega real.

@@ -159,6 +159,9 @@ export const cadastrarEmpresa = (payload: CadastroEmpresaPayload, photoFile?: Fi
   });
 };
 
+export const cadastrarEmpresaGoogle = (payload: Omit<CadastroEmpresaPayload, "password" | "email"> & { idToken: string }, photoFile?: File | null) =>
+  api.post<LoginResponse>("/user/create/empresa/google", buildFormData(payload as unknown as Record<string, unknown>, photoFile), { headers: { "Content-Type": "multipart/form-data" } });
+
 /** POST /api/reaproveitafranca/user/create */
 export const cadastrarUsuario = (payload: CadastroUsuarioPayload, photoFile?: File | null) => {
   const formData = buildFormData(payload as unknown as Record<string, unknown>, photoFile);
@@ -224,7 +227,7 @@ export const alterarSenha = (currentPassword: string, newPassword: string, first
 export const solicitarRedefinicao = (email: string) => api.post<{ message: string }>("/user/password/forgot", { email });
 export const redefinirSenha = (token: string, newPassword: string) => api.post<{ message: string }>("/user/password/reset", { token, newPassword });
 export interface LoginResponse { token: string; user: SessionUser; mustChangePassword: boolean }
-export const entrarComGoogle = (idToken: string) => api.post<LoginResponse>("/user/login/google", { idToken });
+export const entrarComGoogle = (idToken: string, accountType?: "company") => api.post<LoginResponse>("/user/login/google", { idToken, accountType });
 
 // Contratos do comprador verificados na API 6543cd9.
 export type ShoppingStatus = "pending" | "accepted" | "refused" | "cancelled" | "completed";

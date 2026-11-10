@@ -15,8 +15,12 @@ import type { RegistrationKind } from "./registrationData";
 
 export default function RegistrationPage({ kind }: { kind: RegistrationKind }) {
   const company = kind === "company";
-  const form = useRegistrationForm(kind);
   const navigate = useNavigate();
+  const form = useRegistrationForm(kind, session => {
+    if (!session.token || session.user?.role !== "company" || !session.user.id) throw new Error("Resposta inválida de cadastro.");
+    saveSession(session.token, session.user, false);
+    navigate("/dashboardEmpresa", { replace: true });
+  });
   const [googleRoleError, setGoogleRoleError] = useState("");
   useEffect(() => {
     if (!googleRoleError) return;
