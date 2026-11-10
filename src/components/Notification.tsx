@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { CheckCircle, XCircle, Info, AlertTriangle, X } from "lucide-react";
 export type NotificationType = "success" | "error" | "info" | "warning";
 
@@ -17,6 +17,13 @@ interface NotificationItemProps {
 function NotificationItem({ notification, onClose }: NotificationItemProps) {
   const [visible, setVisible] = useState(false);
   const [leaving, setLeaving] = useState(false);
+  const removalTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleClose = useCallback(() => {
+    if (removalTimer.current !== null) return;
+    setLeaving(true);
+    removalTimer.current = setTimeout(() => onClose(notification.id), 300);
+  }, [notification.id, onClose]);
 
   useEffect(() => {
     // Entrada com pequeno delay para animar
@@ -24,20 +31,16 @@ function NotificationItem({ notification, onClose }: NotificationItemProps) {
 
     // Auto-fechar após 5 segundos
     const closeTimer = setTimeout(() => {
-      setLeaving(true);
-      setTimeout(() => onClose(notification.id), 300);
+      handleClose();
     }, 5000);
 
     return () => {
       clearTimeout(enterTimer);
       clearTimeout(closeTimer);
+      if (removalTimer.current !== null) clearTimeout(removalTimer.current);
+      removalTimer.current = null;
     };
-  }, [notification.id, onClose]);
-
-  const handleClose = () => {
-    setLeaving(true);
-    setTimeout(() => onClose(notification.id), 300);
-  };
+  }, [handleClose]);
 
   const colors = {
     success: {
@@ -151,6 +154,8 @@ function NotificationItem({ notification, onClose }: NotificationItemProps) {
 
         {/* Botão fechar */}
         <button
+          type="button"
+          aria-label="Fechar notificação"
           onClick={handleClose}
           style={{
             background: "none",

@@ -280,6 +280,12 @@ As instruções atuais deste checkout limitam novas escritas ao frontend; não f
 
 Última verificação com SDK real: /gsi/client, /gsi/style e /gsi/button responderam 200; nenhum erro de origem. Referer localhost:5174 e novo Client ID confirmados. Não repetir pedido de adicionar origens nem considerar esse bloqueio ainda ativo. Próxima validação: proprietário conclui autenticação no botão oficial e confirma sessão/cadastro no app. Login real ainda não validado; sem novos ajustes de código/API nesta verificação.
 
+## Verificação para publicação — atualização posterior
+
+O usuário autorizou push após verificar os projetos. A main da API recebeu os 28 commits remotos por merge `a8611b4`, preservando `9325ec3`; frontend permaneceu em `3ae4a71` antes da correção abaixo. Checkout/reviews/disputas/impacto ambiental/Docker chegaram da equipe; não foram implementados novos recursos de pagamento ou LinkedIn nesta publicação. As duas migrações Mercado Pago ainda não foram aplicadas no banco local.
+
+Corrigida a falha preexistente de lint em `Notification.tsx`: callback estável declarado antes do efeito, dependências corretas, fechamento duplicado evitado e timer de remoção cancelado no unmount; botão recebeu nome acessível. Lint global e build passaram. Verificação local no navegador passou para fechamento manual/automático único e cancelamento ao desmontar, sem erros JavaScript. Os 47 testes unitários/de rotas da API e a integração Google em banco descartável passaram novamente (provedor simulado). Isso substitui os registros históricos de lint bloqueado; não garante ausência absoluta de defeitos nem valida OAuth/pagamento externo ou Docker em produção.
+
 ## Consolidação na main autorizada
 
 O usuário solicitou commit na main da API e do frontend, seguindo o histórico de cada projeto. Consolidar as correções locais descritas neste documento e preservar os commits anteriores da branch de comprador por avanço direto da main, sem reescrever histórico. A autorização atual é para commits locais; push não foi solicitado nesta etapa. Manter arquivos de ambiente e verificações locais ignorados fora do versionamento. Google passou na verificação de origem, mas login completo com conta real ainda depende de confirmação. LinkedIn e pagamento por cartão permanecem fora do escopo.
