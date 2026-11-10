@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { cancelarReserva, listarReservas, obterReserva } from "../../../axios/Axios";
 import { apiError, apiStatus } from "../../../axios/apiError";
@@ -7,6 +7,7 @@ import ConfirmAction from "./ConfirmAction";
 import RequestState from "./RequestState";
 import { buyerStyles as s } from "./buyerStyles";
 import { dateLabel, money, shoppingLabel } from "./buyerPresentation";
+import BuyerPayment from "./BuyerPayment";
 
 export default function BuyerReservations({ history = false }: { history?: boolean }) {
   const [params, setParams] = useSearchParams();
@@ -39,6 +40,16 @@ function ReservationDetail({ id }: { id: string }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  useEffect(() => {
+    if (!success) return;
+    const t = setTimeout(() => setSuccess(""), 4000);
+    return () => clearTimeout(t);
+  }, [success]);
+  useEffect(() => {
+    if (!error) return;
+    const t = setTimeout(() => setError(""), 6000);
+    return () => clearTimeout(t);
+  }, [error]);
   async function cancel() {
     if (busy) return;
     setBusy(true); setError("");
@@ -57,9 +68,11 @@ function ReservationDetail({ id }: { id: string }) {
       <div className="flex flex-wrap justify-between gap-4"><h2 className={s.subtitle}>{shoppingLabel(resource.data.status)}</h2><p className="text-xl font-bold">{money(resource.data.value)}</p></div>
       <p className={s.copy}>{dateLabel(resource.data.datetime)}</p>
       <ul className="divide-y divide-[#E7E4DA]">{resource.data.items?.map(item => <li key={item.id} className="flex flex-wrap justify-between gap-4 py-4"><div><Link className="font-semibold underline" to={`/marketplace/produto/${encodeURIComponent(item.id_product)}`}>{item.product_name}</Link><p className={`${s.copy} mt-1`}>{item.quantity} unidades</p></div><p>{money(item.subtotal)}</p></li>)}</ul>
-      <p className={s.notice}>Esta solicitação não confirma pagamento. O aceite é feito pelo fornecedor; cobranças ainda não estão disponíveis.</p>
+      <p className={s.notice}>Reserva e pagamento têm situações próprias. Consulte a confirmação antes da retirada.</p>
+      <div className="flex flex-wrap gap-3"><Link className={s.secondary} to={`/dashboardUsuario?aba=disputas&reserva=${encodeURIComponent(id)}`}>Informar problema</Link>{resource.data.status === "completed" && <><Link className={s.secondary} to={`/dashboardUsuario?aba=avaliacoes&reserva=${encodeURIComponent(id)}`}>Avaliar fornecedor</Link><Link className={s.secondary} to={`/dashboardUsuario?aba=impacto&reserva=${encodeURIComponent(id)}`}>Consultar impacto ambiental</Link></>}</div>
       <div className="flex flex-wrap gap-3"><button onClick={resource.reload} className={s.secondary}>Atualizar detalhes</button>{resource.data.status === "pending" && <button onClick={() => { setError(""); setConfirm(true); }} className={s.secondary}>Cancelar reserva</button>}</div>
     </div>}
+    {!resource.loading && !resource.error && resource.data && <BuyerPayment key={id} shopping={resource.data} changed={resource.reload} />}
     {confirm && <ConfirmAction title="Cancelar reserva?" description="O cancelamento só é permitido enquanto a reserva aguarda aceite. A confirmação será feita pelo servidor." busy={busy} error={error} confirm={cancel} cancel={() => setConfirm(false)} />}
   </section>;
 }

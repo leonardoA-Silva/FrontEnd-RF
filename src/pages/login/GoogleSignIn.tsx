@@ -42,9 +42,11 @@ function googleErrorMessage(cause: unknown, fallback: string) {
   const status = apiStatus(cause);
   if (status === 400) return "Não foi possível validar o acesso com Google. Tente novamente.";
   if (status === 401) return "A autenticação com Google falhou ou expirou. Tente novamente ou use e-mail e senha.";
+  if (status === 404) return "Empresa ainda não cadastrada. Abra o cadastro de empresa e selecione a opção Google.";
   if (status === 403) {
     const data = axios.isAxiosError(cause) ? cause.response?.data : undefined;
     const serverMessage = data && typeof data === "object" && "error" in data ? String((data as { error: unknown }).error) : "";
+    if (serverMessage.includes("não é de empresa")) return "Esta conta é pessoal. Selecione Comprador / Artesão para entrar.";
     if (serverMessage.includes("vínculo")) return "Entre com e-mail e senha para confirmar o vínculo dessa conta antes de usar o Google.";
     return serverMessage.includes("ativada") || serverMessage.includes("inativa")
       ? "Sua conta está inativa ou precisa de confirmação. Use e-mail e senha ou contate o suporte."
@@ -77,22 +79,31 @@ const variantText = {
     notaIndisponivel: "Criação com Google indisponível no momento. Use o formulário de cadastro.",
     gsiText: "signup_with",
     validando: "Criando sua conta...",
-    nota: "Ao continuar, o Google compartilha seu nome e e-mail para criar a conta. Você poderá completar celular, foto e endereço depois.",
+    nota: "Ao continuar, o Google compartilha seu nome, e-mail e foto de perfil. A data de nascimento e o telefone não são fornecidos pelo Google por privacidade e podem ser completados no seu perfil após o acesso.",
     erroPadrao: "Não foi possível criar a conta com Google. Use o formulário ou tente novamente.",
   },
 } as const;
 
-export default function GoogleSignIn({ onSuccess, remember, variant = "entrar" }: { onSuccess: (data: LoginResponse, remember: boolean) => void; remember: boolean; variant?: GoogleVariant }) {
+export default function GoogleSignIn({ onSuccess, remember, variant = "entrar", onCredential, accountType }: { onSuccess: (data: LoginResponse, remember: boolean) => void; remember: boolean; variant?: GoogleVariant; onCredential?: (credential: string) => Promise<void>; accountType?: "company" }) {
   const text = variantText[variant];
   const clientId = (import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined)?.trim();
   const successRef = useRef(onSuccess);
   const rememberRef = useRef(remember);
+  const credentialRef = useRef(onCredential);
+  const accountTypeRef = useRef(accountType);
+  useEffect(() => { accountTypeRef.current = accountType; }, [accountType]);
+  useEffect(() => { credentialRef.current = onCredential; }, [onCredential]);
   useEffect(() => { successRef.current = onSuccess; rememberRef.current = remember; }, [onSuccess, remember]);
   const container = useRef<HTMLDivElement>(null);
   const [requested, setRequested] = useState(false);
   const [attempt, setAttempt] = useState(0);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  useEffect(() => {
+    if (!error) return;
+    const t = setTimeout(() => setError(""), 6000);
+    return () => clearTimeout(t);
+  }, [error]);
   const [ready, setReady] = useState(false);
   useEffect(() => {
     if (!requested || !clientId) return;
@@ -102,7 +113,7 @@ export default function GoogleSignIn({ onSuccess, remember, variant = "entrar" }
       if (!active || sending) return;
       if (typeof credential !== "string" || !credential) { setError("O Google não confirmou o acesso. Tente novamente."); return; }
       sending = true; setBusy(true); setError("");
-      try { const response = await entrarComGoogle(credential); if (active) successRef.current(response.data, rememberRef.current); }
+      try { if (credentialRef.current) await credentialRef.current(credential); else { const response = await entrarComGoogle(credential, accountTypeRef.current); if (active) successRef.current(response.data, rememberRef.current); } }
       catch (cause) { if (active) setError(googleErrorMessage(cause, text.erroPadrao)); }
       finally { sending = false; if (active) setBusy(false); }
     };
@@ -147,7 +158,7 @@ export default function GoogleSignIn({ onSuccess, remember, variant = "entrar" }
           <button type="button" onClick={() => { setError(""); setReady(false); setAttempt(v => v + 1); }} className="cursor-pointer underline">Tentar novamente</button>
         </div>
       )}
-      <p className="text-xs text-gray-600">{text.nota}</p>
+      <p className="text-xs text-gray-600">{onCredential ? "O Google confirmará seu e-mail. Os dados da empresa preenchidos no formulário serão enviados para criar a conta, sem senha local." : text.nota}</p>
     </section>
   );
 }

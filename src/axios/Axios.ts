@@ -159,6 +159,9 @@ export const cadastrarEmpresa = (payload: CadastroEmpresaPayload, photoFile?: Fi
   });
 };
 
+export const cadastrarEmpresaGoogle = (payload: Omit<CadastroEmpresaPayload, "password" | "email"> & { idToken: string }, photoFile?: File | null) =>
+  api.post<LoginResponse>("/user/create/empresa/google", buildFormData(payload as unknown as Record<string, unknown>, photoFile), { headers: { "Content-Type": "multipart/form-data" } });
+
 /** POST /api/reaproveitafranca/user/create */
 export const cadastrarUsuario = (payload: CadastroUsuarioPayload, photoFile?: File | null) => {
   const formData = buildFormData(payload as unknown as Record<string, unknown>, photoFile);
@@ -224,7 +227,7 @@ export const alterarSenha = (currentPassword: string, newPassword: string, first
 export const solicitarRedefinicao = (email: string) => api.post<{ message: string }>("/user/password/forgot", { email });
 export const redefinirSenha = (token: string, newPassword: string) => api.post<{ message: string }>("/user/password/reset", { token, newPassword });
 export interface LoginResponse { token: string; user: SessionUser; mustChangePassword: boolean }
-export const entrarComGoogle = (idToken: string) => api.post<LoginResponse>("/user/login/google", { idToken });
+export const entrarComGoogle = (idToken: string, accountType?: "company") => api.post<LoginResponse>("/user/login/google", { idToken, accountType });
 
 // Contratos do comprador verificados na API 6543cd9.
 export type ShoppingStatus = "pending" | "accepted" | "refused" | "cancelled" | "completed";
@@ -243,7 +246,7 @@ export const lerTodasNotificacoes = () => api.patch("/notification/read-all");
 export const excluirNotificacao = (id: string) => api.delete(`/notification/${encodeURIComponent(id)}`);
 
 export interface BuyerAddress { id: string; zip_code: string; street: string; neighborhood: string; number: string; city: string; state: string; latitude: number | string | null; longitude: number | string | null }
-export interface AddressInput { zipCode: string; street: string; neighborhood: string; number: string; city: string; state: string; latitude: number | null; longitude: number | null }
+export interface AddressInput { zipCode: string; street: string; neighborhood: string; number: string; city: string; state: string; latitude?: number | null; longitude?: number | null }
 export interface ProductLocation { productId: string; city: string; neighborhood: string; addressFull: boolean; street?: string; number?: string; zipCode?: string; state?: string; latitude: number | null; longitude: number | null }
 export const listarEnderecos = (signal?: AbortSignal) => api.get<BuyerAddress[]>("/localization/", { signal });
 export const criarEndereco = (userId: string, input: AddressInput) => api.post<{ id: string }>("/localization/", { userId, ...input });
@@ -299,4 +302,35 @@ export const listarLogs = (params?: { reference_id?: string; status?: string; op
 /** POST /api/reaproveitafranca/log */
 export const criarLog = (payload: { reference_id: string; status: string; operation: string; table: string }) =>
   api.post<{ message: string; id: string }>("/log", payload);
+
+// Contratos conferidos nas rotas/controllers/services da API 192bbaf.
+export interface BuyerPayment { id: string; value: number | string; method: "pix" | "credit_card" | "debit_card"; status: "pending" | "approved" | "refused" | "refunded"; datetime: string; id_shopping: string }
+export interface BuyerCheckout { provider: string; simulation?: boolean; environment?: string; status: BuyerPayment["status"]; qr_code?: string | null; qr_code_base64?: string | null; needs_review?: boolean; provider_status?: string }
+export interface BuyerPaymentResult { payment: BuyerPayment; checkout: BuyerCheckout | null }
+export const listarPagamentosReserva = (id: string, signal?: AbortSignal) => api.get<BuyerPayment[]>(`/payment/shopping/${encodeURIComponent(id)}`, { signal });
+export const obterCheckout = (id: string, signal?: AbortSignal) => api.get<BuyerPaymentResult>(`/payment/${encodeURIComponent(id)}/checkout`, { signal });
+export const obterPagamento = (id: string) => api.get<BuyerPayment>(`/payment/${encodeURIComponent(id)}`);
+// Sem total, vendedor, cartão ou credenciais do provedor vindos do navegador.
+export const criarPagamentoPix = (shoppingId: string) => api.post<BuyerPaymentResult>("/payment/create", { id_shopping: shoppingId, method: "pix" });
+export const sincronizarPagamento = (id: string) => api.post<BuyerPaymentResult>(`/payment/${encodeURIComponent(id)}/sync`);
+export const cancelarPagamento = (id: string) => api.post<BuyerPaymentResult>(`/payment/${encodeURIComponent(id)}/cancel`);
+
+export interface BuyerReview { id: string; rating: number; comment: string | null; created_in: string; id_shopping: string; id_reviewer: string; id_reviewed: string }
+export const listarAvaliacoes = (signal?: AbortSignal) => api.get<BuyerReview[]>("/review/", { signal });
+export const criarAvaliacao = (input: { rating: number; comment: string; id_shopping: string; id_reviewed: string }) => api.post<{ id: string }>("/review/", input);
+export const atualizarAvaliacao = (id: string, input: { rating: number; comment: string }) => api.put(`/review/${encodeURIComponent(id)}`, input);
+export const excluirAvaliacao = (id: string) => api.delete(`/review/${encodeURIComponent(id)}`);
+
+export type DisputeType = "material_incompativel" | "nao_retirado" | "nao_comparecimento" | "comportamento_inadequado" | "item_danificado" | "outro";
+export interface BuyerDispute { id: string; type: DisputeType; description: string; status: string; resolution: string | null; created_in: string; id_shopping: string; id_opened_by: string }
+export const listarDisputas = (signal?: AbortSignal) => api.get<BuyerDispute[]>("/dispute/", { signal });
+export const criarDisputa = (input: { id_shopping: string; type: DisputeType; description: string }) => api.post<{ id: string }>("/dispute/", input);
+export const atualizarDisputa = (id: string, input: { type: DisputeType; description: string }) => api.put(`/dispute/${encodeURIComponent(id)}`, input);
+
+export interface BuyerImpact { id: string; id_shopping: string; estimated_weight_kg: number | string; co2_saved_kg: number | string; water_saved_liters: number | string; energy_saved_kwh: number | string; calculation_method: string; calculated_in: string }
+export const listarImpactos = (signal?: AbortSignal) => api.get<BuyerImpact[]>("/environmental-impact/", { signal });
+export const registrarImpacto = (shoppingId: string) => api.post<{ impact: BuyerImpact }>("/environmental-impact/", { id_shopping: shoppingId, calculation_method: "regra_fixa" });
+
+export interface BuyerCompany { id: string; companyId: string; name: string; neighborhood: string; city: string; state: string; latitude: number; longitude: number; categories: string[]; availableProducts: number }
+export const listarEmpresasMapa = (signal?: AbortSignal) => api.get<BuyerCompany[]>("/localization/companies", { signal });
 
