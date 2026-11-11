@@ -18,7 +18,7 @@ export function useBuyerSocket(token: string | null) {
       if (!active) return;
       const expiry = tokenExpiry(token);
       if (expiry && expiry <= Date.now()) { setState({ token, socket: null, connected: false, error: "Sua sessão expirou. Entre novamente para receber atualizações." }); return; }
-      socket = io(socketOrigin(), { auth: { token }, transports: ["websocket"], autoConnect: false, reconnection: false, forceNew: true });
+      socket = io(socketOrigin(), { auth: { token }, transports: ["polling", "websocket"], autoConnect: false, reconnection: true, forceNew: true });
       const current = socket;
       const update = (connected: boolean, error: string) => { if (active) setState({ token, socket: current, connected, error }); };
       current.on("connect", () => update(true, ""));

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { io, type Socket } from "socket.io-client";
+import api from "../../../axios/Axios";
 import { chatIdentity, loadConversations, readChatMessage, record } from "./chatApi";
 import { notificationFailure } from "./notificationApi";
 import { uuidPattern } from "../companyTypes";
@@ -40,8 +41,15 @@ export function useLiveChat(enabled: boolean, requestedId: string | null) {
     ownId.current = chatIdentity();
     const controller = new AbortController();
     let alive = true;
-    const socket = io({ autoConnect: false, transports: ["websocket"], reconnectionAttempts: 3, timeout: 10000,
-      auth: callback => callback({ token: localStorage.getItem("token") ?? sessionStorage.getItem("token") ?? "" }) });
+    const baseUrl = api.defaults.baseURL ?? "/api/reaproveitafranca";
+    const socketUrl = baseUrl.startsWith("http") ? new URL(baseUrl).origin : undefined;
+    const socket = io(socketUrl, {
+      autoConnect: false,
+      transports: ["polling", "websocket"],
+      reconnectionAttempts: 5,
+      timeout: 10000,
+      auth: callback => callback({ token: localStorage.getItem("token") ?? sessionStorage.getItem("token") ?? "" })
+    });
     socketRef.current = socket;
     const refresh = async () => {
       try {
