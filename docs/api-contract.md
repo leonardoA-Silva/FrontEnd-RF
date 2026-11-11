@@ -2,6 +2,19 @@
 
 Contratos iniciais verificados em 29/10/2026 (`6543cd9`), atualizados para o comprador em 10/11/2026 contra a API local **`192bbaf`**. Fonte: rotas, controllers e services executáveis de `backend-RF`, não apenas schema/documentação. Prefixo: `/api/reaproveitafranca`. Evidências atuais: [integração do comprador](buyer-api-update-2026-11-10.md). Registros anteriores ficam como histórico quando divergirem desta atualização.
 
+## Fluxo de pagamento — 11/11/2026
+
+- Após criar uma reserva de venda ou doação, o site abre os detalhes. Vendas pendentes exibem que aguardam o aceite da empresa. Doações continuam gratuitas.
+- Novas cobranças web ficam pausadas. A API atual exige compra `pending` e muda a compra para `accepted` quando confirma a cobrança. A retomada no web depende de a API exigir `accepted` antes da cobrança e proteger transições de reserva com pagamento ativo ou aprovado. Cancelamento automático por prazo está fora desta etapa.
+- O site permite consultar e encerrar tentativas existentes pelas rotas atuais. O código de um Pix existente fica oculto enquanto a reserva está pendente.
+- Um `409` sem `payment_id` ou sinal de conciliação recarrega as tentativas existentes, sem marcar uma cobrança inexistente como incerta. Falhas de rede, respostas 5xx, `payment_id` ou `reconciliation_required: true` continuam bloqueando nova cobrança até conferência.
+- Na conferência sem ID conhecido, o front consulta a lista, valida que o checkout pertence à tentativa e à reserva, e sincroniza o pagamento encontrado. Uma lista vazia limpa a pendência de conferência. Checkout vazio, divergente ou consulta com falha mantêm o bloqueio. A API continua responsável por serializar tentativas e impedir cobranças duplicadas.
+- Quando o navegador permite acesso ao armazenamento de sessão, o front grava um marcador por reserva antes de enviar a cobrança à API. O bloqueio persiste na mesma aba ao recarregar ou voltar à tela, inclusive durante o envio. O marcador guarda somente o ID da tentativa, quando conhecido, e é removido após resposta conclusiva ou conferência bem-sucedida.
+- O painel de pagamento informa processamento e bloqueio de cancelamento ao detalhe da reserva. Processamento, cobrança ativa, conferência pendente, erro de consulta e confirmação de cobrança impedem cancelar a reserva pela tela; atualizar detalhes também fica desabilitado durante processamento. Isso não substitui proteção na API contra outra aba ou outro cliente.
+- Pix pendente pode ser encerrado mediante confirmação por `POST /payment/:id/cancel`. A UI avisa que o comportamento atual da API também cancela a reserva quando não há outra tentativa ativa. O front grava o ID antes do envio e mantém o QR Code oculto se a página for recarregada durante o encerramento ou se a resposta for inconclusiva. Após confirmar o encerramento, inclusive por consulta manual, recarrega a reserva e oferece criar outra no marketplace.
+- A tela da empresa não ganhou restrição de aceite após pagamento. Essa garantia não existe no fluxo mobile consultado e exigiria alinhamento com a API.
+- Validação desta alteração: testes locais de decisão de fluxo e componentes com hooks/transporte simulados, lint e build. Sem comprovação financeira, testes no banco ou execução do aplicativo mobile.
+
 ## Transporte e sessão
 
 - Axios: `VITE_API_URL` ou `/api/reaproveitafranca`; interceptor anexa JWT de `token` no armazenamento já usado pelo projeto.

@@ -281,6 +281,7 @@ export const obterCheckout = (id: string, signal?: AbortSignal) => api.get<Buyer
 // Sem total, vendedor, cartão ou credenciais do provedor vindos do navegador.
 export const criarPagamentoPix = (shoppingId: string) => api.post<BuyerPaymentResult>("/payment/create", { id_shopping: shoppingId, method: "pix" }, { timeout: 30000 });
 export const sincronizarPagamento = (id: string) => api.post<BuyerPaymentResult>(`/payment/${encodeURIComponent(id)}/sync`, {}, { timeout: 30000 });
+export const cancelarPagamento = (id: string) => api.post<BuyerPaymentResult>(`/payment/${encodeURIComponent(id)}/cancel`, {}, { timeout: 30000 });
 
 export interface BuyerImpact { id: string; id_shopping: string; estimated_weight_kg: number | string; co2_saved_kg: number | string; water_saved_liters: number | string; energy_saved_kwh: number | string; calculation_method: string; calculated_in: string }
 export const listarImpactos = (signal?: AbortSignal) => api.get<BuyerImpact[]>("/environmental-impact/", { signal });

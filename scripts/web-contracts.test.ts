@@ -4,6 +4,8 @@ import { productForm } from "../src/pages/company/productForm.ts";
 import { googleProfile } from "../src/auth/googleIdentity.ts";
 import { emptyRegistration, validateRegistration } from "../src/pages/register/registrationData.ts";
 import { googleAuthTarget } from "../src/auth/googleOrigin.ts";
+import { paymentFailureAction, reservationDestination } from "../src/pages/dashboard/comprador/paymentFlow.ts";
+import { accountDestination } from "../src/auth/accountDestination.ts";
 
 test("Google usa origens estáveis e preserva perfil e cadastro ao sair de um preview", () => {
   for (const origin of ["https://reaproveitafranca.vercel.app", "http://localhost:5174", "http://127.0.0.1:5174"]) {
@@ -29,6 +31,17 @@ test("empresa Google dispensa senha e mantém documentos e endereço obrigatóri
   assert.ok(validateRegistration(emptyRegistration, "company", true).cpf);
   assert.ok(validateRegistration(emptyRegistration, "company", true).street);
   assert.ok(validateRegistration(emptyRegistration, "company").password);
+});
+
+test("login preserva destinos internos do perfil e rejeita destinos externos", () => {
+  const checkout = "/dashboardUsuario?aba=reservas&reserva=teste&etapa=pagamento";
+  assert.equal(accountDestination("user", checkout), checkout);
+  assert.equal(accountDestination("company", "/dashboardEmpresa/reservas"), "/dashboardEmpresa/reservas");
+  assert.equal(accountDestination("company", checkout), "/dashboardEmpresa");
+  assert.equal(accountDestination("admin", "/admin/usuarios"), "/admin/usuarios");
+  assert.equal(accountDestination("user", "/admin/usuarios"), "/dashboardUsuario");
+  assert.equal(accountDestination("user", "//example.invalid/marketplace"), "/dashboardUsuario");
+  assert.equal(accountDestination("user", "/marketplace/../dashboardEmpresa"), "/dashboardUsuario");
 });
 
 const material = {
@@ -58,4 +71,24 @@ test("doação omite preço e edição preserva as fotos existentes", () => {
 test("imagens inválidas ou acima de 5 MB são recusadas antes da requisição", () => {
   assert.throws(() => productForm({ ...material, images: ["https://example.invalid/foto.png"] }));
   assert.throws(() => productForm({ ...material, images: [`data:image/png;base64,${Buffer.alloc(5 * 1024 * 1024 + 1).toString("base64")}`] }));
+});
+
+test("nova reserva abre detalhes sem iniciar pagamento", () => {
+  assert.equal(reservationDestination("reserva"), "/dashboardUsuario?aba=reservas&reserva=reserva");
+  assert.ok(reservationDestination("id/com espaço").includes("reserva=id%2Fcom%20espa%C3%A7o"));
+});
+
+test("conflito sem tentativa financeira recarrega pagamentos sem travar a tela", () => {
+  assert.equal(paymentFailureAction(409), "reload");
+  assert.equal(paymentFailureAction(409, { reconciliation_required: false }), "reload");
+  assert.equal(paymentFailureAction(400), "retry");
+  assert.equal(paymentFailureAction(422), "retry");
+});
+
+test("falha ambígua exige conciliação antes de nova cobrança", () => {
+  assert.equal(paymentFailureAction(undefined), "reconcile");
+  assert.equal(paymentFailureAction(500), "reconcile");
+  assert.equal(paymentFailureAction(502), "reconcile");
+  assert.equal(paymentFailureAction(409, { payment_id: "tentativa" }), "reconcile");
+  assert.equal(paymentFailureAction(422, { reconciliation_required: true }), "reconcile");
 });

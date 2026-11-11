@@ -2,7 +2,9 @@ import type { ProductBackend } from "../../api/services";
 import { money as moeda } from "../dashboard/comprador/buyerPresentation";
 
 export function productPhotos(product: ProductBackend): string[] {
-  return (product.photos ?? []).flatMap(({ photo }) => {
+  if (!Array.isArray(product.photos)) return [];
+  return product.photos.flatMap(item => {
+    const photo = item?.photo;
     if (typeof photo !== "string" || photo.length > 14_000_000) return [];
     const base64 = photo.replace(/\s/g, "");
     if (!/^[a-zA-Z0-9+/]*={0,2}$/.test(base64)) return [];

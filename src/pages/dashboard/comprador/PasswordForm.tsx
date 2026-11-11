@@ -1,12 +1,14 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { alterarSenha } from "../../../api/services";
 import { apiError, apiStatus } from "../../../axios/apiError";
-import { updateSessionUser } from "../../../auth/session";
+import { readSession, updateSessionUser } from "../../../auth/session";
+import { accountDestination } from "../../../auth/accountDestination";
 import { buyerStyles as s } from "./buyerStyles";
 
 export default function PasswordForm({ firstAccess = false }: { firstAccess?: boolean }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [current, setCurrent] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -30,7 +32,10 @@ export default function PasswordForm({ firstAccess = false }: { firstAccess?: bo
     try {
       await alterarSenha(current, password, firstAccess);
       setCurrent(""); setPassword(""); setConfirm(""); setSuccess(true);
-      if (firstAccess) { updateSessionUser({ mustChangePassword: false, status: "active" }); navigate("/dashboardUsuario", { replace: true }); }
+      if (firstAccess) {
+        updateSessionUser({ mustChangePassword: false, status: "active" });
+        navigate(accountDestination(readSession().user?.role ?? "", location.state?.from), { replace: true });
+      }
     } catch (cause) { setError(apiStatus(cause) === 401 ? "A senha atual não confere ou sua sessão expirou. Confira os dados e tente novamente." : apiError(cause, "Não foi possível alterar a senha.")); }
     finally { setBusy(false); }
   }
