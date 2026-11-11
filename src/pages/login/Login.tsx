@@ -44,7 +44,6 @@ export default function Login() {
             setErro(expected === "user" ? "Esta conta é de empresa. Selecione Empresa Geradora." : "Esta conta é de comprador. Selecione Comprador / Artesão.");
             return;
         }
-        // Login social não informa mustChangePassword; firstLogin continua obrigatório nos dois fluxos.
         const trocarSenha = data.mustChangePassword === true || data.user.status === "firstLogin";
         saveSession(data.token, { ...data.user, mustChangePassword: trocarSenha }, remember);
         navigate(trocarSenha ? "/primeiro-acesso" : data.user.role === "company" ? "/dashboardEmpresa" : voltarAoMarketplace ? origem : "/dashboardUsuario", { replace: true });
