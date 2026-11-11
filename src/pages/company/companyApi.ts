@@ -28,6 +28,18 @@ export function parseProduct(value: unknown): CompanyProduct | null {
   return { id: text(row.id), name: text(row.name), description: text(row.description), category: text(row.category), type: row.type_negotiation as CompanyProduct["type"], quantity, weight, price: row.type_negotiation === "donation" || !Number.isFinite(price) ? null : price, condition: text(row.conservation_state), status: text(row.status), images, localizationId: text(row.id_localization), priority: Number.isFinite(numeric(row.priority)) ? numeric(row.priority) : 0 };
 }
 
+export async function createCompanyProduct(product: Omit<CompanyProduct, "id">) {
+  if (!uuidPattern.test(product.localizationId ?? "")) throw new Error("Invalid product location");
+  const { data } = await api.post<unknown>("/product/create", {
+    name: product.name, description: product.description, price: product.price, priority: product.priority ?? 0,
+    quantity: product.quantity, status: product.status || "available", category: product.category, type_negotiation: product.type,
+    weight: product.weight, conservation_state: product.condition, id_localization: product.localizationId, photos: product.images,
+  });
+  const id = text(record(data).id);
+  if (!id) throw new Error("Invalid create response");
+  return id;
+}
+
 export async function updateCompanyProduct(product: CompanyProduct) {
   if (!uuidPattern.test(product.id) || !uuidPattern.test(product.localizationId ?? "")) throw new Error("Invalid product location");
   const { data } = await api.put<unknown>(`/product/${encodeURIComponent(product.id)}`, {
