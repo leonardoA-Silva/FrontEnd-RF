@@ -8,7 +8,7 @@ import RequestState from "./RequestState";
 import ConfirmAction from "./ConfirmAction";
 import { buyerStyles as s } from "./buyerStyles";
 import { money } from "./buyerPresentation";
-import { newWebPaymentsEnabled, paymentFailureAction } from "./paymentFlow";
+import { paymentFailureAction } from "./paymentFlow";
 
 export default function BuyerCardPayment({ shopping, onResult, onUncertain, onRefresh, onBusy, onDispatchChange }: { shopping: Shopping; onResult: (result: BuyerPaymentResult) => void; onUncertain: (id?: string) => void; onRefresh: (message: string) => void; onBusy: (busy: boolean) => void; onDispatchChange: (pending: boolean) => void }) {
   const loader = useCallback(async (signal: AbortSignal) => {
@@ -41,7 +41,7 @@ export default function BuyerCardPayment({ shopping, onResult, onUncertain, onRe
     catch (cause) { setError(apiError(cause, "Não foi possível remover o cartão.")); } finally { setBusy(false); }
   }
   async function submit(event: FormEvent) {
-    event.preventDefault(); if (!newWebPaymentsEnabled || busy || !publicKey || shopping.status !== "accepted") return;
+    event.preventDefault(); if (busy || !publicKey || shopping.status !== "pending") return;
     setError(""); setNotice("");
     const month = Number(card.month), year = Number(card.year), now = new Date();
     if (!/^\d{13,19}$/.test(card.number) || !card.holder.trim() || !/^\d{3,4}$/.test(card.cvv) || !/^\d{11}$/.test(card.cpf) || !Number.isInteger(month) || month < 1 || month > 12 || !Number.isInteger(year) || year > 9999 || year < now.getFullYear() || (year === now.getFullYear() && month < now.getMonth() + 1)) { setError("Confira número, titular, validade, CVV e CPF do titular."); return; }

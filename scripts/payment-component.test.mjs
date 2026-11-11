@@ -33,7 +33,7 @@ const attempt = (status = "pending", providerStatus = status) => ({
 });
 
 // Executa o componente real; apenas React, transporte e componentes de apresentação são substituídos.
-function harness({ data = null, services = {}, props = {}, reservation = false, storage = new Map(), simulateEnabledCheckout = true } = {}) {
+function harness({ data = null, services = {}, props = {}, reservation = false, storage = new Map() } = {}) {
   const states = [], effects = [], dependencies = [];
   let cursor = 0;
   const react = {
@@ -52,7 +52,6 @@ function harness({ data = null, services = {}, props = {}, reservation = false, 
   const resource = { data, loading: false, error: "", reload() {} };
   const jsx = (type, properties) => ({ type, props: properties });
   const flow = load("src/pages/dashboard/comprador/paymentFlow.ts", {});
-  if (simulateEnabledCheckout) flow.newWebPaymentsEnabled = true;
   const loaded = load(reservation ? "src/pages/dashboard/comprador/BuyerReservations.tsx" : "src/pages/dashboard/comprador/BuyerPayment.tsx", {
     react, "react/jsx-runtime": { jsx, jsxs: jsx }, "react-router-dom": { Link: "Link", useSearchParams: () => [new URLSearchParams({ reserva: shopping.id }), () => {}] },
     axios: { isAxiosError: error => !!error.response },
@@ -75,7 +74,7 @@ function harness({ data = null, services = {}, props = {}, reservation = false, 
     resource,
     render() {
       cursor = 0;
-      const tree = component({ shopping: { ...shopping, status: "accepted" }, id: shopping.id, paymentFirst: true, ...props });
+      const tree = component({ shopping, id: shopping.id, paymentFirst: true, ...props });
       while (effects.length) effects.shift()();
       return tree;
     },
@@ -88,17 +87,17 @@ async function failCreation(ui) {
   await tick();
 }
 
-test("configuração web bloqueia novas cobranças em reservas pendentes e aceitas", () => {
-  for (const status of ["pending", "accepted"]) {
-    const ui = harness({ simulateEnabledCheckout: false, props: { shopping: { ...shopping, status } } });
-    assert.equal(button(ui.render(), "Gerar Pix"), undefined);
-    assert.ok(text(ui.render()).includes("Novas cobranças pelo site estão pausadas"));
-  }
+test("checkout cria cobranças somente para reservas pendentes com valor", () => {
+  assert.ok(button(harness().render(), "Gerar Pix"));
+  const accepted = harness({ props: { shopping: { ...shopping, status: "accepted" } } });
+  assert.equal(button(accepted.render(), "Gerar Pix"), undefined);
+  const donation = harness({ props: { shopping: { ...shopping, value: 0 } } });
+  assert.equal(button(donation.render(), "Gerar Pix"), undefined);
 });
 
-test("reserva pendente esconde o código de Pix antigo e permite conferir ou encerrar", () => {
-  const ui = harness({ simulateEnabledCheckout: false, data: attempt(), props: { shopping } });
-  assert.equal(button(ui.render(), "Copiar código Pix"), undefined);
+test("reserva pendente exibe Pix existente e permite conferir ou encerrar", () => {
+  const ui = harness({ data: attempt() });
+  assert.ok(button(ui.render(), "Copiar código Pix"));
   assert.ok(button(ui.render(), "Verificar pagamento"));
   assert.ok(button(ui.render(), "Encerrar Pix"));
 });

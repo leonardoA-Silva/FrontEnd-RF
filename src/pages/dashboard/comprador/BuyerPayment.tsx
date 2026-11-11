@@ -10,7 +10,7 @@ import BuyerCardPayment from "./BuyerCardPayment";
 import ReservationConfirmation from "./ReservationConfirmation";
 import { buyerStyles as s } from "./buyerStyles";
 import { money } from "./buyerPresentation";
-import { newWebPaymentsEnabled, paymentFailureAction, type PaymentActivity } from "./paymentFlow";
+import { paymentFailureAction, type PaymentActivity } from "./paymentFlow";
 
 const labels = { pending: "Aguardando confirmação", approved: "Pagamento aprovado", refused: "Pagamento recusado", refunded: "Pagamento reembolsado" };
 function isEndedPix(result: BuyerPaymentResult | null) {
@@ -44,9 +44,9 @@ export default function BuyerPayment({ shopping, blocked = false, onActivityChan
   const current = result ?? resource.data;
   const checkout = current?.checkout;
   const ended = isEndedPix(current);
-  const canPay = newWebPaymentsEnabled && !blocked && !ended && Number(shopping.value) > 0 && shopping.status === "accepted" && !resource.loading && !resource.error && !uncertain && !current?.checkout?.needs_review && (!current || current.payment.status === "refused");
+  const canPay = !blocked && !ended && Number(shopping.value) > 0 && shopping.status === "pending" && !resource.loading && !resource.error && !uncertain && !current?.checkout?.needs_review && (!current || current.payment.status === "refused");
   const canEndPix = !blocked && !uncertain && !resource.loading && !resource.error && !checkout?.needs_review && current?.payment.method === "pix" && current.payment.status === "pending";
-  const qrVisible = !busy && !blocked && !uncertain && current?.payment.method === "pix" && current.payment.status === "pending" && checkout?.status === "pending" && !checkout.needs_review && shopping.status === "accepted";
+  const qrVisible = !busy && !blocked && !uncertain && current?.payment.method === "pix" && current.payment.status === "pending" && checkout?.status === "pending" && !checkout.needs_review && ["pending", "accepted"].includes(shopping.status);
   const cancelBlocked = busy || confirm || endConfirm || resource.loading || !!resource.error || uncertain || !!checkout?.needs_review || ended || (!!current && current.payment.status !== "refused");
   useEffect(() => { onActivityChange?.({ busy, cancelBlocked }); }, [busy, cancelBlocked, onActivityChange]);
   function persistReconciliation(id: string | null) {
@@ -130,9 +130,7 @@ export default function BuyerPayment({ shopping, blocked = false, onActivityChan
     {canEndPix && <button className={s.secondary} type="button" disabled={busy} onClick={() => { setError(""); setEndConfirm(true); }}>Encerrar Pix</button>}
     {!uncertain && ended && <div className="space-y-3"><p className={s.notice}>Este Pix foi encerrado. A API também encerra a reserva quando não há outra tentativa ativa.</p><Link className={s.secondary} to="/marketplace">Criar nova reserva</Link></div>}
     {canPay && <><fieldset className="flex flex-wrap gap-4" disabled={busy}><legend className={s.label}>Forma de pagamento</legend><label><input type="radio" name="payment-method" checked={method === "pix"} onChange={() => setMethod("pix")} /> Pix</label><label><input type="radio" name="payment-method" checked={method === "card"} onChange={() => setMethod("card")} /> Cartão de crédito ou débito</label></fieldset>{method === "pix" ? <button className={s.button} type="button" disabled={busy} onClick={() => { setError(""); setConfirm(true); }}>Gerar Pix de {money(shopping.value)}</button> : <BuyerCardPayment shopping={shopping} onResult={received} onUncertain={markUncertain} onRefresh={refreshPayments} onBusy={setBusy} onDispatchChange={pending => persistReconciliation(pending ? "" : null)} />}</>}
-    {Number(shopping.value) > 0 && shopping.status === "pending" && <p className={s.notice}>Aguardando aceite da empresa.</p>}
-    {Number(shopping.value) > 0 && ["pending", "accepted"].includes(shopping.status) && !newWebPaymentsEnabled && <p className={s.notice}>Novas cobranças pelo site estão pausadas.</p>}
-    {!current && !resource.loading && !resource.error && Number(shopping.value) > 0 && !uncertain && !["pending", "accepted"].includes(shopping.status) && <p className={s.notice}>Esta reserva não está mais disponível para pagamento.</p>}
+    {!current && !resource.loading && !resource.error && Number(shopping.value) > 0 && !uncertain && shopping.status !== "pending" && <p className={s.notice}>Esta reserva não está disponível para iniciar um pagamento.</p>}
     {confirm && <ConfirmAction title="Gerar pagamento Pix?" description={`Será solicitado um Pix de ${money(shopping.value)}. Confira o valor e o recebedor antes de pagar.`} busy={busy} error={error} confirm={() => void operate(true)} cancel={() => { if (!busy) setConfirm(false); }} />}
     {endConfirm && <ConfirmAction title="Encerrar Pix e reserva?" description="A API tentará encerrar o Pix. Se confirmado e sem outra tentativa ativa, a reserva também será cancelada e o estoque liberado. Se você já pagou, verifique o pagamento antes de encerrar." busy={busy} error={error} confirm={() => void endPix()} cancel={() => { if (!busy) setEndConfirm(false); }} />}
   </section>;

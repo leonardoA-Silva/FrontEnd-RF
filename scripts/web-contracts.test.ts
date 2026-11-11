@@ -73,9 +73,10 @@ test("imagens inválidas ou acima de 5 MB são recusadas antes da requisição",
   assert.throws(() => productForm({ ...material, images: [`data:image/png;base64,${Buffer.alloc(5 * 1024 * 1024 + 1).toString("base64")}`] }));
 });
 
-test("nova reserva abre detalhes sem iniciar pagamento", () => {
-  assert.equal(reservationDestination("reserva"), "/dashboardUsuario?aba=reservas&reserva=reserva");
-  assert.ok(reservationDestination("id/com espaço").includes("reserva=id%2Fcom%20espa%C3%A7o"));
+test("venda abre a etapa de pagamento e doação abre os detalhes", () => {
+  assert.equal(reservationDestination("reserva", "sale"), "/dashboardUsuario?aba=reservas&reserva=reserva&etapa=pagamento");
+  assert.equal(reservationDestination("reserva", "donation"), "/dashboardUsuario?aba=reservas&reserva=reserva");
+  assert.ok(reservationDestination("id/com espaço", "sale").includes("reserva=id%2Fcom%20espa%C3%A7o"));
 });
 
 test("conflito sem tentativa financeira recarrega pagamentos sem travar a tela", () => {

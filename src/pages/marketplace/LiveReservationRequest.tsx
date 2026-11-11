@@ -36,7 +36,7 @@ function ReservationForm({ productId }: { productId: string }) {
     try {
       const { data } = await criarReserva(productId, count);
       if (!data.shopping?.id || data.shopping.status !== "pending") throw new Error("Resposta inválida.");
-      navigate(reservationDestination(data.shopping.id), { replace: true });
+      navigate(reservationDestination(data.shopping.id, product.type_negotiation), { replace: true });
     } catch (cause) {
       const status = apiStatus(cause);
       if (!status || status >= 500) { setUncertain(true); setError("Não recebemos a confirmação da solicitação. Consulte Minhas Reservas antes de solicitar novamente para evitar duplicidade."); }
@@ -51,11 +51,11 @@ function ReservationForm({ productId }: { productId: string }) {
       <fieldset disabled={busy || uncertain} className="space-y-6"><legend className="sr-only">Solicitação de material</legend>
         <label className={s.label}>Quantidade de unidades *<input required type="number" min={1} max={product.quantity} step={1} value={quantity} onChange={e => setQuantity(e.target.value)} className={s.input} /></label>
         <p className="text-lg font-semibold">{product.type_negotiation === "donation" ? "Doação gratuita" : `Estimativa: ${money(Number(product.price) * Number(quantity))}`}</p>
-        <p className={s.notice}>{product.type_negotiation === "donation" ? "A doação é gratuita. A empresa vai avaliar a solicitação." : "O valor final é calculado pelo servidor. A empresa vai avaliar a solicitação. Novas cobranças pelo site estão pausadas."}</p>
+        <p className={s.notice}>{product.type_negotiation === "donation" ? "A doação é gratuita. A empresa vai avaliar a solicitação." : "O valor final é calculado pelo servidor. Você poderá escolher Pix ou cartão na próxima etapa."}</p>
         <label className="flex items-start gap-3 text-sm"><input required type="checkbox" checked={accepted} onChange={e => setAccepted(e.target.checked)} className="mt-1 accent-emerald-700" /><span>Confirmo a quantidade e quero solicitar a reserva deste material.</span></label>
       </fieldset>
       {error && <p role="alert" className={s.error}>{error}</p>}
-      <div className="flex flex-wrap gap-3"><button disabled={busy || uncertain || !accepted} className={s.button}>{busy ? "Enviando solicitação..." : "Solicitar reserva"}</button><Link to="/dashboardUsuario?aba=reservas" className={s.secondary}>Minhas Reservas</Link></div>
+      <div className="flex flex-wrap gap-3"><button disabled={busy || uncertain || !accepted} className={s.button}>{busy ? "Enviando solicitação..." : product.type_negotiation === "sale" ? "Continuar para pagamento" : "Solicitar reserva"}</button><Link to="/dashboardUsuario?aba=reservas" className={s.secondary}>Minhas Reservas</Link></div>
     </form>)}
   </main>;
 }

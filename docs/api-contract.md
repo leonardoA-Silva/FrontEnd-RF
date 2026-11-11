@@ -4,9 +4,9 @@ Contratos iniciais verificados em 29/10/2026 (`6543cd9`), atualizados para o com
 
 ## Fluxo de pagamento — 11/11/2026
 
-- Após criar uma reserva de venda ou doação, o site abre os detalhes. Vendas pendentes exibem que aguardam o aceite da empresa. Doações continuam gratuitas.
-- Novas cobranças web ficam pausadas. A API atual exige compra `pending` e muda a compra para `accepted` quando confirma a cobrança. A retomada no web depende de a API exigir `accepted` antes da cobrança e proteger transições de reserva com pagamento ativo ou aprovado. Cancelamento automático por prazo está fora desta etapa.
-- O site permite consultar e encerrar tentativas existentes pelas rotas atuais. O código de um Pix existente fica oculto enquanto a reserva está pendente.
+- Após criar uma reserva de venda, o site abre a etapa de pagamento. Doações abrem os detalhes e continuam gratuitas.
+- O site permite iniciar Pix ou cartão em uma reserva de venda pendente. A API exige compra `pending` e muda a compra para `accepted` quando confirma a cobrança. Cancelamento automático por prazo está fora desta etapa.
+- O site permite consultar tentativas existentes e encerrar Pix pendente pelas rotas atuais. O código Pix fica oculto quando há conferência pendente ou o pagamento precisa de revisão.
 - Um `409` sem `payment_id` ou sinal de conciliação recarrega as tentativas existentes, sem marcar uma cobrança inexistente como incerta. Falhas de rede, respostas 5xx, `payment_id` ou `reconciliation_required: true` continuam bloqueando nova cobrança até conferência.
 - Na conferência sem ID conhecido, o front consulta a lista, valida que o checkout pertence à tentativa e à reserva, e sincroniza o pagamento encontrado. Uma lista vazia limpa a pendência de conferência. Checkout vazio, divergente ou consulta com falha mantêm o bloqueio. A API continua responsável por serializar tentativas e impedir cobranças duplicadas.
 - Quando o navegador permite acesso ao armazenamento de sessão, o front grava um marcador por reserva antes de enviar a cobrança à API. O bloqueio persiste na mesma aba ao recarregar ou voltar à tela, inclusive durante o envio. O marcador guarda somente o ID da tentativa, quando conhecido, e é removido após resposta conclusiva ou conferência bem-sucedida.

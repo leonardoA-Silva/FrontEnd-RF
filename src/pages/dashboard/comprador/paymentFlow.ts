@@ -1,10 +1,8 @@
 export interface PaymentActivity { busy: boolean; cancelBlocked: boolean }
 
-// Reativar após a API exigir o aceite antes de criar a cobrança.
-export const newWebPaymentsEnabled = false;
-
-export function reservationDestination(id: string) {
-  return `/dashboardUsuario?aba=reservas&reserva=${encodeURIComponent(id)}`;
+export function reservationDestination(id: string, negotiation: string) {
+  const destination = `/dashboardUsuario?aba=reservas&reserva=${encodeURIComponent(id)}`;
+  return negotiation === "sale" ? `${destination}&etapa=pagamento` : destination;
 }
 
 export function paymentFailureAction(status: number | undefined, details?: { payment_id?: unknown; reconciliation_required?: unknown }) {
