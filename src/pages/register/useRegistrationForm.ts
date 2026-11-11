@@ -1,18 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
-import { cadastrarEmpresa, cadastrarEmpresaGoogle, cadastrarUsuario, type LoginResponse } from "../../axios/Axios";
+import { cadastrarEmpresa, cadastrarUsuario } from "../../api/services";
 import { registrationError } from "./registrationError";
 import { emptyRegistration, validateRegistration } from "./registrationData";
 import type { RegistrationData, RegistrationErrors, RegistrationKind } from "./registrationData";
 import { useRegistrationAddress } from "./useRegistrationAddress";
 
-export function useRegistrationForm(kind: RegistrationKind, onGoogleCreated?: (session: LoginResponse) => void) {
+export function useRegistrationForm(kind: RegistrationKind) {
   const [data, setData] = useState({ ...emptyRegistration });
   const [errors, setErrors] = useState<RegistrationErrors>({});
   const [error, setError] = useState("");
   const [conflict, setConflict] = useState(false);
   const submitting = useRef(false);
-  const [googleCompany, setGoogleCompany] = useState(false);
   const [busy, setBusy] = useState(false);
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoUrl, setPhotoUrl] = useState("");
@@ -39,13 +38,12 @@ export function useRegistrationForm(kind: RegistrationKind, onGoogleCreated?: (s
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (googleCompany) { setErrors(validateRegistration(data, kind, true)); setError("Preencha os dados da empresa e use o botão Criar conta com Google."); return; }
     await send();
   }
 
-  async function send(idToken?: string) {
+  async function send() {
     if (submitting.current || busy || created) return;
-    const nextErrors = validateRegistration(data, kind, !!idToken);
+    const nextErrors = validateRegistration(data, kind);
     setErrors(nextErrors);
     setError("");
     setConflict(false);
@@ -62,11 +60,6 @@ export function useRegistrationForm(kind: RegistrationKind, onGoogleCreated?: (s
       city: data.city.trim(), state: data.state.trim().toUpperCase(),
     };
     try {
-      if (idToken && kind === "company") {
-        const response = await cadastrarEmpresaGoogle({ name: payload.name, cpf: payload.cpf, cnpj: data.cnpj.replace(/\D/g, ""), cellphone: payload.cellphone, zip_code: payload.zip_code, street: payload.street, neighborhood: payload.neighborhood, number: payload.number, city: payload.city, state: payload.state, idToken }, photo);
-        onGoogleCreated?.(response.data);
-        return;
-      }
       const response = kind === "company"
         ? await cadastrarEmpresa({ ...payload, cnpj: data.cnpj.replace(/\D/g, "") }, photo)
         : await cadastrarUsuario({ ...payload, birthday: data.birthday }, photo);
@@ -86,5 +79,5 @@ export function useRegistrationForm(kind: RegistrationKind, onGoogleCreated?: (s
     } finally { submitting.current = false; setBusy(false); }
   }
 
-  return { data, errors, error, conflict, busy, googleCompany, setGoogleCompany, submitGoogle: (idToken: string) => send(idToken), photoUrl, photoError, created, verificationOpen, setVerificationOpen, setField, changePhoto, submit, address };
+  return { data, errors, error, conflict, busy, photoUrl, photoError, created, verificationOpen, setVerificationOpen, setField, changePhoto, submit, address };
 }

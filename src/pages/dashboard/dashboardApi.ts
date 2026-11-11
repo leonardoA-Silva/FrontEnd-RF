@@ -1,4 +1,4 @@
-import api from "../../axios/Axios";
+import api from "../../api/services";
 
 // Contrato de produto exposto hoje por GET /product (productController + productService).
 // DECIMAL chega como string pelo driver MySQL, por isso os campos numéricos aceitam os dois tipos.

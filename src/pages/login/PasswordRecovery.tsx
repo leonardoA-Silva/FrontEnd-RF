@@ -2,7 +2,7 @@ import { useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
-import { solicitarRedefinicao } from "../../axios/Axios";
+import { solicitarRedefinicao } from "../../api/services";
 import { apiError } from "../../axios/apiError";
 import { buyerStyles as s } from "../dashboard/comprador/buyerStyles";
 

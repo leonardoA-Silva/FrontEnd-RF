@@ -1,4 +1,5 @@
-import api from "../axios/Axios";
+import api from "../api/client";
+import { io } from "socket.io-client";
 
 type Listener = (payload?: unknown) => void;
 export interface BuyerSocket {
@@ -10,29 +11,13 @@ export interface BuyerSocket {
   timeout: (milliseconds: number) => { emit: (event: string, payload: unknown, callback: (error: Error | null, response: unknown) => void) => void };
 }
 type SocketFactory = (origin: string, options: { auth: { token: string }; transports: string[]; autoConnect: boolean; reconnection: boolean; forceNew: boolean }) => BuyerSocket;
-declare global { interface Window { io?: SocketFactory } }
-let sdk: Promise<SocketFactory> | null = null;
 
 export function socketOrigin() {
-  if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
-    return window.location.origin;
-  }
   return new URL(api.defaults.baseURL ?? "/api/reaproveitafranca", window.location.origin).origin;
 }
 
 export function loadSocketClient() {
-  if (window.io) return Promise.resolve(window.io);
-  if (!sdk) sdk = new Promise<SocketFactory>((resolve, reject) => {
-    const script = document.createElement("script");
-    script.src = `${socketOrigin()}/socket.io/socket.io.min.js`;
-    script.async = true;
-    const fail = () => { window.clearTimeout(timer); script.remove(); sdk = null; reject(new Error("Conexão em tempo real indisponível.")); };
-    const timer = window.setTimeout(fail, 12000);
-    script.onerror = fail;
-    script.onload = () => { if (!window.io) { fail(); return; } window.clearTimeout(timer); resolve(window.io); };
-    document.head.append(script);
-  });
-  return sdk;
+  return Promise.resolve(io as unknown as SocketFactory);
 }
 
 export function socketRequest<T>(socket: BuyerSocket, event: string, payload: unknown): Promise<T> {

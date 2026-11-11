@@ -1,5 +1,5 @@
 import { isAxiosError } from "axios";
-import api from "../../axios/Axios";
+import api from "../../api/client";
 import { uuidPattern } from "./companyTypes";
 
 export const object = (value: unknown): Record<string, unknown> => value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
@@ -41,10 +41,6 @@ export async function saveLocation(fields: LocationFields, userId: string, id?: 
   if (!uuidPattern.test(createdId)) throw new Error("Invalid location response");
   return { ...fields, id: createdId };
 }
-export async function deleteLocation(id: string) {
-  const { data } = await api.delete<unknown>(`/localization/${encodeURIComponent(id)}`);
-  if (!string(object(data).message)) throw new Error("Invalid delete response");
-}
 export interface Impact { id: string; weight: number; co2: number; water: number; energy: number; method: string; at: string }
 export async function loadImpacts(signal: AbortSignal): Promise<Impact[]> {
   const { data } = await api.get<unknown>("/environmental-impact/", { signal });
@@ -54,15 +50,5 @@ export async function loadImpacts(signal: AbortSignal): Promise<Impact[]> {
     const values = [row.estimated_weight_kg, row.co2_saved_kg, row.water_saved_liters, row.energy_saved_kwh];
     if (!uuidPattern.test(string(row.id)) || values.some(v => v === null || v === "" || !["number", "string"].includes(typeof v) || !Number.isFinite(Number(v)) || Number(v) < 0) || !Number.isFinite(Date.parse(string(row.calculated_in)))) throw new Error("Invalid impact");
     return { id: string(row.id), weight: Number(values[0]), co2: Number(values[1]), water: Number(values[2]), energy: Number(values[3]), method: string(row.calculation_method), at: string(row.calculated_in) };
-  });
-}
-export interface Dispute { id: string; type: string; description: string; status: string; resolution: string; at: string }
-export async function loadDisputes(signal: AbortSignal): Promise<Dispute[]> {
-  const { data } = await api.get<unknown>("/dispute/", { signal });
-  if (!Array.isArray(data)) throw new Error("Invalid disputes");
-  return data.map(value => {
-    const row = object(value);
-    if (!uuidPattern.test(string(row.id)) || !string(row.type) || !string(row.status) || !Number.isFinite(Date.parse(string(row.created_in)))) throw new Error("Invalid dispute");
-    return { id: string(row.id), type: string(row.type), description: string(row.description), status: string(row.status), resolution: string(row.resolution), at: string(row.created_in) };
   });
 }

@@ -1,5 +1,5 @@
 import { isAxiosError } from "axios";
-import api from "../../axios/Axios";
+import api from "../../api/services";
 
 export interface PerfilEmpresa {
   id: string;

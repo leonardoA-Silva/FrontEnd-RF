@@ -1,6 +1,6 @@
 import { useEffect, useSyncExternalStore } from "react";
 import axios from "axios";
-import api from "../axios/Axios";
+import api from "../api/services";
 import { clearSession } from "./session";
 
 // Only memory and authenticated requests; never persist photos or URLs in storage.

@@ -1,6 +1,6 @@
 import { useCallback, useState, type FormEvent } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { criarReserva, obterProdutoPorId } from "../../axios/Axios";
+import { criarReserva, obterProdutoPorId } from "../../api/services";
 import { apiError, apiStatus } from "../../axios/apiError";
 import { useApiResource } from "../../hooks/useApiResource";
 import { buyerStyles as s } from "../dashboard/comprador/buyerStyles";

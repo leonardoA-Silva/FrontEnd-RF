@@ -1,6 +1,6 @@
 import { useContext, useEffect, useRef, type ReactNode } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { ArrowLeft, Bell, ChartNoAxesCombined, Compass, History, Layers3, LogOut, MapPin, MessageSquare, Plus, ShieldAlert, UserRound } from "lucide-react";
+import { ArrowLeft, Bell, ChartNoAxesCombined, Compass, CreditCard, History, Layers3, LogOut, MapPin, MessageSquare, Plus, ShieldCheck, UserRound } from "lucide-react";
 import LegalLinks from "../LegalLinks";
 import { CommunicationContext } from "../../pages/company/communication/CommunicationContext";
 import { clearSession } from "../../auth/session";
@@ -21,8 +21,8 @@ export default function WorkspaceFrame({ children, name, section, preview = fals
   const navigate = useNavigate();
   const navRef = useRef<HTMLElement>(null);
   const communication = useContext(CommunicationContext);
-  const unreadNotifications = communication?.notifications.filter(item => !item.read).length ?? 0;
-  const unreadMessages = communication?.conversations.reduce((count, item) => count + item.unread, 0) ?? 0;
+  const unreadNotifications = communication?.notifications.filter(item => item.read !== "sim").length ?? 0;
+  const unreadMessages = communication?.conversations.reduce((count, item) => count + Number(item.unreadCount || 0), 0) ?? 0;
   useEffect(() => {
     const nav = navRef.current;
     const active = nav?.querySelector<HTMLElement>('[aria-current="page"]');
@@ -33,12 +33,14 @@ export default function WorkspaceFrame({ children, name, section, preview = fals
     navigate("/login");
   }
   const items = [
-    { to: base, label: "Materiais", Icon: Layers3, end: true },
+    { to: base, label: "Início", Icon: Compass, end: true },
+    { to: `${base}/materiais`, label: "Anúncios", Icon: Layers3, end: true },
     { to: `${base}/publicar`, label: "Publicar", Icon: Plus },
-    { to: preview ? `${base}/explorar` : "/mapaEmpresas", label: "Explorar", Icon: MapPin },
+    { to: `${base}/explorar`, label: "Explorar", Icon: MapPin },
     { to: `${base}/indicadores`, label: "Impacto", Icon: ChartNoAxesCombined },
-    { to: `${base}/negociacoes`, label: "Negociações", Icon: History },
-    { to: `${base}/disputas`, label: "Disputas", Icon: ShieldAlert },
+    { to: `${base}/reservas`, label: "Reservas", Icon: History },
+    { to: `${base}/seguranca`, label: "Segurança", Icon: ShieldCheck },
+    { to: `${base}/pagamentos`, label: "Recebimentos", Icon: CreditCard },
     { to: `${base}/mensagens`, label: "Mensagens", Icon: MessageSquare, count: unreadMessages },
     { to: `${base}/notificacoes`, label: "Notificações", Icon: Bell, count: unreadNotifications },
     { to: `${base}/perfil`, label: "Conta", Icon: UserRound },
@@ -46,7 +48,7 @@ export default function WorkspaceFrame({ children, name, section, preview = fals
   return <div className={`company-app workspace-frame ${user ? "workspace-user" : ""}`}>
     <a href="#conteudo" className="rf-skip">Pular para o conteúdo</a>
     <aside className="company-rail">
-      <Link to={user ? (preview ? "/previa/dashboard/usuario" : "/dashboardUsuario") : base} className="company-monogram" aria-label="Reaproveita Franca — painel">r<span>.</span></Link>
+      <Link to={user ? "/dashboardUsuario" : base} className="company-monogram" aria-label="Reaproveita Franca — painel">r<span>.</span></Link>
       <nav ref={navRef} aria-label={user ? "Área do usuário" : "Área da empresa"}>{navigation ?? items.map(({ to, label, Icon, end, count }) => <NavLink key={to} to={to} end={end} aria-label={count ? `${label}, ${count} não lidas` : undefined}><Icon size={23} strokeWidth={1.5} aria-hidden="true" /><span>{label}</span>{!!count && <span className="workspace-nav-count" aria-hidden="true">{count > 99 ? "99+" : count}</span>}</NavLink>)}</nav>
       <button type="button" className="company-exit" onClick={exit}><LogOut size={21} strokeWidth={1.5} aria-hidden="true" /><span>{preview ? "Sair da prévia" : "Sair"}</span></button>
     </aside>

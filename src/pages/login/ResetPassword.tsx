@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
-import { redefinirSenha } from "../../axios/Axios";
+import { redefinirSenha } from "../../api/services";
 import { apiError, apiStatus } from "../../axios/apiError";
 import { buyerStyles as s } from "../dashboard/comprador/buyerStyles";
 

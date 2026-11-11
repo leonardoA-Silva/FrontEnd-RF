@@ -8,7 +8,9 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "previa:empresa": "node scripts/previa-empresa.mjs"
+    "test:contracts": "node --experimental-strip-types --test scripts/web-contracts.test.ts",
+    "check:api": "node scripts/check-api.mjs",
+    "test:integration": "node scripts/check-web-integration.mjs"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

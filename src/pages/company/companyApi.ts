@@ -1,6 +1,7 @@
-import api from "../../axios/Axios";
+import api from "../../api/client";
 import { uuidPattern } from "./companyTypes";
 import type { CompanyIdentity, CompanyProduct } from "./companyTypes";
+import { productForm } from "./productForm";
 
 const record = (value: unknown): Record<string, unknown> => value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
 const text = (value: unknown) => typeof value === "string" ? value : "";
@@ -30,11 +31,7 @@ export function parseProduct(value: unknown): CompanyProduct | null {
 
 export async function createCompanyProduct(product: Omit<CompanyProduct, "id">) {
   if (!uuidPattern.test(product.localizationId ?? "")) throw new Error("Invalid product location");
-  const { data } = await api.post<unknown>("/product/create", {
-    name: product.name, description: product.description, price: product.price, priority: product.priority ?? 0,
-    quantity: product.quantity, status: product.status || "available", category: product.category, type_negotiation: product.type,
-    weight: product.weight, conservation_state: product.condition, id_localization: product.localizationId, photos: product.images,
-  });
+  const { data } = await api.post<unknown>("/product/create", productForm(product));
   const id = text(record(data).id);
   if (!id) throw new Error("Invalid create response");
   return id;
@@ -42,11 +39,7 @@ export async function createCompanyProduct(product: Omit<CompanyProduct, "id">) 
 
 export async function updateCompanyProduct(product: CompanyProduct) {
   if (!uuidPattern.test(product.id) || !uuidPattern.test(product.localizationId ?? "")) throw new Error("Invalid product location");
-  const { data } = await api.put<unknown>(`/product/${encodeURIComponent(product.id)}`, {
-    name: product.name, description: product.description, price: product.price, priority: product.priority ?? 0,
-    quantity: product.quantity, status: product.status, category: product.category, type_negotiation: product.type,
-    weight: product.weight, conservation_state: product.condition, id_localization: product.localizationId, photos: product.images,
-  });
+  const { data } = await api.put<unknown>(`/product/${encodeURIComponent(product.id)}`, productForm(product, false));
   const result = parseProduct(record(data).product);
   if (!result || result.id.toLowerCase() !== product.id.toLowerCase()) throw new Error("Invalid update response");
   return result;
@@ -58,7 +51,7 @@ export async function deleteCompanyProduct(id: string) {
 }
 
 export async function loadCompanyProducts(ownerId: string, signal: AbortSignal) {
-  const { data } = await api.get<unknown>("/product/", { signal });
+  const { data } = await api.get<unknown>("/product/", { signal, timeout: 60000 });
   if (!Array.isArray(data)) throw new Error("Invalid product response");
   return data.filter(row => text(record(row).id_user).toLowerCase() === ownerId.toLowerCase()).map(parseProduct).filter((row): row is CompanyProduct => row !== null);
 }

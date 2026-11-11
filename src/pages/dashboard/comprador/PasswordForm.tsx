@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { alterarSenha } from "../../../axios/Axios";
+import { alterarSenha } from "../../../api/services";
 import { apiError, apiStatus } from "../../../axios/apiError";
 import { updateSessionUser } from "../../../auth/session";
 import { buyerStyles as s } from "./buyerStyles";

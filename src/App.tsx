@@ -10,20 +10,17 @@ import PasswordRecovery from "./pages/login/PasswordRecovery";
 import ResetPassword from "./pages/login/ResetPassword";
 import FirstAccess from "./pages/login/FirstAccess";
 import Marketplace from "./pages/marketplace/Marketplace";
-import PaginaMaterial from "./pages/marketplace/PaginaMaterial";
 import LiveProductDetails from "./pages/marketplace/LiveProductDetails";
 import MarketplaceLayout from "./pages/marketplace/MarketplaceLayout";
 import LiveReservationRequest from "./pages/marketplace/LiveReservationRequest";
 import { FlowUnavailable } from "./pages/marketplace/FlowNotice";
 import DashboardUsuario from "./pages/dashboard/DashboardUsuario";
 import DashboardEmpresa from "./pages/dashboard/DashboardEmpresa";
-import DashboardPreview from "./pages/dashboard/DashboardPreview";
 import ProtectedRoute from "./components/ProtectedRoute";
 
-const MapaEmpresas = lazy(() => import("./pages/dashboard/MapaEmpresas"));
+const MapaEmpresas = lazy(() => import("./pages/dashboard/CompanyMap"));
 const MeusMateriais = lazy(() => import("./pages/dashboard/MeusMateriais"));
 const IndicadoresAmbientais = lazy(() => import("./pages/dashboard/IndicadoresAmbientais"));
-const HistoricoNegociacoes = lazy(() => import("./pages/dashboard/HistoricoNegociacoes"));
 const PerfilEmpresa = lazy(() => import("./pages/dashboard/PerfilEmpresa"));
 const SobreNos = lazy(() => import("./pages/home/SobreNos"));
 const LegalPage = lazy(() => import("./pages/legal/LegalPage"));
@@ -36,15 +33,11 @@ function App() {
           {/* rotas publicas */}
           <Route path="/" element={<Suspense fallback={<main className="buyer-panel" role="status">Carregando início...</main>}><Home /></Suspense>} />
           <Route path="/sobre-nos" element={<About />} />
-          <Route path="/sobre-nos" element={<About />} />
           <Route path="/marketplace" element={<MarketplaceLayout />}>
             <Route index element={<Marketplace />} />
             <Route path="produto/:productId" element={<LiveProductDetails />} />
-            <Route path="material/:produtoId" element={<PaginaMaterial />} />
             <Route path="reserva/:productId" element={<ProtectedRoute allowedRoles={["user"]}><LiveReservationRequest /></ProtectedRoute>} />
             <Route path="minhas-reservas" element={<Navigate to="/dashboardUsuario?aba=reservas" replace />} />
-            <Route path=":produtoId" element={<PaginaMaterial />} />
-            <Route path=":produtoId/compra" element={<PaginaMaterial compra />} />
             <Route path="*" element={<FlowUnavailable />} />
           </Route>
           <Route path="/cadastro" element={<RegisterType />} />
@@ -58,16 +51,9 @@ function App() {
           <Route path="/sobre" element={<Suspense fallback={<main role="status" className="p-8">Carregando…</main>}><SobreNos /></Suspense>} />
           {[
             { path: "/dashboardEmpresa/indicadores", element: <IndicadoresAmbientais /> },
-            { path: "/dashboardEmpresa/negociacoes", element: <HistoricoNegociacoes /> },
             { path: "/dashboardEmpresa/perfil", element: <PerfilEmpresa /> },
           ].map(({ path, element }) => <Route key={path} path={path} element={<ProtectedRoute allowedRoles={["company"]}><Suspense fallback={<main role="status" className="grid min-h-screen place-items-center bg-bruma text-sm text-tinta-suave">Carregando…</main>}>{element}</Suspense></ProtectedRoute>} />)}
 
-
-          {/* Prévia visual somente no servidor de desenvolvimento. */}
-          {import.meta.env.DEV && <>
-            <Route path="/previa/dashboard/empresa/*" element={<DashboardPreview kind="company" />} />
-            <Route path="/previa/dashboard/usuario" element={<DashboardPreview kind="user" />} />
-          </>}
 
           {/* rotas privadas */}
           <Route
@@ -125,6 +111,7 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="*" element={<main className="buyer-panel"><h1 className="buyer-title">Página não encontrada</h1><p>Confira o endereço ou volte ao início.</p><a href="/" className="home-button">Voltar ao início</a></main>} />
         </Routes>
       </BrowserRouter>
     </div>

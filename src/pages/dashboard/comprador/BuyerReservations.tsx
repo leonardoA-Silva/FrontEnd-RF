@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { cancelarReserva, listarReservas, obterReserva } from "../../../axios/Axios";
+import { cancelarReserva, listarReservas, obterReserva, iniciarConversa } from "../../../api/services";
 import { apiError, apiStatus } from "../../../axios/apiError";
 import { requireArray, useApiResource } from "../../../hooks/useApiResource";
 import ConfirmAction from "./ConfirmAction";
@@ -18,11 +18,11 @@ export default function BuyerReservations({ history = false }: { history?: boole
     return { data: requireArray(data) };
   }, []);
   const resource = useApiResource(loader);
-  const rows = (resource.data ?? []).filter(item => (!history || ["completed", "refused", "cancelled"].includes(item.status)) && (!filter || item.status === filter));
+  const rows = (resource.data ?? []).filter(item => filter === "ativas" ? ["pending", "accepted"].includes(item.status) : filter === "concluidas" ? item.status === "completed" : true);
   if (selected) return <ReservationDetail key={selected} id={selected} />;
   return <section className="space-y-6">
     <div className="flex flex-wrap items-center justify-between gap-4"><h1 className={s.title}>{history ? "Histórico de reservas" : "Minhas Reservas"}</h1><button onClick={resource.reload} disabled={resource.loading} className={s.secondary}>Atualizar reservas</button></div>
-    <label className={s.label}>Filtrar por situação<select aria-label="Situação da reserva" value={filter} onChange={e => setFilter(e.target.value)} className={`${s.input} max-w-xs`}><option value="">Todas</option>{(history ? ["completed", "refused", "cancelled"] as const : ["pending", "accepted", "completed", "refused", "cancelled"] as const).map(value => <option key={value} value={value}>{shoppingLabel(value)}</option>)}</select></label>
+    <label className={s.label}>Filtrar por situação<select aria-label="Situação da reserva" value={filter} onChange={e => setFilter(e.target.value)} className={`${s.input} max-w-xs`}><option value="">Todas</option><option value="ativas">Ativas</option><option value="concluidas">Concluídas</option></select></label>
     <RequestState {...resource} retry={resource.reload} />
     {!resource.loading && !resource.error && (!rows.length ? <div className={`${s.panel} space-y-4`}><h2 className={s.subtitle}>Nenhuma reserva encontrada</h2><p className={s.copy}>As solicitações registradas e suas atualizações aparecerão aqui.</p><Link to="/marketplace" className={s.button}>Explorar materiais</Link></div> : <ul className="space-y-4">{rows.map(item => <li key={item.id} className={`${s.panel} flex flex-wrap items-center justify-between gap-4`}><div className="space-y-2"><h2 className={s.subtitle}>{shoppingLabel(item.status)}</h2><p className={s.copy}>{dateLabel(item.datetime)} · {item.total_items ?? 0} {Number(item.total_items) === 1 ? "item" : "itens"}</p><p className="font-bold">{money(item.value)}</p></div><button onClick={() => setParams({ aba: history ? "historico" : "reservas", reserva: item.id })} className={s.secondary}>Ver reserva</button></li>)}</ul>)}
   </section>;
@@ -69,10 +69,10 @@ function ReservationDetail({ id }: { id: string }) {
       <p className={s.copy}>{dateLabel(resource.data.datetime)}</p>
       <ul className="divide-y divide-[#E7E4DA]">{resource.data.items?.map(item => <li key={item.id} className="flex flex-wrap justify-between gap-4 py-4"><div><Link className="font-semibold underline" to={`/marketplace/produto/${encodeURIComponent(item.id_product)}`}>{item.product_name}</Link><p className={`${s.copy} mt-1`}>{item.quantity} unidades</p></div><p>{money(item.subtotal)}</p></li>)}</ul>
       <p className={s.notice}>Reserva e pagamento têm situações próprias. Consulte a confirmação antes da retirada.</p>
-      <div className="flex flex-wrap gap-3"><Link className={s.secondary} to={`/dashboardUsuario?aba=disputas&reserva=${encodeURIComponent(id)}`}>Informar problema</Link>{resource.data.status === "completed" && <><Link className={s.secondary} to={`/dashboardUsuario?aba=avaliacoes&reserva=${encodeURIComponent(id)}`}>Avaliar fornecedor</Link><Link className={s.secondary} to={`/dashboardUsuario?aba=impacto&reserva=${encodeURIComponent(id)}`}>Consultar impacto ambiental</Link></>}</div>
+      <div className="flex flex-wrap gap-3">{resource.data.items?.[0]?.seller_id && <button type="button" className={s.secondary} disabled={busy} onClick={async () => { setBusy(true); setError(""); try { const response = await iniciarConversa(resource.data!.items![0].seller_id!); if (!response.data.conversationId) throw new Error(); setParams({ aba: "mensagens", conversa: response.data.conversationId }); } catch { setError("Não foi possível abrir a conversa com a empresa."); } finally { setBusy(false); } }}>Conversar com a empresa</button>}</div>
       <div className="flex flex-wrap gap-3"><button onClick={resource.reload} className={s.secondary}>Atualizar detalhes</button>{resource.data.status === "pending" && <button onClick={() => { setError(""); setConfirm(true); }} className={s.secondary}>Cancelar reserva</button>}</div>
     </div>}
-    {!resource.loading && !resource.error && resource.data && <BuyerPayment key={id} shopping={resource.data} changed={resource.reload} />}
+    {!resource.loading && !resource.error && resource.data && <BuyerPayment key={id} shopping={resource.data} />}
     {confirm && <ConfirmAction title="Cancelar reserva?" description="O cancelamento só é permitido enquanto a reserva aguarda aceite. A confirmação será feita pelo servidor." busy={busy} error={error} confirm={cancel} cancel={() => setConfirm(false)} />}
   </section>;
 }

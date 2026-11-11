@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { obterLocalizacaoProduto } from "../../axios/Axios";
+import { obterLocalizacaoProduto } from "../../api/services";
 import { useApiResource } from "../../hooks/useApiResource";
 import RequestState from "../dashboard/comprador/RequestState";
 import { buyerStyles as s } from "../dashboard/comprador/buyerStyles";

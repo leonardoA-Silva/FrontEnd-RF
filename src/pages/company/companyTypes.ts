@@ -1,5 +1,5 @@
 export const categories = {
-  madeira: "Madeira", metal: "Metal", plastico: "Plástico / EVA", "papel/papelao": "Papel / Papelão",
+  madeira: "Madeira", metal: "Metal", plastico: "Plástico", "papel/papelao": "Papel / Papelão",
   vidro: "Vidro", tecido: "Tecido", borracha: "Borracha", eletronicos: "Eletrônicos",
 };
 export const conditions = { new: "Novo", good: "Bom", regular: "Regular", poor: "Desgastado" };

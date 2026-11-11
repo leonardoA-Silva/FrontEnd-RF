@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { listarProdutos, type ProductBackend } from "../axios/Axios";
+import { listarProdutos, type ProductBackend } from "../api/services";
 import { apiError } from "../axios/apiError";
 
 export function useProducts() {

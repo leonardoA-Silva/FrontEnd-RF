@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { iniciarConversa, obterProdutoPorId } from "../../axios/Axios";
+import { iniciarConversa, obterProdutoPorId } from "../../api/services";
 import { apiError, apiStatus } from "../../axios/apiError";
 import { useLoggedUser } from "../../hooks/useLoggedUser";
 import { ResourceError, useApiResource } from "../../hooks/useApiResource";

@@ -9,7 +9,27 @@ npm run lint
 npm run build
 ```
 
-`npm run build` runs TypeScript project builds followed by Vite production bundling. No dedicated test or CI suite is currently configured; do not fabricate test results. If adding a test framework is proposed, discuss its maintenance/dependency cost first rather than silently expanding the stack.
+`npm run build` runs TypeScript project builds followed by Vite production bundling. The checks below use Node's built-in test runner and the installed Vite/API libraries; there is no additional test framework or configured CI suite.
+
+### Integration checks against the local API
+
+The frontend now uses `src/api/client.ts` and the contracts in `src/api/services.ts`. Development HTTP and Socket.IO requests go through Vite to `http://127.0.0.1:5000`; `VITE_BACKEND_URL` can configure the development proxy. Production can use `VITE_API_URL` or a same-origin reverse proxy. No temporary Cloudflare hostname is embedded in executable code.
+
+- `npm run test:contracts`: built-in Node tests for multipart material photos, donation price omission and preservation of existing photos during editing. Node 22.17+ supports the TypeScript stripping flag used here.
+- `npm run check:api`: read-only checks through the running Vite server on port 5174. Checks public product reads, unauthenticated REST access and protected Socket.IO operations. Set `RF_CHECK_API_URL` to change the checked API base.
+- `npm run test:integration`: requires the sibling `backend-RF`, its installed dependencies and a development MySQL account able to create/drop databases. Creates a randomly named `rf_web_test_*` database, imports only schema DDL, runs actual frontend service functions against a temporary API and deletes that database in `finally`. It never imports existing user data or executes the destructive database statements from `RFScript.sql`. Synthetic credentials are generated in memory and not printed. Provider credentials are replaced; no external payment, SMTP or OAuth operation is exercised.
+
+The isolated integration covers company/buyer login, materials and photos, the account's main address, profiles, buyer reservations/cancellation, seller acceptance/refusal through notifications, read-only environmental impact, saved cards, notification reads, Socket.IO messaging and invalid-session cleanup. Pix and card charges use the backend's simulated provider. Card tokenization and payment-method lookup are intercepted; assertions verify that local JWTs never reach those external calls and that the local charge receives a token instead of the card number/CVV. This does not validate a real provider authorization or charge.
+
+The company receiving-account page is `/dashboardEmpresa/pagamentos`; it uses the API's existing Mercado Pago account/connect/disconnect routes. Creating a real authorization or charge requires the configured provider and user interaction. `/dashboardEmpresa/reservas` follows `Mobile-RF/src/pages/reservationScreens/ReservationRequestsScreen.js`: it lists `reserva_solicitada` notifications, deduplicates purchase references and calls `PATCH /shopping/:id/status` to accept/refuse. Notifications are not an authoritative sale-status/history endpoint; the UI explains that older requests can already have been answered.
+
+### Mobile functional parity
+
+The buyer/company flows use the current desktop `Mobile-RF/App.js`, `src/services/axios.js` and screen implementations as the reference. Web navigation/layout remains browser-native. Both profiles expose a real overview, company map/search/chat, profile/photo, main address, password security, notifications and conversations with message editing/deletion. Buyer history includes all/active/completed reservations, Pix/card checkout, saved-card selection/removal, approval confirmation and read-only impact. Companies publish/edit/delete their listings, answer received requests and manage Mercado Pago linkage.
+
+Features absent from the mobile implementation were removed from the web surface and their dedicated modules: reviews, disputes, active social login, self-account deletion, address deletion/manual coordinates, card editing, payment cancellation, manual impact generation, leaving conversations, OTP resend/login resumption and demo previews. Material publication sends one photo; editing preserves the original photos as the mobile editor does. No code or configuration was changed in the mobile/backend repositories.
+
+`npm run test:integration -- --browser` optionally keeps the disposable environment available for up to three minutes after the service tests. The loopback-only `/__test__/company` and `/__test__/buyer` pages install runtime-generated synthetic sessions in that test origin; no real account/session is reused or printed. `/__test__/done` ends this optional phase. The temporary database is then removed through the same cleanup path.
 
 ## UI verification checklist
 

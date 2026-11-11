@@ -1,7 +1,7 @@
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { Camera, ImagePlus, UserRound } from "lucide-react";
-import { atualizarPerfilUsuario, obterPerfilUsuario, type UsuarioPerfil } from "../../../axios/Axios";
+import { atualizarPerfilUsuario, obterPerfilUsuario, type UsuarioPerfil } from "../../../api/services";
 import { apiError } from "../../../axios/apiError";
 import { readSession, updateSessionUser } from "../../../auth/session";
 import { loadProfilePhoto, saveProfilePhoto, useProfilePhotoError } from "../../../auth/profilePhoto";
@@ -27,10 +27,8 @@ function ProfileForm({ profile }: { profile: UsuarioPerfil }) {
   const photoError = useProfilePhotoError(profile.id, token);
   const savedPhoto = photoSrc ?? "";
   const photoInputId = useId();
-  const savedBirthday = useRef(profile.birthday?.slice(0, 10) ?? "");
   const [name, setName] = useState(profile.name);
   const [phone, setPhone] = useState(profile.cellphone ?? "");
-  const [birthday, setBirthday] = useState(profile.birthday?.slice(0, 10) ?? "");
   const [file, setFile] = useState<File | null>(null);
   const photoInput = useRef<HTMLInputElement>(null);
   const previewUrls = useRef(new Set<string>());
@@ -40,7 +38,7 @@ function ProfileForm({ profile }: { profile: UsuarioPerfil }) {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [dismissPendingNote, setDismissPendingNote] = useState(false);
-  const needsCompletion = (!profile.cellphone || !profile.birthday) && !dismissPendingNote;
+  const needsCompletion = !profile.cellphone && !dismissPendingNote;
   useEffect(() => {
     if (!success) return;
     const t = setTimeout(() => setSuccess(""), 4000);
@@ -51,7 +49,6 @@ function ProfileForm({ profile }: { profile: UsuarioPerfil }) {
     const t = setTimeout(() => setError(""), 6000);
     return () => clearTimeout(t);
   }, [error]);
-  const [today] = useState(() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; });
   useEffect(() => {
     const urls = previewUrls.current;
     return () => { urls.forEach(url => URL.revokeObjectURL(url)); urls.clear(); };
@@ -71,13 +68,11 @@ function ProfileForm({ profile }: { profile: UsuarioPerfil }) {
     event.preventDefault();
     if (busy) return;
     setError(""); setSuccess("");
-    if (savedBirthday.current && !birthday) { setError("Informe uma data de nascimento. A remoção de uma data já cadastrada ainda não está disponível."); return; }
     const digits = phone.replace(/\D/g, "");
-    if (!name.trim() || digits.length !== 11 || (birthday && birthday > today)) { setError("Informe seu nome, um celular com DDD e 11 dígitos e uma data de nascimento válida."); return; }
+    if (!name.trim() || digits.length !== 11) { setError("Informe seu nome e um celular com DDD e 11 dígitos."); return; }
     if (file && (!['image/jpeg','image/png','image/webp','image/gif'].includes(file.type) || file.size > 5 * 1024 * 1024)) { setError("Escolha uma imagem JPG, PNG, WebP ou GIF de até 5 MB."); return; }
     if (file && unreadablePhoto === pendingPhoto) { setError("Não foi possível exibir esta imagem. Escolha outra foto antes de salvar."); return; }
     const data = new FormData(); data.append("name", name.trim()); data.append("cellphone", digits);
-    if (birthday) data.append("birthday", birthday);
     if (file) data.append("photo", file);
     const session = readSession();
     if (session.user?.id !== profile.id || !session.token) { setError("Sua sessão mudou. Entre novamente para atualizar o perfil."); return; }
@@ -90,8 +85,7 @@ function ProfileForm({ profile }: { profile: UsuarioPerfil }) {
       const user = response.data.user;
       if (typeof user.name !== "string") throw new Error("Resposta inválida.");
       if (file && pendingPhoto) { saveProfilePhoto(profile.id, session.token, file); releasePreview(pendingPhoto); setPendingPhoto(""); }
-      savedBirthday.current = user.birthday?.slice(0, 10) ?? "";
-      setName(user.name); setPhone(user.cellphone ?? ""); setBirthday(user.birthday?.slice(0,10) ?? ""); setFile(null);
+      setName(user.name); setPhone(user.cellphone ?? ""); setFile(null);
       if (photoInput.current) photoInput.current.value = "";
       updateSessionUser({ name: user.name });
       setSuccess(file ? "Perfil e foto enviados com sucesso." : "Perfil atualizado com sucesso.");
@@ -104,7 +98,7 @@ function ProfileForm({ profile }: { profile: UsuarioPerfil }) {
         <div>
           <strong className="block font-semibold">Complete seus dados cadastrais</strong>
           <p className="mt-1 text-sm">
-            Para sua segurança e privacidade, o Google não fornece telefone nem data de nascimento. Complete esses campos abaixo para finalizar seu perfil.
+            Complete seu celular para manter o perfil atualizado.
           </p>
         </div>
         <button
@@ -129,7 +123,6 @@ function ProfileForm({ profile }: { profile: UsuarioPerfil }) {
       <label className={s.label}>Nome completo *<input required maxLength={100} autoComplete="name" value={name} onChange={e => setName(e.target.value)} className={s.input} /></label>
       <label className={s.label}>E-mail<input readOnly type="email" value={profile.email ?? ""} className={`${s.input} bg-gray-50`} /><span className="mt-1 block text-xs font-normal text-gray-600">A alteração de e-mail não está disponível por esta tela.</span></label>
       <label className={s.label}>Celular com DDD *<input required type="tel" autoComplete="tel-national" maxLength={20} value={phone} onChange={e => setPhone(e.target.value)} className={s.input} /></label>
-      <label className={s.label}>Data de nascimento<input type="date" max={today} value={birthday} onChange={e => setBirthday(e.target.value)} className={s.input} /></label>
       <div><p className={s.label}>Foto de perfil</p><input id={photoInputId} ref={photoInput} type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={e => selectPhoto(e.target.files?.[0] ?? null)} className="sr-only" aria-label="Enviar foto de perfil" aria-describedby="profile-photo-help" /><label htmlFor={photoInputId} className={`${s.secondary} mt-2 cursor-pointer`}><ImagePlus size={18} aria-hidden="true" />Escolher foto</label>{file && <p className="mt-2 break-all text-sm text-[#4B5A55]">{file.name}</p>}<p id="profile-photo-help" className="mt-2 text-xs leading-relaxed text-gray-600">JPG, PNG, WebP ou GIF de até 5 MB. A foto salva aparece no perfil e no cabeçalho e é recuperada ao recarregar ou entrar novamente.</p></div>
     </fieldset>
     {error && <p role="alert" className={s.error}>{error}</p>}{success && <p role="status" className={s.success}>{success}</p>}

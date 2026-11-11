@@ -1,4 +1,4 @@
-import type { ProductBackend } from "../../axios/Axios";
+import type { ProductBackend } from "../../api/services";
 import { money as moeda } from "../dashboard/comprador/buyerPresentation";
 
 export function productPhotos(product: ProductBackend): string[] {
