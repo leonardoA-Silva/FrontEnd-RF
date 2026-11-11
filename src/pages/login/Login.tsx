@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Repeat2, Eye, EyeOff } from "lucide-react";
+import { ArrowRight, Eye, EyeOff } from "lucide-react";
 import api, { type LoginResponse } from "../../api/services";
 import { apiError, apiStatus } from "../../axios/apiError";
 import { saveSession } from "../../auth/session";
@@ -30,58 +30,7 @@ export default function Login() {
 
     const ehEmpresa = tipoUsuario === "empresa";
 
-    const styles = {
-        pagina: "login-page",
-
-        conteudo: "login-main",
-        cartao:
-            "login-card",
-
-        marca: "flex items-center justify-center gap-2.5",
-        marcaIcone:
-            "flex h-9 w-9 items-center justify-center rounded-full bg-[#0F3D2E] text-white",
-        marcaTextos: "leading-tight text-left",
-        marcaTitulo: "text-lg font-extrabold text-[#1B4B3A]",
-        marcaSubtitulo: "text-[13px] font-extrabold tracking-wide text-[#D97706]",
-
-        titulo: "mt-4 text-center font-serif text-4xl font-normal text-[#0F3D2E]",
-
-        abasContainer:
-            "mt-6 grid grid-cols-2 rounded-xl bg-[#F7F5EF] p-1.5 text-sm font-medium",
-        abaAtiva:
-            "cursor-pointer rounded-lg bg-white px-4 py-2.5 text-center font-bold text-[#0F3D2E] shadow-sm",
-        abaInativa:
-            "cursor-pointer rounded-lg px-4 py-2.5 text-center text-[#6B7670] transition hover:text-[#0F3D2E]",
-
-        formulario: "mt-7 flex flex-col gap-5",
-        campoGrupo: "flex flex-col gap-2",
-        rotulo: "text-[15px] font-medium text-[#2F3D38]",
-        input:
-            "w-full rounded-xl border border-[#D9D5C8] bg-white px-4 py-3.5 text-[15px] text-[#1B4B3A] placeholder:text-[#A8B0AB] outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 disabled:opacity-60",
-        inputSenhaWrapper: "relative",
-        inputSenha: "pr-12",
-        botaoOlho:
-            "absolute right-4 top-1/2 -translate-y-1/2 text-[#A8B0AB] transition hover:text-[#1B4B3A]",
-
-        linhaOpcoes: "flex items-center justify-between text-sm",
-        lembrarLabel: "flex cursor-pointer items-center gap-2 text-[#4B5A55]",
-        checkbox:
-            "h-[18px] w-[18px] cursor-pointer rounded accent-emerald-600",
-        linkEsqueceu: "font-semibold text-emerald-600 transition hover:text-emerald-700",
-
-        botaoEntrar:
-            "mt-1 w-full rounded-xl bg-[#0F3D2E] px-6 py-4 text-base font-bold text-white transition hover:bg-[#1B4B3A] focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-70",
-
-        erroBox:
-            "rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700",
-
-        divisor: "flex items-center gap-4 text-xs text-[#A8B0AB]",
-        divisorLinha: "h-px flex-1 bg-[#E7E4DA]",
-        divisorTexto: "tracking-wide",
-
-        rodapeCartao: "mt-6 text-center text-sm text-[#6B7670]",
-        linkCadastro: "font-bold text-emerald-600 transition hover:text-emerald-700",
-    };
+    const styles = { erroBox: "mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" };
 
     function handleTrocaTipo(tipo: TipoUsuario) {
         setTipoUsuario(tipo);
@@ -115,144 +64,20 @@ export default function Login() {
         } finally { setCarregando(false); }
     }
 
-    return (
-        <div className={styles.pagina}>
-            <header className="login-topbar"><Brand footer /><Link to="/" className="login-back">Voltar ao site</Link></header>
-
-            <main className={styles.conteudo}>
-                <div className={styles.cartao}>
-                    {/* Logo centralizada */}
-                    <div className={styles.marca}>
-                        <span className={styles.marcaIcone}>
-                            <Repeat2 className="h-5 w-5" strokeWidth={2.4} />
-                        </span>
-                        <div className={styles.marcaTextos}>
-                            <p className={styles.marcaTitulo}>Reaproveita</p>
-                            <p className={styles.marcaSubtitulo}>FRANCA</p>
-                        </div>
-                    </div>
-
-                    <h1 className={styles.titulo}>Acesse sua conta</h1>
-
-                    {/* Alternador de perfil */}
-                    <div className={styles.abasContainer} role="tablist">
-                        <button
-                            type="button"
-                            role="tab"
-                            aria-selected={tipoUsuario === "empresa"}
-                            onClick={() => handleTrocaTipo("empresa")}
-                            className={
-                                tipoUsuario === "empresa"
-                                    ? styles.abaAtiva
-                                    : styles.abaInativa
-                            }
-                        >
-                            Empresa Geradora
-                        </button>
-                        <button
-                            type="button"
-                            role="tab"
-                            aria-selected={tipoUsuario === "comprador"}
-                            onClick={() => handleTrocaTipo("comprador")}
-                            className={
-                                tipoUsuario === "comprador"
-                                    ? styles.abaAtiva
-                                    : styles.abaInativa
-                            }
-                        >
-                            Comprador / Artesão
-                        </button>
-                    </div>
-
-                    <form className={styles.formulario} onSubmit={handleSubmit}>
-                        {erro && (
-                            <div role="alert" className={styles.erroBox}>
-                                <p>{erro}</p>
-                            </div>
-                        )}
-
-                        <div className={styles.campoGrupo}>
-                            <label htmlFor="email" className={styles.rotulo}>
-                                {ehEmpresa ? "E-mail da empresa" : "E-mail"}
-                            </label>
-                            <input
-                                id="email"
-                                type="email"
-                                autoComplete="email"
-                                required
-                                placeholder="voce@exemplo.com"
-                                value={email}
-                                onChange={(e) => { setEmail(e.target.value); setErro(""); }}
-                                disabled={carregando}
-                                className={styles.input}
-                            />
-                        </div>
-
-                        <div className={styles.campoGrupo}>
-                            <label htmlFor="senha" className={styles.rotulo}>
-                                Senha de acesso
-                            </label>
-                            <div className={styles.inputSenhaWrapper}>
-                                <input
-                                    id="senha"
-                                    type={mostrarSenha ? "text" : "password"}
-                                    autoComplete="current-password"
-                                    required
-                                    placeholder="Sua senha secreta"
-                                    value={senha}
-                                    onChange={(e) => { setSenha(e.target.value); setErro(""); }}
-                                    disabled={carregando}
-                                    className={`${styles.input} ${styles.inputSenha}`}
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setMostrarSenha((v) => !v)}
-                                    aria-label={mostrarSenha ? "Ocultar senha" : "Mostrar senha"}
-                                    className={styles.botaoOlho}
-                                >
-                                    {mostrarSenha ? (
-                                        <EyeOff className="h-5 w-5" />
-                                    ) : (
-                                        <Eye className="h-5 w-5" />
-                                    )}
-                                </button>
-                            </div>
-                        </div>
-
-                        <div className={styles.linhaOpcoes}>
-                            <label className={styles.lembrarLabel}>
-                                <input
-                                    type="checkbox"
-                                    checked={lembrarDeMim}
-                                    onChange={(e) => setLembrarDeMim(e.target.checked)}
-                                    disabled={carregando}
-                                    className={styles.checkbox}
-                                />
-                                Lembrar de mim
-                            </label>
-                            <Link to="/recuperar-senha" className={styles.linkEsqueceu}>
-                                Esqueceu a senha?
-                            </Link>
-                        </div>
-
-                        <button
-                            type="submit"
-                            disabled={carregando}
-                            className={styles.botaoEntrar}
-                        >
-                            {carregando ? "Entrando..." : "Entrar na Plataforma"}
-                        </button>
-                    </form>
-
-                    <p className={styles.rodapeCartao}>
-                        Ainda não tem conta?{" "}
-                        <Link to="/cadastro" className={styles.linkCadastro}>
-                            Cadastre-se agora
-                        </Link>
-                    </p>
-                </div>
-            </main>
-            <footer className="login-footer">© {new Date().getFullYear()} Reaproveita Franca.</footer>
-        </div>
-    );
+    return <div className="login-page login-refined">
+      <header className="login-header"><Brand /><Link to="/" className="login-home-link">Voltar ao site</Link></header>
+      <main className="login-main"><div className="login-layout">
+        <aside className="login-editorial" aria-label="Materiais que ganham novos começos"><div className="login-editorial-heading"><p className="login-kicker">Reaproveita Franca · Economia circular</p><h2>Boas ideias<br />merecem um<br /><em>novo começo.</em></h2><p>Conectamos quem tem materiais<br />a quem enxerga possibilidades.</p></div><figure className="login-material-art"><img src="/images/home/hero.webp" alt="Fitas de couro, tecido e EVA entrelaçadas em um ciclo" width={1536} height={1024} /><figcaption>Couro, tecido e EVA.<br /><span>Outras formas de continuar.</span></figcaption></figure></aside>
+        <section className="login-card"><header className="login-intro"><h1>Bom ter você<br /><em>de volta.</em></h1></header>
+        <form className="account-login-form" onSubmit={handleSubmit}>
+          {erro && <p role="alert" className={styles.erroBox}>{erro}</p>}
+          <div className="account-field"><label htmlFor="login-profile">Entrar como</label><select id="login-profile" className="account-input" value={tipoUsuario} disabled={carregando} onChange={e => handleTrocaTipo(e.target.value as TipoUsuario)}><option value="empresa">Empresa</option><option value="comprador">Comprador / Artesão</option></select></div>
+          <div className="account-field"><label htmlFor="email">{ehEmpresa ? "E-mail da empresa" : "E-mail"}</label><input id="email" className="account-input" type="email" autoComplete="email" required value={email} onChange={e => { setEmail(e.target.value); setErro(""); }} disabled={carregando} /></div>
+          <div className="account-field"><label htmlFor="senha">Senha</label><div className="account-password"><input id="senha" className="account-input" type={mostrarSenha ? "text" : "password"} autoComplete="current-password" required value={senha} onChange={e => { setSenha(e.target.value); setErro(""); }} disabled={carregando} /><button type="button" aria-label={mostrarSenha ? "Ocultar senha" : "Mostrar senha"} onClick={() => setMostrarSenha(v => !v)}>{mostrarSenha ? <EyeOff size={18} /> : <Eye size={18} />}</button></div></div>
+          <div className="account-login-options"><label className="account-remember"><input type="checkbox" checked={lembrarDeMim} onChange={e => setLembrarDeMim(e.target.checked)} disabled={carregando} />Lembrar de mim</label><Link to="/recuperar-senha">Esqueceu a senha?</Link></div>
+          <button type="submit" className="home-button account-submit" disabled={carregando}>{carregando ? "Entrando…" : "Entrar na minha conta"}<ArrowRight size={18} aria-hidden="true" /></button>
+          <p className="account-switch"><span>Ainda não tem conta?</span><Link to="/cadastro">Crie sua conta</Link></p>
+        </form></section>
+      </div></main><footer className="login-footer">© {new Date().getFullYear()} Reaproveita Franca.</footer>
+    </div>;
 }

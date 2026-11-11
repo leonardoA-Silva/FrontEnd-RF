@@ -11,9 +11,10 @@ import { CompanyMessage } from "./CompanyUi";
 import type { CompanyProduct } from "./companyTypes";
 import CommunicationProvider from "./communication/CommunicationProvider";
 
+const DashboardOverview = lazy(() => import("../dashboard/DashboardOverview"));
 const CompanyAddresses = lazy(() => import("./CompanyAddresses"));
 const CompanyRequests = lazy(() => import("./CompanyRequests"));
-const DashboardOverview = lazy(() => import("../dashboard/DashboardOverview"));
+
 const BuyerSecurity = lazy(() => import("../dashboard/comprador/BuyerSecurity"));
 const CompanyMap = lazy(() => import("../dashboard/CompanyMap"));
 const CompanyPayments = lazy(() => import("./CompanyPayments"));
@@ -34,7 +35,7 @@ export default function CompanyWorkspace() {
   }, [identity?.id, version]);
   return <CompanyContext.Provider value={{ preview: false, base, identity, products, loading: loading && !!identity, error: !identity ? "Não foi possível identificar sua conta. Entre novamente." : error, notice, reload: () => { setLoading(true); setError(""); setVersion(value => value + 1); }, saveDemo: () => {}, deleteDemo: () => {}, updateIdentity: setIdentity, setNotice }}>
     <CommunicationProvider><Suspense fallback={<p role="status">Carregando tela da empresa…</p>}><Routes><Route element={<CompanyShell><Outlet /></CompanyShell>}>
-      <Route index element={<DashboardOverview company />} />
+      <Route index element={<CompanyLibrary />} /><Route path="resumo" element={<DashboardOverview company />} />
       <Route path="enderecos" element={<CompanyAddresses />} /><Route path="reservas" element={<CompanyRequests />} />
       <Route path="seguranca" element={<BuyerSecurity />} /><Route path="explorar" element={<CompanyMap />} />
       <Route path="pagamentos" element={<CompanyPayments />} /><Route path="publicar" element={<CompanyEditor />} />

@@ -33,8 +33,8 @@ export default function WorkspaceFrame({ children, name, section, preview = fals
     navigate("/login");
   }
   const items = [
-    { to: base, label: "Início", Icon: Compass, end: true },
-    { to: `${base}/materiais`, label: "Anúncios", Icon: Layers3, end: true },
+    { to: base, label: "Anúncios", Icon: Layers3, end: true },
+    { to: `${base}/resumo`, label: "Resumo", Icon: Compass, end: true },
     { to: `${base}/publicar`, label: "Publicar", Icon: Plus },
     { to: `${base}/explorar`, label: "Explorar", Icon: MapPin },
     { to: `${base}/indicadores`, label: "Impacto", Icon: ChartNoAxesCombined },
