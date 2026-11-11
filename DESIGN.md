@@ -41,3 +41,54 @@ The selected company concept uses a narrow forest rail, ivory workspace, serif e
 
 ## Buyer extension — 2026-11-03
 The buyer now shares this visual language while preserving real API behavior. `DESIGN_SYSTEM.md` is the current complete frontend reference, including shared buyer tokens, responsive navigation/filters and validation evidence. Historical preview descriptions above refer to the original `new-ui` branch. The integrated buyer never uses its sample dashboard data.
+## Integração de telas-empresa — 2026-11-03
+
+As páginas públicas e o workspace da new-ui são preservados. Mapa, indicadores, histórico, perfil e gestão de materiais importam os componentes da branch leonardo/telas-empresa. Seus aliases de cores e estilos do Leaflet permanecem disponíveis em src/index.css. A publicação usa o formulário do workspace, mantendo as restrições de integração documentadas.
+
+## Remaining screens — 2026-11-03
+
+Shared authenticated chrome follows the forest rail, ivory workspace and serif wordmark already approved. Page composition stays specific to its task: map with search/list alongside cartography; impact with inline editorial metrics and restrained charts; history with filter tabs and a ledger; profile with identity panel and a practical form; user dashboard with a materials gallery and reservation summary; About with photography and a typographic narrative. Public flows remain visually distinct. Existing local material photos are reused; no new dependency or decorative 3D scene is added to operational screens. Modest entry and hover transitions respect reduced motion.
+
+Company material/publication aliases resolve to the existing new-ui workspace. Preview data remains explicitly demonstrative. API contracts, authorization gates and product-mutation restrictions are preserved. Consumer dashboard still has no integrated catalog/reservations API; examples are opt-in in real mode and enabled in preview, with no real reservation controls.
+
+## Operational lists
+
+Reservation and negotiation views prioritize daily consultation: sans-serif page titles, compact example disclosure, inline counts, search and status/date filters, comparable desktop rows and labeled mobile blocks. Avoid decorative steps, promotional copy and large summary cards in these views. Detail dialogs keep factual record fields; existing API limitations remain explicit.
+
+## Company screens imported from telas-empresa
+
+Map, impact, negotiations and profile retain the approved new-ui frame and their existing page compositions. The development-only company preview exposes all six navigation sections, using the same imported screen components as the authenticated routes. Profile editing in preview stays in memory, accepts an empty phone, and never reads the session or calls the API. The account alias resolves to the imported profile so preview and authenticated navigation show the same design. Company drafts and the simulated identity survive navigation between these sections until reload. Real routes retain their role guards and API behavior; impact and negotiations remain explicitly demonstrative.
+
+## Materials library as a storefront
+
+The company library uses a marketplace composition requested by the owner: prominent search, a compact photographic banner, category sidebar, sale/donation tabs, sorting and a responsive product grid. Cards prioritize photos, the listing value or donation, quantities and availability; editing and management remain separate actions. Default sorting puts listings with photos first. Mobile filters expand inline with focus transferred to the selected category and a clear return to results. Missing photos and unknown prices stay explicit. All data remains the company's own inventory; no checkout, shipping, reviews, discounts or marketplace API is introduced. Existing forest, ivory and natural-material styling stays in place.
+
+The subsequent visual refinement uses a forest banner with ivory photography, category shortcuts showing actual inventory counts, full-width card photos and category-specific missing-photo illustrations. Category shortcuts stay horizontally navigable on phones and keep the selected category visible. These refinements follow the saved checkpoint `ee87a71` and remain uncommitted for comparison.
+
+## Company interior refinement
+
+Publication and editing use numbered form sections, section anchors and a live local listing preview. Details prioritize the actual photos, value, quantity and weight, with keyboard-operable photo selection when multiple images exist. Impact highlights the main metric in forest green while retaining explicit demonstration labels. Profile pairs a forest identity panel with an ivory form. Negotiations retain their practical ledger with stronger tabs and material icons; map search uses a forest panel and distinct company cards. The changes preserve field validation, role gates, API contracts and the existing limits on real product mutations. These refinements also remain local after checkpoint `ee87a71`.
+
+## Dashboard motion
+
+Preserve the approved composition, palette and typography. CSS handles brief heading, conditional-field, gallery and feedback transitions; MUI retains its accessible dialog/menu behavior with shorter timings. The material grid uses native Web Animations to move surviving cards from their previous positions rather than replaying an entrance for every result. Initial/new cards receive a bounded 230 ms reveal with at most 88 ms of stagger. Frequent keyboard/search updates remain immediate. GSAP reveals the existing impact series through an SVG mask and restores segment opacity when each chart enters the viewport, without changing plotted values or animating counters. Motion stops for reduced-motion preferences and on hidden documents, with cleanup on route changes. No continuous effects, scroll interception, added dependencies or dashboard 3D. Small library labels now use an 11 px floor, with improved secondary-text contrast and a two-line banner on phones.
+
+## Login refinement
+
+Login now pairs a forest editorial panel containing the existing home material sculpture with an ivory access form. Company/buyer selection uses explicit radio controls, visible selected states and contextual help. Larger inputs, a full-width submit action and a separate registration invitation prioritize returning users. On phones the decorative panel is omitted and the form fills the available width. Brief artwork and heading entrances respect reduced motion. Authentication, session persistence and existing API contracts are unchanged; no password recovery or social sign-in is implied.
+
+## Transparency documents
+
+Terms, privacy, data rights, contact and cookies use a shared editorial document layout: serif title, readable body, document navigation and a section index that stacks above the text on phones. All documents are explicitly preliminary while legal identity, institutional contact and review remain undefined. Footer links are shared across public/account/dashboard screens; registration links preserve input by opening a separate tab. No fake support submission, cookie preference controls or contractual consent record is introduced.
+
+## Company messages and notifications
+
+The approved image concepts are implemented inside the existing workspace frame. Messages use a searchable conversation list beside a material-context thread, quiet incoming/outgoing bubbles and a composer. On mobile, list and thread become separate views with a back control, and navigation remains at the bottom. Local drafts survive conversation and page changes within the company preview. No delivered/read receipts, online presence or attachment support is implied.
+
+Notifications use grouped operational rows with sage unread highlighting, type/unread filters, detail dialogs and read actions. The preview is explicitly fictional and in memory. Real notification reads use verified authenticated REST routes; no live push is claimed. The chat's real transport remains unavailable pending the server conversation-query correction and Socket.IO integration. Header and rail badges reflect loaded local state, with compact navigation to accommodate the additional destinations.
+
+After the approved API update and Socket.IO client installation, the same chat composition also displays real conversations. Server acknowledgements confirm outgoing messages; incoming events update the thread, and failures retain drafts. Real conversations omit the material bar because the API does not link conversations to a product. Preview remains isolated from network traffic. Notification detail actions may open a verified conversation reference; no arbitrary server-provided URL is used.
+
+## Buyer and company integration — 2026-11-10
+
+The buyer dashboard retains live catalog, reservations/history, notifications, messaging, addresses, cards, profile and security flows from `main`. Its workspace shell follows the shared forest-rail and ivory-surface styling. Company routes retain the `WorkspaceFrame` navigation and their verified API boundaries; preview data remains explicitly demonstrative.

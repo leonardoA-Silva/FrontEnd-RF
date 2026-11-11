@@ -30,9 +30,7 @@ function NotificationItem({ notification, onClose }: NotificationItemProps) {
     const enterTimer = setTimeout(() => setVisible(true), 10);
 
     // Auto-fechar após 5 segundos
-    const closeTimer = setTimeout(() => {
-      handleClose();
-    }, 5000);
+    const closeTimer = setTimeout(handleClose, 5000);
 
     return () => {
       clearTimeout(enterTimer);
@@ -42,34 +40,35 @@ function NotificationItem({ notification, onClose }: NotificationItemProps) {
     };
   }, [handleClose]);
 
+  // Estados usam os tokens semânticos compartilhados da marca.
   const colors = {
     success: {
-      bg: "#F0FDF4",
-      border: "#86EFAC",
-      icon: "#16A34A",
-      title: "#14532D",
-      bar: "#22C55E",
+      bg: "color-mix(in srgb, var(--color-success) 10%, var(--color-surface))",
+      border: "color-mix(in srgb, var(--color-success) 35%, var(--color-surface))",
+      icon: "var(--color-success)",
+      title: "var(--color-ink)",
+      bar: "var(--color-success)",
     },
     error: {
-      bg: "#FFF1F2",
-      border: "#FECDD3",
-      icon: "#DC2626",
-      title: "#7F1D1D",
-      bar: "#EF4444",
+      bg: "color-mix(in srgb, var(--color-danger) 10%, var(--color-surface))",
+      border: "color-mix(in srgb, var(--color-danger) 35%, var(--color-surface))",
+      icon: "var(--color-danger)",
+      title: "var(--color-ink)",
+      bar: "var(--color-danger)",
     },
     info: {
-      bg: "#EFF6FF",
-      border: "#BFDBFE",
-      icon: "#2563EB",
-      title: "#1E3A5F",
-      bar: "#3B82F6",
+      bg: "color-mix(in srgb, var(--color-primary) 8%, var(--color-surface))",
+      border: "color-mix(in srgb, var(--color-primary) 30%, var(--color-surface))",
+      icon: "var(--color-primary)",
+      title: "var(--color-ink)",
+      bar: "var(--color-primary)",
     },
     warning: {
-      bg: "#FFFBEB",
-      border: "#FDE68A",
-      icon: "#D97706",
-      title: "#78350F",
-      bar: "#F59E0B",
+      bg: "color-mix(in srgb, var(--color-warning) 10%, var(--color-surface))",
+      border: "color-mix(in srgb, var(--color-warning) 35%, var(--color-surface))",
+      icon: "var(--color-warning)",
+      title: "var(--color-ink)",
+      bar: "var(--color-warning)",
     },
   };
 
@@ -94,7 +93,7 @@ function NotificationItem({ notification, onClose }: NotificationItemProps) {
         boxShadow: "0 4px 20px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.08)",
         overflow: "hidden",
         position: "relative",
-        transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+        transition: "transform 220ms cubic-bezier(0.23, 1, 0.32, 1), opacity 220ms ease-out",
         opacity: visible && !leaving ? 1 : 0,
         transform: visible && !leaving ? "translateX(0)" : "translateX(-110%)",
         marginBottom: 10,
@@ -143,7 +142,7 @@ function NotificationItem({ notification, onClose }: NotificationItemProps) {
             style={{
               margin: "3px 0 0",
               fontSize: 12,
-              color: "#374151",
+              color: "var(--color-ink)",
               lineHeight: 1.5,
               wordBreak: "break-word",
             }}
@@ -163,14 +162,14 @@ function NotificationItem({ notification, onClose }: NotificationItemProps) {
             cursor: "pointer",
             padding: 2,
             flexShrink: 0,
-            color: "#9CA3AF",
+            color: "var(--color-muted)",
             display: "flex",
             alignItems: "center",
             borderRadius: 4,
             transition: "color 0.15s",
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.color = "#374151")}
-          onMouseLeave={(e) => (e.currentTarget.style.color = "#9CA3AF")}
+          onMouseEnter={(e) => (e.currentTarget.style.color = "var(--color-ink)")}
+          onMouseLeave={(e) => (e.currentTarget.style.color = "var(--color-muted)")}
         >
           <X size={14} />
         </button>

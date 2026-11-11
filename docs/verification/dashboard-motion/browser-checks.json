@@ -1,0 +1,26 @@
+[
+  {
+    "preference": "no-preference",
+    "views": 32,
+    "cardAnimations": 52,
+    "chartReveal": "observed",
+    "rapidFilters": "ok",
+    "keyboard": "instant",
+    "dialogs": "ok",
+    "preferenceChange": "ok",
+    "pageErrors": 0,
+    "apiRequests": 0
+  },
+  {
+    "preference": "reduce",
+    "views": 32,
+    "cardAnimations": 0,
+    "chartReveal": "static",
+    "rapidFilters": "ok",
+    "keyboard": "instant",
+    "dialogs": "ok",
+    "preferenceChange": "ok",
+    "pageErrors": 0,
+    "apiRequests": 0
+  }
+]

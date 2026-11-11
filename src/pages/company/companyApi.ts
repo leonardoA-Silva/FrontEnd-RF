@@ -14,7 +14,7 @@ export function readCompanyIdentity(): CompanyIdentity | null {
   } catch { return null; }
 }
 
-function parseProduct(value: unknown): CompanyProduct | null {
+export function parseProduct(value: unknown): CompanyProduct | null {
   const row = record(value);
   const quantity = numeric(row.quantity), weight = numeric(row.weight), price = numeric(row.price);
   if (!uuidPattern.test(text(row.id)) || !text(row.name) || !["sale", "donation"].includes(text(row.type_negotiation)) || !Number.isFinite(quantity) || !Number.isFinite(weight)) return null;
@@ -25,7 +25,24 @@ function parseProduct(value: unknown): CompanyProduct | null {
     const mime = photo.startsWith("iVBOR") ? "image/png" : photo.startsWith("/9j/") ? "image/jpeg" : photo.startsWith("UklGR") ? "image/webp" : photo.startsWith("R0lGOD") ? "image/gif" : null;
     return mime ? [`data:${mime};base64,${photo}`] : [];
   });
-  return { id: text(row.id), name: text(row.name), description: text(row.description), category: text(row.category), type: row.type_negotiation as CompanyProduct["type"], quantity, weight, price: row.type_negotiation === "donation" || !Number.isFinite(price) ? null : price, condition: text(row.conservation_state), status: text(row.status), images };
+  return { id: text(row.id), name: text(row.name), description: text(row.description), category: text(row.category), type: row.type_negotiation as CompanyProduct["type"], quantity, weight, price: row.type_negotiation === "donation" || !Number.isFinite(price) ? null : price, condition: text(row.conservation_state), status: text(row.status), images, localizationId: text(row.id_localization), priority: Number.isFinite(numeric(row.priority)) ? numeric(row.priority) : 0 };
+}
+
+export async function updateCompanyProduct(product: CompanyProduct) {
+  if (!uuidPattern.test(product.id) || !uuidPattern.test(product.localizationId ?? "")) throw new Error("Invalid product location");
+  const { data } = await api.put<unknown>(`/product/${encodeURIComponent(product.id)}`, {
+    name: product.name, description: product.description, price: product.price, priority: product.priority ?? 0,
+    quantity: product.quantity, status: product.status, category: product.category, type_negotiation: product.type,
+    weight: product.weight, conservation_state: product.condition, id_localization: product.localizationId, photos: product.images,
+  });
+  const result = parseProduct(record(data).product);
+  if (!result || result.id.toLowerCase() !== product.id.toLowerCase()) throw new Error("Invalid update response");
+  return result;
+}
+
+export async function deleteCompanyProduct(id: string) {
+  const { data } = await api.delete<unknown>(`/product/${encodeURIComponent(id)}`);
+  if (typeof record(data).message !== "string") throw new Error("Invalid delete response");
 }
 
 export async function loadCompanyProducts(ownerId: string, signal: AbortSignal) {

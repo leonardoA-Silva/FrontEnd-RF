@@ -1,0 +1,2509 @@
+{
+ "url": "http://127.0.0.1:5173/previa/dashboard/empresa",
+ "at": "2026-11-03T17:39:50.405Z",
+ "allow": [],
+ "viewports": [
+  {
+   "width": 1440,
+   "height": 900,
+   "load": "load",
+   "screens": 3,
+   "filled": [
+    0.57,
+    0.75,
+    0.61
+   ],
+   "motion": {
+    "elements": 0,
+    "css": 0,
+    "transitions": 0,
+    "scripted": 0,
+    "videos": 0,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 1440,
+     "h": 900
+    },
+    "page": {
+     "height": 2292,
+     "screens": 2.5,
+     "words": 359,
+     "img": 4,
+     "video": 0,
+     "canvas": 0,
+     "svg": 52,
+     "sections": 2,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 0,
+     "uiAbuse": false,
+     "realPictures": 4,
+     "videoCount": 0,
+     "uiPictures": 0,
+     "pictureSamples": [
+      "leather-stack.webp",
+      "eva-camurca-premium.png",
+      "retalho-nobuck-macio.png",
+      "retalho-nobuck-macio.png"
+     ],
+     "blendText": 0,
+     "sideScrollers": 0,
+     "brokenImages": [],
+     "emoji": [],
+     "videosNoPoster": 0
+    },
+    "hero": {
+     "text": "Biblioteca de materiais",
+     "words": 3,
+     "chars": 23,
+     "lines": 1,
+     "size": 43,
+     "vw": 3,
+     "font": "Georgia",
+     "weight": 400,
+     "tracking": -0.04,
+     "leading": 1.15,
+     "top": 244,
+     "tag": "h1",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "h1": {
+     "text": "Biblioteca de materiais",
+     "words": 3,
+     "lines": 1,
+     "size": 43,
+     "font": "Georgia"
+    },
+    "headings": [
+     {
+      "text": "r.",
+      "words": 1,
+      "chars": 2,
+      "lines": 1,
+      "size": 69,
+      "vw": 4.8,
+      "font": "Georgia",
+      "weight": 700,
+      "tracking": -0.08,
+      "leading": 1,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.05,
+      "top": 93,
+      "tag": "a",
+      "kind": "heading"
+     },
+     {
+      "text": "reaproveita. FRANCA",
+      "words": 2,
+      "chars": 19,
+      "lines": 1,
+      "size": 33,
+      "vw": 2.3,
+      "font": "Georgia",
+      "weight": 700,
+      "tracking": -0.065,
+      "leading": 1,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.13,
+      "top": 97,
+      "mixedFonts": [
+       "Georgia",
+       "system-ui"
+      ],
+      "tag": "a",
+      "kind": "heading"
+     },
+     {
+      "text": "Biblioteca de materiais",
+      "words": 3,
+      "chars": 23,
+      "lines": 1,
+      "size": 43,
+      "vw": 3,
+      "font": "Georgia",
+      "weight": 400,
+      "tracking": -0.045,
+      "leading": 1.15,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.27,
+      "top": 244,
+      "tag": "h1",
+      "kind": "heading"
+     },
+     {
+      "text": "Novos destinos. Novas possibilidades.",
+      "words": 4,
+      "chars": 37,
+      "lines": 2,
+      "size": 44,
+      "vw": 3.1,
+      "font": "Georgia",
+      "weight": 400,
+      "tracking": -0.035,
+      "leading": 1.05,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.48,
+      "top": 491,
+      "mixedFonts": [
+       "Georgia",
+       "Georgia italic"
+      ],
+      "tag": "p",
+      "kind": "statement"
+     },
+     {
+      "text": "R$ 45,00",
+      "words": 2,
+      "chars": 8,
+      "lines": 1,
+      "size": 28.8,
+      "vw": 2,
+      "font": "Manrope",
+      "weight": 600,
+      "tracking": -0.045,
+      "leading": 1.25,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.21,
+      "top": 1323,
+      "tag": "strong",
+      "kind": "statement"
+     },
+     {
+      "text": "Doação",
+      "words": 1,
+      "chars": 6,
+      "lines": 1,
+      "size": 28.8,
+      "vw": 2,
+      "font": "Manrope",
+      "weight": 600,
+      "tracking": -0.045,
+      "leading": 1.25,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "right",
+      "widthRatio": 0.21,
+      "top": 1323,
+      "tag": "strong",
+      "kind": "statement"
+     },
+     {
+      "text": "Doação",
+      "words": 1,
+      "chars": 6,
+      "lines": 1,
+      "size": 28.8,
+      "vw": 2,
+      "font": "Manrope",
+      "weight": 600,
+      "tracking": -0.045,
+      "leading": 1.25,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "right",
+      "widthRatio": 0.21,
+      "top": 1323,
+      "tag": "strong",
+      "kind": "statement"
+     },
+     {
+      "text": "Doação",
+      "words": 1,
+      "chars": 6,
+      "lines": 1,
+      "size": 28.8,
+      "vw": 2,
+      "font": "Manrope",
+      "weight": 600,
+      "tracking": -0.045,
+      "leading": 1.25,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.21,
+      "top": 1885,
+      "tag": "strong",
+      "kind": "statement"
+     },
+     {
+      "text": "Doação",
+      "words": 1,
+      "chars": 6,
+      "lines": 1,
+      "size": 28.8,
+      "vw": 2,
+      "font": "Manrope",
+      "weight": 600,
+      "tracking": -0.045,
+      "leading": 1.25,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "right",
+      "widthRatio": 0.21,
+      "top": 1885,
+      "tag": "strong",
+      "kind": "statement"
+     },
+     {
+      "text": "R$ 30,00",
+      "words": 2,
+      "chars": 8,
+      "lines": 1,
+      "size": 28.8,
+      "vw": 2,
+      "font": "Manrope",
+      "weight": 600,
+      "tracking": -0.045,
+      "leading": 1.25,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "right",
+      "widthRatio": 0.21,
+      "top": 1885,
+      "tag": "strong",
+      "kind": "statement"
+     }
+    ],
+    "headingSummary": {
+     "count": 10,
+     "maxLines": 2,
+     "over2Lines": 0,
+     "statements": 7,
+     "centered": 0,
+     "medianWords": 2,
+     "mixedFontHeadings": 2
+    },
+    "type": {
+     "families": [
+      {
+       "family": "Manrope",
+       "share": 0.94,
+       "mono": false
+      },
+      {
+       "family": "Georgia",
+       "share": 0.05,
+       "mono": false
+      },
+      {
+       "family": "system-ui",
+       "share": 0,
+       "mono": false
+      }
+     ],
+     "familyCount": 3,
+     "sizes": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      16,
+      18,
+      19,
+      29,
+      33,
+      43,
+      44,
+      69
+     ],
+     "sizeCount": 15,
+     "notLoaded": [],
+     "body": {
+      "font": "Manrope",
+      "size": 12,
+      "leading": 1.63,
+      "weight": 400,
+      "tracking": 0,
+      "contrast": 5.5
+     },
+     "measureChars": 89,
+     "max": {
+      "size": 69,
+      "vw": 4.8,
+      "font": "Georgia",
+      "text": "r"
+     },
+     "monoShare": 0,
+     "monoProseShare": 0,
+     "monoFamilies": [],
+     "monoSamples": [],
+     "microLabels": 4,
+     "microLabelShare": 0.059,
+     "microSamples": [
+      "Prévia interativa · Alterações temporári",
+      "Meus anúncios",
+      "Da indústria para a criação",
+      "MATÉRIA QUE CIRCULA"
+     ],
+     "upperShare": 0.06,
+     "centerShare": 0.05,
+     "smallText": 48
+    },
+    "eyebrows": [
+     {
+      "text": "Prévia local · Sem API",
+      "above": "reaproveita. FRANCA",
+      "upper": false,
+      "tracked": false,
+      "mono": false,
+      "pill": false,
+      "size": 14,
+      "top": 16
+     },
+     {
+      "text": "Meus anúncios",
+      "above": "Biblioteca de materiais",
+      "upper": true,
+      "tracked": true,
+      "mono": false,
+      "pill": false,
+      "size": 9,
+      "top": 218
+     },
+     {
+      "text": "Da indústria para a criação",
+      "above": "Novos destinos. Novas possibilidades.",
+      "upper": true,
+      "tracked": true,
+      "mono": false,
+      "pill": false,
+      "size": 9,
+      "top": 463
+     },
+     {
+      "text": "Plástico / EVA · Bom",
+      "above": "R$ 45,00",
+      "upper": false,
+      "tracked": false,
+      "mono": false,
+      "pill": false,
+      "size": 10,
+      "top": 1241
+     },
+     {
+      "text": "Tecido · Bom",
+      "above": "Doação",
+      "upper": false,
+      "tracked": false,
+      "mono": false,
+      "pill": false,
+      "size": 10,
+      "top": 1241
+     },
+     {
+      "text": "Tecido · Bom",
+      "above": "Doação",
+      "upper": false,
+      "tracked": false,
+      "mono": false,
+      "pill": false,
+      "size": 10,
+      "top": 1241
+     },
+     {
+      "text": "Borracha · Bom",
+      "above": "Doação",
+      "upper": false,
+      "tracked": false,
+      "mono": false,
+      "pill": false,
+      "size": 10,
+      "top": 1803
+     },
+     {
+      "text": "Papel / Papelão · Bom",
+      "above": "Doação",
+      "upper": false,
+      "tracked": false,
+      "mono": false,
+      "pill": false,
+      "size": 10,
+      "top": 1803
+     },
+     {
+      "text": "Madeira · Bom",
+      "above": "R$ 30,00",
+      "upper": false,
+      "tracked": false,
+      "mono": false,
+      "pill": false,
+      "size": 10,
+      "top": 1803
+     }
+    ],
+    "numbered": [],
+    "color": {
+     "bodyBg": "#faf9f5",
+     "bodyBgHsl": {
+      "h": 48,
+      "s": 0.33,
+      "l": 0.97
+     },
+     "dark": false,
+     "sectionBgs": [
+      {
+       "color": "#faf9f5",
+       "top": 77,
+       "hsl": {
+        "h": 48,
+        "s": 0.33,
+        "l": 0.97
+       }
+      }
+     ],
+     "textColors": [
+      {
+       "color": "#0f3d2e",
+       "share": 0.17
+      },
+      {
+       "color": "#6e7c63",
+       "share": 0.07
+      },
+      {
+       "color": "#7b8275",
+       "share": 0.06
+      },
+      {
+       "color": "#203f2b",
+       "share": 0.06
+      },
+      {
+       "color": "#596356",
+       "share": 0.05
+      }
+     ],
+     "button": {
+      "bg": "#fffefa",
+      "hsl": {
+       "h": 48,
+       "s": 1,
+       "l": 0.99
+      },
+      "fg": "#0f3d2e"
+     },
+     "lowContrast": [
+      {
+       "text": "Sem foto disponível",
+       "ratio": 3,
+       "need": 4.5,
+       "size": 11,
+       "fg": "#7c876d",
+       "bg": "#eee5d6"
+      },
+      {
+       "text": "Sem foto disponível",
+       "ratio": 3.1,
+       "need": 4.5,
+       "size": 11,
+       "fg": "#7c876d",
+       "bg": "#eeeade"
+      },
+      {
+       "text": "Sem foto disponível",
+       "ratio": 3.2,
+       "need": 4.5,
+       "size": 11,
+       "fg": "#7c876d",
+       "bg": "#e8ecdf"
+      },
+      {
+       "text": "6 materiais",
+       "ratio": 3.7,
+       "need": 4.5,
+       "size": 10,
+       "fg": "#738069",
+       "bg": "#eef2e6"
+      },
+      {
+       "text": "Madeira",
+       "ratio": 3.7,
+       "need": 4.5,
+       "size": 19,
+       "fg": "#687a57",
+       "bg": "#eee5d6"
+      },
+      {
+       "text": "Prévia interativa · Alterações temporári",
+       "ratio": 3.8,
+       "need": 4.5,
+       "size": 9,
+       "fg": "#7b8275",
+       "bg": "#faf9f5"
+      }
+     ]
+    },
+    "buttons": {
+     "count": 12,
+     "inHero": 12,
+     "radius": 8,
+     "height": 76,
+     "withShadow": 0,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": [
+      "Empresa",
+      "Usuário",
+      "Pular para o conteúdo",
+      "Materiais",
+      "Sair da prévia"
+     ]
+    },
+    "surfaces": {
+     "shadowStatic": 13,
+     "shadowOverlay": 0,
+     "shadowSamples": [
+      "label.market-search → rgba(15, 61, 46, 0.02) 0px 2px 5px 0px",
+      "li.market-card → rgba(24, 61, 37, 0.02) 0px 2px 5px 0px",
+      "span.company-badge.is-sale → rgba(21, 61, 33, 0.063) 0px 2px 6px 0px",
+      "li.market-card → rgba(24, 61, 37, 0.02) 0px 2px 5px 0px"
+     ],
+     "gradients": 0,
+     "scrims": 0,
+     "gradientSamples": [],
+     "gradientText": 0,
+     "hairlines": 18,
+     "hairlineSamples": [
+      "div.flex.flex-wrap 1440px",
+      "header.company-topbar 1340px",
+      "aside#library-filters.market-filters 196px",
+      "div.market-toolbar 1038px",
+      "div.market-photo.market-photo-plastico 331px"
+     ],
+     "outlinedBoxes": 6,
+     "dashed": 0,
+     "blurred": 0,
+     "roundedBoxes": 8,
+     "boxRadius": 11,
+     "squareMedia": 3,
+     "roundedMedia": 1,
+     "mediaRadius": 8,
+     "textShadow": 0,
+     "cardRows": [
+      {
+       "count": 6,
+       "iconTopped": false,
+       "rounded": true,
+       "top": 968
+      }
+     ]
+    },
+    "heroMedia": [
+     {
+      "type": "img",
+      "ratio": 0.12
+     }
+    ],
+    "nav": {
+     "links": 3,
+     "fixed": false,
+     "height": 34,
+     "floatingPill": false,
+     "blur": false
+    },
+    "fontsLoaded": []
+   },
+   "layout": {
+    "viewport": {
+     "w": 1440,
+     "h": 900
+    },
+    "pageH": 2292,
+    "margins": {
+     "left": 30,
+     "right": 38
+    },
+    "sections": [
+     {
+      "sel": "section.market-banner",
+      "tag": "section",
+      "top": 425,
+      "height": 270,
+      "words": 26,
+      "media": 0,
+      "middle": 630,
+      "heading": {
+       "text": "Novos destinos.",
+       "size": 44,
+       "tag": "p"
+      },
+      "left": 176,
+      "right": 71,
+      "textLeft": 176,
+      "textRight": 71,
+      "fullBleed": false,
+      "footer": false,
+      "hero": true,
+      "continues": false,
+      "pinned": false
+     },
+     {
+      "sel": "div.market-layout",
+      "tag": "div",
+      "top": 829,
+      "height": 1285,
+      "words": 168,
+      "media": 3,
+      "middle": 55,
+      "heading": {
+       "text": "R$ 45,00",
+       "size": 29,
+       "tag": "strong"
+      },
+      "left": 138,
+      "right": 38,
+      "textLeft": 138,
+      "textRight": 136,
+      "fullBleed": false,
+      "footer": true,
+      "hero": false,
+      "continues": false,
+      "pinned": false
+     }
+    ],
+    "gaps": [],
+    "h1s": [
+     {
+      "text": "Biblioteca de materiais",
+      "size": 43,
+      "top": 244,
+      "firstScreen": true
+     }
+    ],
+    "edgeText": [],
+    "edges": [
+     {
+      "x": 138,
+      "n": 2
+     },
+     {
+      "x": 364,
+      "n": 1
+     }
+    ],
+    "leftBlocks": 3,
+    "bodySize": 12,
+    "stage": false,
+    "explains": false,
+    "slivers": [],
+    "voidShare": 0.08,
+    "voidBox": {
+     "x": 540,
+     "y": 120,
+     "w": 540,
+     "h": 180
+    }
+   },
+   "app": {
+    "viewport": {
+     "w": 1440,
+     "h": 900
+    },
+    "dark": false,
+    "ground": "#faf9f5",
+    "sidebar": {
+     "w": 100,
+     "tag": "aside",
+     "links": 8,
+     "share": 0.07
+    },
+    "topbar": {
+     "h": 77
+    },
+    "canvas": {
+     "left": 38,
+     "right": 38
+    },
+    "hero": {
+     "text": "Biblioteca de materiais",
+     "words": 3,
+     "chars": 23,
+     "lines": 1,
+     "size": 43,
+     "vw": 3,
+     "font": "Georgia",
+     "weight": 400,
+     "tracking": -0.04,
+     "leading": 1.15,
+     "top": 244,
+     "tag": "h1",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "charts": 0,
+    "layout": {
+     "panels": 15,
+     "firstScreen": 7,
+     "ragged": [],
+     "voids": []
+    },
+    "tiles": 0,
+    "panels": {
+     "count": 25,
+     "radii": [
+      [
+       0,
+       11
+      ],
+      [
+       8,
+       7
+      ],
+      [
+       11,
+       6
+      ],
+      [
+       12,
+       1
+      ]
+     ],
+     "heavyBorders": 1,
+     "borderSamples": [
+      "#557b4d on #eef2e6 (4.27:1)"
+     ],
+     "heavyShadows": 0,
+     "softShadows": 0,
+     "shadowSamples": [],
+     "glass": 0
+    },
+    "chips": {
+     "count": 7,
+     "hues": 2,
+     "samples": [
+      {
+       "hue": 75,
+       "size": 33,
+       "radius": "50%"
+      },
+      {
+       "hue": 160,
+       "size": 38,
+       "radius": "50%"
+      },
+      {
+       "hue": 76,
+       "size": 38,
+       "radius": "50%"
+      },
+      {
+       "hue": 76,
+       "size": 38,
+       "radius": "50%"
+      }
+     ]
+    },
+    "numbers": {
+     "cells": 0,
+     "leftAligned": 0,
+     "figures": 0,
+     "tabularShare": null,
+     "kpiMax": null
+    },
+    "rows": null,
+    "chartHues": 0,
+    "placeholders": [],
+    "type": {
+     "under13": 0.79,
+     "tiny": 39,
+     "tinySamples": [
+      "Materiais 10px",
+      "Publicar 10px",
+      "Explorar 10px",
+      "Impacto 10px"
+     ],
+     "sizes": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      16,
+      18,
+      19,
+      29,
+      33,
+      43,
+      44
+     ]
+    },
+    "title": {
+     "text": "Biblioteca de materiais",
+     "size": 43,
+     "top": 244
+    },
+    "colourShare": 0.036
+   },
+   "consoleErrors": []
+  },
+  {
+   "width": 768,
+   "height": 1024,
+   "load": "load",
+   "screens": 3,
+   "filled": [
+    0.64,
+    0.69,
+    0.6
+   ],
+   "motion": {
+    "elements": 0,
+    "css": 0,
+    "transitions": 0,
+    "scripted": 0,
+    "videos": 0,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 768,
+     "h": 1024
+    },
+    "page": {
+     "height": 2577,
+     "screens": 2.5,
+     "words": 352,
+     "img": 4,
+     "video": 0,
+     "canvas": 0,
+     "svg": 52,
+     "sections": 2,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 0,
+     "uiAbuse": false,
+     "realPictures": 4,
+     "videoCount": 0,
+     "uiPictures": 0,
+     "pictureSamples": [
+      "leather-stack.webp",
+      "eva-camurca-premium.png",
+      "retalho-nobuck-macio.png",
+      "retalho-nobuck-macio.png"
+     ],
+     "blendText": 0,
+     "sideScrollers": 1,
+     "brokenImages": [],
+     "emoji": [],
+     "videosNoPoster": 0
+    },
+    "hero": {
+     "text": "Biblioteca de materiais",
+     "words": 3,
+     "chars": 23,
+     "lines": 1,
+     "size": 30,
+     "vw": 3.9,
+     "font": "Georgia",
+     "weight": 400,
+     "tracking": -0.05,
+     "leading": 1.15,
+     "top": 294,
+     "tag": "h1",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "h1": {
+     "text": "Biblioteca de materiais",
+     "words": 3,
+     "lines": 1,
+     "size": 30,
+     "font": "Georgia"
+    },
+    "headings": [
+     {
+      "text": "r.",
+      "words": 1,
+      "chars": 2,
+      "lines": 1,
+      "size": 60,
+      "vw": 7.8,
+      "font": "Georgia",
+      "weight": 700,
+      "tracking": -0.08,
+      "leading": 1,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.08,
+      "top": 143,
+      "tag": "a",
+      "kind": "heading"
+     },
+     {
+      "text": "reaproveita. FRANCA",
+      "words": 2,
+      "chars": 19,
+      "lines": 1,
+      "size": 33,
+      "vw": 4.3,
+      "font": "Georgia",
+      "weight": 700,
+      "tracking": -0.065,
+      "leading": 1,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.24,
+      "top": 147,
+      "mixedFonts": [
+       "Georgia",
+       "system-ui"
+      ],
+      "tag": "a",
+      "kind": "heading"
+     },
+     {
+      "text": "Biblioteca de materiais",
+      "words": 3,
+      "chars": 23,
+      "lines": 1,
+      "size": 30,
+      "vw": 3.9,
+      "font": "Georgia",
+      "weight": 400,
+      "tracking": -0.045,
+      "leading": 1.15,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.51,
+      "top": 294,
+      "tag": "h1",
+      "kind": "heading"
+     },
+     {
+      "text": "Novos destinos. Novas possibilidades.",
+      "words": 4,
+      "chars": 37,
+      "lines": 2,
+      "size": 30,
+      "vw": 3.9,
+      "font": "Georgia",
+      "weight": 400,
+      "tracking": -0.035,
+      "leading": 1.05,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.42,
+      "top": 526,
+      "mixedFonts": [
+       "Georgia",
+       "Georgia italic"
+      ],
+      "tag": "p",
+      "kind": "statement"
+     }
+    ],
+    "headingSummary": {
+     "count": 4,
+     "maxLines": 2,
+     "over2Lines": 0,
+     "statements": 1,
+     "centered": 0,
+     "medianWords": 3,
+     "mixedFontHeadings": 2
+    },
+    "type": {
+     "families": [
+      {
+       "family": "Manrope",
+       "share": 0.94,
+       "mono": false
+      },
+      {
+       "family": "Georgia",
+       "share": 0.06,
+       "mono": false
+      },
+      {
+       "family": "system-ui",
+       "share": 0,
+       "mono": false
+      }
+     ],
+     "familyCount": 3,
+     "sizes": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      16,
+      18,
+      19,
+      24,
+      30,
+      33,
+      60
+     ],
+     "sizeCount": 14,
+     "notLoaded": [],
+     "body": {
+      "font": "Manrope",
+      "size": 12,
+      "leading": 1.63,
+      "weight": 400,
+      "tracking": 0,
+      "contrast": 5.5
+     },
+     "measureChars": 89,
+     "max": {
+      "size": 60,
+      "vw": 7.8,
+      "font": "Georgia",
+      "text": "r"
+     },
+     "monoShare": 0,
+     "monoProseShare": 0,
+     "monoFamilies": [],
+     "monoSamples": [],
+     "microLabels": 4,
+     "microLabelShare": 0.06,
+     "microSamples": [
+      "Prévia interativa · Alterações temporári",
+      "Meus anúncios",
+      "Da indústria para a criação",
+      "MATÉRIA QUE CIRCULA"
+     ],
+     "upperShare": 0.06,
+     "centerShare": 0.05,
+     "smallText": 46
+    },
+    "eyebrows": [
+     {
+      "text": "Meus anúncios",
+      "above": "Biblioteca de materiais",
+      "upper": true,
+      "tracked": true,
+      "mono": false,
+      "pill": false,
+      "size": 9,
+      "top": 268
+     },
+     {
+      "text": "Da indústria para a criação",
+      "above": "Novos destinos. Novas possibilidades.",
+      "upper": true,
+      "tracked": true,
+      "mono": false,
+      "pill": false,
+      "size": 9,
+      "top": 498
+     }
+    ],
+    "numbered": [],
+    "color": {
+     "bodyBg": "#faf9f5",
+     "bodyBgHsl": {
+      "h": 48,
+      "s": 0.33,
+      "l": 0.97
+     },
+     "dark": false,
+     "sectionBgs": [
+      {
+       "color": "#faf9f5",
+       "top": 127,
+       "hsl": {
+        "h": 48,
+        "s": 0.33,
+        "l": 0.97
+       }
+      }
+     ],
+     "textColors": [
+      {
+       "color": "#0f3d2e",
+       "share": 0.17
+      },
+      {
+       "color": "#6e7c63",
+       "share": 0.07
+      },
+      {
+       "color": "#7b8275",
+       "share": 0.06
+      },
+      {
+       "color": "#203f2b",
+       "share": 0.06
+      },
+      {
+       "color": "#596356",
+       "share": 0.05
+      }
+     ],
+     "button": {
+      "bg": "#fffefa",
+      "hsl": {
+       "h": 48,
+       "s": 1,
+       "l": 0.99
+      },
+      "fg": "#0f3d2e"
+     },
+     "lowContrast": [
+      {
+       "text": "Sem foto disponível",
+       "ratio": 3,
+       "need": 4.5,
+       "size": 11,
+       "fg": "#7c876d",
+       "bg": "#eee5d6"
+      },
+      {
+       "text": "Sem foto disponível",
+       "ratio": 3.1,
+       "need": 4.5,
+       "size": 11,
+       "fg": "#7c876d",
+       "bg": "#eeeade"
+      },
+      {
+       "text": "Sem foto disponível",
+       "ratio": 3.2,
+       "need": 4.5,
+       "size": 11,
+       "fg": "#7c876d",
+       "bg": "#e8ecdf"
+      },
+      {
+       "text": "6 materiais",
+       "ratio": 3.7,
+       "need": 4.5,
+       "size": 10,
+       "fg": "#738069",
+       "bg": "#eef2e6"
+      },
+      {
+       "text": "Madeira",
+       "ratio": 3.7,
+       "need": 4.5,
+       "size": 19,
+       "fg": "#687a57",
+       "bg": "#eee5d6"
+      },
+      {
+       "text": "Prévia interativa · Alterações temporári",
+       "ratio": 3.8,
+       "need": 4.5,
+       "size": 9,
+       "fg": "#7b8275",
+       "bg": "#faf9f5"
+      }
+     ]
+    },
+    "buttons": {
+     "count": 11,
+     "inHero": 11,
+     "radius": 8,
+     "height": 76,
+     "withShadow": 0,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": [
+      "Empresa",
+      "Usuário",
+      "Pular para o conteúdo",
+      "Materiais",
+      "Publicar material"
+     ]
+    },
+    "surfaces": {
+     "shadowStatic": 13,
+     "shadowOverlay": 0,
+     "shadowSamples": [
+      "label.market-search → rgba(15, 61, 46, 0.02) 0px 2px 5px 0px",
+      "li.market-card → rgba(24, 61, 37, 0.02) 0px 2px 5px 0px",
+      "span.company-badge.is-sale → rgba(21, 61, 33, 0.063) 0px 2px 6px 0px",
+      "li.market-card → rgba(24, 61, 37, 0.02) 0px 2px 5px 0px"
+     ],
+     "gradients": 0,
+     "scrims": 0,
+     "gradientSamples": [],
+     "gradientText": 0,
+     "hairlines": 6,
+     "hairlineSamples": [
+      "div.flex.flex-wrap 768px",
+      "header.company-topbar 685px",
+      "aside#library-filters.market-filters 170px",
+      "div.market-toolbar 443px",
+      "div.market-publish-note 635px"
+     ],
+     "outlinedBoxes": 6,
+     "dashed": 0,
+     "blurred": 0,
+     "roundedBoxes": 8,
+     "boxRadius": 11,
+     "squareMedia": 3,
+     "roundedMedia": 1,
+     "mediaRadius": 8,
+     "textShadow": 0,
+     "cardRows": [
+      {
+       "count": 6,
+       "iconTopped": false,
+       "rounded": true,
+       "top": 973
+      }
+     ]
+    },
+    "heroMedia": [],
+    "nav": {
+     "links": 3,
+     "fixed": false,
+     "height": 34,
+     "floatingPill": false,
+     "blur": false
+    },
+    "fontsLoaded": []
+   },
+   "layout": {
+    "viewport": {
+     "w": 768,
+     "h": 1024
+    },
+    "pageH": 2577,
+    "margins": {
+     "left": 23,
+     "right": 38
+    },
+    "sections": [
+     {
+      "sel": "div.flex.flex-wrap",
+      "tag": "div",
+      "top": 0,
+      "height": 127,
+      "words": 24,
+      "media": 0,
+      "middle": 0,
+      "heading": null,
+      "left": 32,
+      "right": 205,
+      "textLeft": 32,
+      "textRight": 205,
+      "fullBleed": false,
+      "footer": false,
+      "hero": true,
+      "continues": false,
+      "pinned": false
+     },
+     {
+      "sel": "div.company-app.workspace-frame",
+      "tag": "div",
+      "top": 127,
+      "height": 2451,
+      "words": 267,
+      "media": 4,
+      "middle": 136,
+      "heading": {
+       "text": "reaproveita",
+       "size": 33,
+       "tag": "a"
+      },
+      "left": 9,
+      "right": 0,
+      "textLeft": 13,
+      "textRight": -172,
+      "fullBleed": false,
+      "footer": true,
+      "hero": true,
+      "continues": false,
+      "pinned": true
+     }
+    ],
+    "gaps": [],
+    "h1s": [
+     {
+      "text": "Biblioteca de materiais",
+      "size": 30,
+      "top": 294,
+      "firstScreen": true
+     }
+    ],
+    "edgeText": [
+     {
+      "text": "Negociações",
+      "side": "left",
+      "px": 13
+     }
+    ],
+    "edges": [
+     {
+      "x": 108,
+      "n": 2
+     },
+     {
+      "x": 300,
+      "n": 1
+     }
+    ],
+    "leftBlocks": 3,
+    "bodySize": 12,
+    "stage": false,
+    "explains": false,
+    "slivers": [],
+    "voidShare": 0,
+    "voidBox": null
+   },
+   "app": {
+    "viewport": {
+     "w": 768,
+     "h": 1024
+    },
+    "dark": false,
+    "ground": "#faf9f5",
+    "sidebar": null,
+    "topbar": null,
+    "canvas": {
+     "left": 24,
+     "right": -57
+    },
+    "hero": {
+     "text": "Biblioteca de materiais",
+     "words": 3,
+     "chars": 23,
+     "lines": 1,
+     "size": 30,
+     "vw": 3.9,
+     "font": "Georgia",
+     "weight": 400,
+     "tracking": -0.05,
+     "leading": 1.15,
+     "top": 294,
+     "tag": "h1",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "charts": 0,
+    "layout": {
+     "panels": 9,
+     "firstScreen": 3,
+     "ragged": [],
+     "voids": []
+    },
+    "tiles": 0,
+    "panels": {
+     "count": 19,
+     "radii": [
+      [
+       0,
+       11
+      ],
+      [
+       11,
+       6
+      ],
+      [
+       12,
+       1
+      ],
+      [
+       8,
+       1
+      ]
+     ],
+     "heavyBorders": 0,
+     "borderSamples": [],
+     "heavyShadows": 0,
+     "softShadows": 0,
+     "shadowSamples": [],
+     "glass": 0
+    },
+    "chips": {
+     "count": 7,
+     "hues": 2,
+     "samples": [
+      {
+       "hue": 75,
+       "size": 33,
+       "radius": "50%"
+      },
+      {
+       "hue": 160,
+       "size": 38,
+       "radius": "50%"
+      },
+      {
+       "hue": 76,
+       "size": 38,
+       "radius": "50%"
+      },
+      {
+       "hue": 76,
+       "size": 38,
+       "radius": "50%"
+      }
+     ]
+    },
+    "numbers": {
+     "cells": 0,
+     "leftAligned": 0,
+     "figures": 0,
+     "tabularShare": null,
+     "kpiMax": null
+    },
+    "rows": null,
+    "chartHues": 0,
+    "placeholders": [],
+    "type": {
+     "under13": 0.78,
+     "tiny": 39,
+     "tinySamples": [
+      "Materiais 10px",
+      "Publicar 10px",
+      "Explorar 10px",
+      "Impacto 10px"
+     ],
+     "sizes": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      16,
+      18,
+      19,
+      24,
+      30,
+      33
+     ]
+    },
+    "title": {
+     "text": "Biblioteca de materiais",
+     "size": 30,
+     "top": 294
+    },
+    "colourShare": 0.02
+   },
+   "consoleErrors": []
+  },
+  {
+   "width": 390,
+   "height": 844,
+   "load": "load",
+   "screens": 4,
+   "filled": [
+    0.69,
+    0.76,
+    0.73,
+    0.69
+   ],
+   "motion": {
+    "elements": 0,
+    "css": 0,
+    "transitions": 0,
+    "scripted": 0,
+    "videos": 0,
+    "playingVideos": 0
+   },
+   "metrics": {
+    "viewport": {
+     "w": 390,
+     "h": 844
+    },
+    "page": {
+     "height": 2634,
+     "screens": 3.1,
+     "words": 302,
+     "img": 4,
+     "video": 0,
+     "canvas": 0,
+     "svg": 52,
+     "sections": 2,
+     "horizontalOverflow": 0,
+     "overflowCulprits": [],
+     "uiFragments": 0,
+     "uiAbuse": false,
+     "realPictures": 4,
+     "videoCount": 0,
+     "uiPictures": 0,
+     "pictureSamples": [
+      "leather-stack.webp",
+      "eva-camurca-premium.png",
+      "retalho-nobuck-macio.png",
+      "retalho-nobuck-macio.png"
+     ],
+     "blendText": 0,
+     "sideScrollers": 2,
+     "brokenImages": [],
+     "emoji": [],
+     "videosNoPoster": 0
+    },
+    "hero": {
+     "text": "Biblioteca de materiais",
+     "words": 3,
+     "chars": 23,
+     "lines": 1,
+     "size": 31,
+     "vw": 7.9,
+     "font": "Georgia",
+     "weight": 400,
+     "tracking": -0.04,
+     "leading": 1.15,
+     "top": 378,
+     "tag": "h1",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "h1": {
+     "text": "Biblioteca de materiais",
+     "words": 3,
+     "lines": 1,
+     "size": 31,
+     "font": "Georgia"
+    },
+    "headings": [
+     {
+      "text": "r.",
+      "words": 1,
+      "chars": 2,
+      "lines": 1,
+      "size": 42,
+      "vw": 10.8,
+      "font": "Georgia",
+      "weight": 700,
+      "tracking": -0.08,
+      "leading": 1,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.1,
+      "top": 162,
+      "tag": "a",
+      "kind": "heading"
+     },
+     {
+      "text": "reaproveita. FRANCA",
+      "words": 2,
+      "chars": 19,
+      "lines": 1,
+      "size": 26,
+      "vw": 6.7,
+      "font": "Georgia",
+      "weight": 700,
+      "tracking": -0.065,
+      "leading": 1,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.37,
+      "top": 243,
+      "mixedFonts": [
+       "Georgia",
+       "system-ui"
+      ],
+      "tag": "a",
+      "kind": "heading"
+     },
+     {
+      "text": "Biblioteca de materiais",
+      "words": 3,
+      "chars": 23,
+      "lines": 1,
+      "size": 31,
+      "vw": 7.9,
+      "font": "Georgia",
+      "weight": 400,
+      "tracking": -0.045,
+      "leading": 1.15,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "center",
+      "widthRatio": 0.91,
+      "top": 378,
+      "tag": "h1",
+      "kind": "heading"
+     },
+     {
+      "text": "Novos destinos. Novas possibilidades.",
+      "words": 4,
+      "chars": 37,
+      "lines": 3,
+      "size": 31,
+      "vw": 7.9,
+      "font": "Georgia",
+      "weight": 400,
+      "tracking": -0.035,
+      "leading": 1.05,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.6,
+      "top": 674,
+      "mixedFonts": [
+       "Georgia",
+       "Georgia italic"
+      ],
+      "tag": "p",
+      "kind": "statement"
+     },
+     {
+      "text": "R$ 45,00",
+      "words": 2,
+      "chars": 8,
+      "lines": 1,
+      "size": 23,
+      "vw": 5.9,
+      "font": "Manrope",
+      "weight": 600,
+      "tracking": -0.045,
+      "leading": 1.25,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.38,
+      "top": 1388,
+      "tag": "strong",
+      "kind": "statement"
+     },
+     {
+      "text": "Doação",
+      "words": 1,
+      "chars": 6,
+      "lines": 1,
+      "size": 23,
+      "vw": 5.9,
+      "font": "Manrope",
+      "weight": 600,
+      "tracking": -0.045,
+      "leading": 1.25,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "right",
+      "widthRatio": 0.38,
+      "top": 1388,
+      "tag": "strong",
+      "kind": "statement"
+     },
+     {
+      "text": "Doação",
+      "words": 1,
+      "chars": 6,
+      "lines": 1,
+      "size": 23,
+      "vw": 5.9,
+      "font": "Manrope",
+      "weight": 600,
+      "tracking": -0.045,
+      "leading": 1.25,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.38,
+      "top": 1798,
+      "tag": "strong",
+      "kind": "statement"
+     },
+     {
+      "text": "Doação",
+      "words": 1,
+      "chars": 6,
+      "lines": 1,
+      "size": 23,
+      "vw": 5.9,
+      "font": "Manrope",
+      "weight": 600,
+      "tracking": -0.045,
+      "leading": 1.25,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "right",
+      "widthRatio": 0.38,
+      "top": 1798,
+      "tag": "strong",
+      "kind": "statement"
+     },
+     {
+      "text": "Doação",
+      "words": 1,
+      "chars": 6,
+      "lines": 1,
+      "size": 23,
+      "vw": 5.9,
+      "font": "Manrope",
+      "weight": 600,
+      "tracking": -0.045,
+      "leading": 1.25,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "left",
+      "widthRatio": 0.38,
+      "top": 2208,
+      "tag": "strong",
+      "kind": "statement"
+     },
+     {
+      "text": "R$ 30,00",
+      "words": 2,
+      "chars": 8,
+      "lines": 1,
+      "size": 23,
+      "vw": 5.9,
+      "font": "Manrope",
+      "weight": 600,
+      "tracking": -0.045,
+      "leading": 1.25,
+      "upper": false,
+      "italic": false,
+      "mono": false,
+      "align": "left",
+      "position": "right",
+      "widthRatio": 0.38,
+      "top": 2208,
+      "tag": "strong",
+      "kind": "statement"
+     }
+    ],
+    "headingSummary": {
+     "count": 10,
+     "maxLines": 3,
+     "over2Lines": 0,
+     "statements": 7,
+     "centered": 0,
+     "medianWords": 2,
+     "mixedFontHeadings": 2
+    },
+    "type": {
+     "families": [
+      {
+       "family": "Manrope",
+       "share": 0.93,
+       "mono": false
+      },
+      {
+       "family": "Georgia",
+       "share": 0.06,
+       "mono": false
+      },
+      {
+       "family": "system-ui",
+       "share": 0,
+       "mono": false
+      }
+     ],
+     "familyCount": 3,
+     "sizes": [
+      6,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      23,
+      26,
+      31,
+      42
+     ],
+     "sizeCount": 15,
+     "notLoaded": [],
+     "body": {
+      "font": "Manrope",
+      "size": 12,
+      "leading": 1.63,
+      "weight": 400,
+      "tracking": 0,
+      "contrast": 5.5
+     },
+     "measureChars": 58,
+     "max": {
+      "size": 42,
+      "vw": 10.8,
+      "font": "Georgia",
+      "text": "r"
+     },
+     "monoShare": 0,
+     "monoProseShare": 0,
+     "monoFamilies": [],
+     "monoSamples": [],
+     "microLabels": 3,
+     "microLabelShare": 0.056,
+     "microSamples": [
+      "Prévia interativa · Alterações temporári",
+      "Meus anúncios",
+      "Da indústria para a criação"
+     ],
+     "upperShare": 0.06,
+     "centerShare": 0.13,
+     "smallText": 41
+    },
+    "eyebrows": [
+     {
+      "text": "Meus anúncios",
+      "above": "Biblioteca de materiais",
+      "upper": true,
+      "tracked": true,
+      "mono": false,
+      "pill": false,
+      "size": 9,
+      "top": 352
+     },
+     {
+      "text": "Da indústria para a criação",
+      "above": "Novos destinos. Novas possibilidades.",
+      "upper": true,
+      "tracked": true,
+      "mono": false,
+      "pill": false,
+      "size": 8,
+      "top": 647
+     },
+     {
+      "text": "Plástico / EVA · Bom",
+      "above": "R$ 45,00",
+      "upper": false,
+      "tracked": false,
+      "mono": false,
+      "pill": false,
+      "size": 9,
+      "top": 1315
+     },
+     {
+      "text": "Tecido · Bom",
+      "above": "Doação",
+      "upper": false,
+      "tracked": false,
+      "mono": false,
+      "pill": false,
+      "size": 9,
+      "top": 1315
+     },
+     {
+      "text": "Tecido · Bom",
+      "above": "Doação",
+      "upper": false,
+      "tracked": false,
+      "mono": false,
+      "pill": false,
+      "size": 9,
+      "top": 1726
+     },
+     {
+      "text": "Borracha · Bom",
+      "above": "Doação",
+      "upper": false,
+      "tracked": false,
+      "mono": false,
+      "pill": false,
+      "size": 9,
+      "top": 1726
+     },
+     {
+      "text": "Papel / Papelão · Bom",
+      "above": "Doação",
+      "upper": false,
+      "tracked": false,
+      "mono": false,
+      "pill": false,
+      "size": 9,
+      "top": 2136
+     },
+     {
+      "text": "Madeira · Bom",
+      "above": "R$ 30,00",
+      "upper": false,
+      "tracked": false,
+      "mono": false,
+      "pill": false,
+      "size": 9,
+      "top": 2136
+     }
+    ],
+    "numbered": [],
+    "color": {
+     "bodyBg": "#faf9f5",
+     "bodyBgHsl": {
+      "h": 48,
+      "s": 0.33,
+      "l": 0.97
+     },
+     "dark": false,
+     "sectionBgs": [
+      {
+       "color": "#faf9f5",
+       "top": 146,
+       "hsl": {
+        "h": 48,
+        "s": 0.33,
+        "l": 0.97
+       }
+      }
+     ],
+     "textColors": [
+      {
+       "color": "#0f3d2e",
+       "share": 0.17
+      },
+      {
+       "color": "#6e7c63",
+       "share": 0.08
+      },
+      {
+       "color": "#7b8275",
+       "share": 0.07
+      },
+      {
+       "color": "#203f2b",
+       "share": 0.07
+      },
+      {
+       "color": "#596356",
+       "share": 0.06
+      }
+     ],
+     "button": {
+      "bg": "#0f3d2e",
+      "hsl": {
+       "h": 160,
+       "s": 0.61,
+       "l": 0.15
+      },
+      "fg": "#ffffff"
+     },
+     "lowContrast": [
+      {
+       "text": "Sem foto disponível",
+       "ratio": 3,
+       "need": 4.5,
+       "size": 9,
+       "fg": "#7c876d",
+       "bg": "#eee5d6"
+      },
+      {
+       "text": "Sem foto disponível",
+       "ratio": 3.1,
+       "need": 4.5,
+       "size": 9,
+       "fg": "#7c876d",
+       "bg": "#eeeade"
+      },
+      {
+       "text": "Sem foto disponível",
+       "ratio": 3.2,
+       "need": 4.5,
+       "size": 9,
+       "fg": "#7c876d",
+       "bg": "#e8ecdf"
+      },
+      {
+       "text": "6 materiais",
+       "ratio": 3.7,
+       "need": 4.5,
+       "size": 10,
+       "fg": "#738069",
+       "bg": "#eef2e6"
+      },
+      {
+       "text": "Madeira",
+       "ratio": 3.7,
+       "need": 4.5,
+       "size": 15,
+       "fg": "#687a57",
+       "bg": "#eee5d6"
+      },
+      {
+       "text": "Prévia interativa · Alterações temporári",
+       "ratio": 3.8,
+       "need": 4.5,
+       "size": 8,
+       "fg": "#7b8275",
+       "bg": "#faf9f5"
+      }
+     ]
+    },
+    "buttons": {
+     "count": 4,
+     "inHero": 4,
+     "radius": "pill",
+     "height": 34,
+     "withShadow": 0,
+     "withGradient": 0,
+     "mono": 0,
+     "upper": 0,
+     "heroLabels": [
+      "Empresa",
+      "Usuário",
+      "Pular para o conteúdo",
+      "Publicar material"
+     ]
+    },
+    "surfaces": {
+     "shadowStatic": 7,
+     "shadowOverlay": 0,
+     "shadowSamples": [
+      "label.market-search → rgba(15, 61, 46, 0.02) 0px 2px 5px 0px",
+      "li.market-card → rgba(24, 61, 37, 0.02) 0px 2px 5px 0px",
+      "li.market-card → rgba(24, 61, 37, 0.02) 0px 2px 5px 0px",
+      "li.market-card → rgba(24, 61, 37, 0.02) 0px 2px 5px 0px"
+     ],
+     "gradients": 0,
+     "scrims": 0,
+     "gradientSamples": [],
+     "gradientText": 0,
+     "hairlines": 5,
+     "hairlineSamples": [
+      "div.flex.flex-wrap 390px",
+      "header.company-topbar 390px",
+      "div.market-toolbar 354px",
+      "div.market-publish-note 354px",
+      "footer.company-footer 354px"
+     ],
+     "outlinedBoxes": 6,
+     "dashed": 0,
+     "blurred": 0,
+     "roundedBoxes": 7,
+     "boxRadius": 11,
+     "squareMedia": 0,
+     "roundedMedia": 0,
+     "mediaRadius": 0,
+     "textShadow": 0,
+     "cardRows": [
+      {
+       "count": 6,
+       "iconTopped": false,
+       "rounded": true,
+       "top": 1171
+      }
+     ]
+    },
+    "heroMedia": [],
+    "nav": {
+     "links": 3,
+     "fixed": false,
+     "height": 34,
+     "floatingPill": false,
+     "blur": false
+    },
+    "fontsLoaded": []
+   },
+   "layout": {
+    "viewport": {
+     "w": 390,
+     "h": 844
+    },
+    "pageH": 2634,
+    "margins": {
+     "left": 18,
+     "right": 18
+    },
+    "sections": [
+     {
+      "sel": "div.flex.flex-wrap",
+      "tag": "div",
+      "top": 0,
+      "height": 146,
+      "words": 24,
+      "media": 0,
+      "middle": 0,
+      "heading": null,
+      "left": 20,
+      "right": 38,
+      "textLeft": 20,
+      "textRight": 38,
+      "fullBleed": false,
+      "footer": false,
+      "hero": true,
+      "continues": false,
+      "pinned": false
+     },
+     {
+      "sel": "div.company-app.workspace-frame",
+      "tag": "div",
+      "top": 146,
+      "height": 2488,
+      "words": 233,
+      "media": 4,
+      "middle": 289,
+      "heading": {
+       "text": "Biblioteca de materiais",
+       "size": 31,
+       "tag": "h1"
+      },
+      "left": 18,
+      "right": 0,
+      "textLeft": 18,
+      "textRight": -325,
+      "fullBleed": false,
+      "footer": true,
+      "hero": true,
+      "continues": false,
+      "pinned": false
+     }
+    ],
+    "gaps": [],
+    "h1s": [
+     {
+      "text": "Biblioteca de materiais",
+      "size": 31,
+      "top": 378,
+      "firstScreen": true
+     }
+    ],
+    "edgeText": [
+     {
+      "text": "Empresa demonstrativa",
+      "side": "right",
+      "px": 10
+     }
+    ],
+    "edges": [
+     {
+      "x": 18,
+      "n": 2
+     }
+    ],
+    "leftBlocks": 2,
+    "bodySize": 12,
+    "stage": false,
+    "explains": false,
+    "slivers": [],
+    "voidShare": 0,
+    "voidBox": null
+   },
+   "app": {
+    "viewport": {
+     "w": 390,
+     "h": 844
+    },
+    "dark": false,
+    "ground": "#faf9f5",
+    "sidebar": null,
+    "topbar": null,
+    "canvas": {
+     "left": 18,
+     "right": -237
+    },
+    "hero": {
+     "text": "Biblioteca de materiais",
+     "words": 3,
+     "chars": 23,
+     "lines": 1,
+     "size": 31,
+     "vw": 7.9,
+     "font": "Georgia",
+     "weight": 400,
+     "tracking": -0.04,
+     "leading": 1.15,
+     "top": 378,
+     "tag": "h1",
+     "kind": "heading",
+     "align": "left",
+     "position": "left"
+    },
+    "charts": 0,
+    "layout": {
+     "panels": 8,
+     "firstScreen": 1,
+     "ragged": [],
+     "voids": []
+    },
+    "tiles": 0,
+    "panels": {
+     "count": 17,
+     "radii": [
+      [
+       0,
+       10
+      ],
+      [
+       11,
+       6
+      ],
+      [
+       12,
+       1
+      ]
+     ],
+     "heavyBorders": 0,
+     "borderSamples": [],
+     "heavyShadows": 0,
+     "softShadows": 0,
+     "shadowSamples": [],
+     "glass": 0
+    },
+    "chips": {
+     "count": 7,
+     "hues": 2,
+     "samples": [
+      {
+       "hue": 75,
+       "size": 33,
+       "radius": "50%"
+      },
+      {
+       "hue": 160,
+       "size": 38,
+       "radius": "50%"
+      },
+      {
+       "hue": 76,
+       "size": 38,
+       "radius": "50%"
+      },
+      {
+       "hue": 76,
+       "size": 38,
+       "radius": "50%"
+      }
+     ]
+    },
+    "numbers": {
+     "cells": 0,
+     "leftAligned": 0,
+     "figures": 0,
+     "tabularShare": null,
+     "kpiMax": null
+    },
+    "rows": null,
+    "chartHues": 0,
+    "placeholders": [],
+    "type": {
+     "under13": 0.82,
+     "tiny": 69,
+     "tinySamples": [
+      "Materiais 8px",
+      "Publicar 8px",
+      "Explorar 8px",
+      "Impacto 8px"
+     ],
+     "sizes": [
+      6,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      23,
+      26,
+      31
+     ]
+    },
+    "title": {
+     "text": "Biblioteca de materiais",
+     "size": 31,
+     "top": 378
+    },
+    "colourShare": 0.01
+   },
+   "consoleErrors": []
+  }
+ ],
+ "findings": [
+  {
+   "level": "WARN",
+   "id": "mixed-font-headline",
+   "width": 1440,
+   "message": "2 headline(s) switch typeface or to italic mid-line (the \"one italic serif word\" move).",
+   "fix": "Set the whole headline in one face. Emphasis comes from the words.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "FAIL",
+   "id": "micro-label",
+   "width": 1440,
+   "message": "4 tiny uppercase letter-spaced labels (e.g. \"Prévia interativa · Alterações temporári\", \"Meus anúncios\", \"Da indústria para a criação\", \"MATÉRIA QUE CIRCULA\").",
+   "fix": "Use sentence-case text at a readable size, or delete the label.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "WARN",
+   "id": "palette-cream",
+   "width": 1440,
+   "message": "Yellow-cream background (page background #faf9f5, section #faf9f5, button #fffefa).",
+   "fix": "Use the drawn palette. If you want warmth, take a low-chroma stone or bone, not a yellow cream.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "WARN",
+   "id": "contrast",
+   "width": 1440,
+   "message": "Low-contrast text: \"Sem foto disponível\" 3:1 needs 4.5:1; \"Sem foto disponível\" 3.1:1 needs 4.5:1; \"Sem foto disponível\" 3.2:1 needs 4.5:1; \"6 materiais\" 3.7:1 needs 4.5:1",
+   "fix": "Darken or lighten the text colour.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "FAIL",
+   "id": "icon-chips",
+   "width": 1440,
+   "message": "7 icons sit in tinted squares or circles in 2 different colours.",
+   "fix": "This is the commonest tell of a generated dashboard. Drop the tinted square: a KPI is a label and a number; an icon, if it helps, is plain and in the text colour.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "FAIL",
+   "id": "tiny-text",
+   "width": 1440,
+   "message": "39 text blocks under 11px: Materiais 10px, Publicar 10px, Explorar 10px, Impacto 10px.",
+   "fix": "Nothing below 11px; secondary text 12px, data 13–14px.",
+   "alsoAt": [
+    768,
+    390
+   ]
+  },
+  {
+   "level": "WARN",
+   "id": "below-fold",
+   "width": 1440,
+   "message": "Only 7 of 15 blocks start on the first 1440px screen.",
+   "fix": "Every block the brief names shows its header and first rows on the first desktop screen: size the headline block to its question, cap long lists with \"View all\", and put time-sensitive blocks before long tables."
+  },
+  {
+   "level": "WARN",
+   "id": "app-title-size",
+   "width": 1440,
+   "message": "The h1 is 43px (\"Biblioteca de materiais\").",
+   "fix": "An app screen is not a landing page: the title is 18-32px (20-24px on a phone).",
+   "alsoAt": [
+    390
+   ]
+  },
+  {
+   "level": "FAIL",
+   "id": "edge-text",
+   "width": 768,
+   "message": "1 text block(s) sit within 16px of the screen edge: \"Negociações\" (13px from the left)",
+   "fix": "Keep text inside the page margin (16–32px or more). Only display type deliberately bled past the edge may touch it.",
+   "alsoAt": [
+    390
+   ]
+  },
+  {
+   "level": "FAIL",
+   "id": "headline-lines",
+   "width": 390,
+   "message": "1 headline(s) wrap past two lines at 390px: \"Novos destinos. Novas possibilidades.\" → 3 lines (4 words, 31px, a paragraph set above 24px)",
+   "fix": "Cut words first (a headline is a title, not a sentence). Then give it a wider measure. Lower the size only as a last resort and never below the scale you chose. A real statement paragraph belongs in a <p> or <blockquote> at 24px or less."
+  }
+ ],
+ "images": [
+  {
+   "viewport": "desktop",
+   "width": 1440,
+   "fold": "C:\\Users\\44374485880\\Desktop\\SPRINT\\FrontEnd-RF\\docs\\verification\\dashboard-motion\\before\\desktop-fold.jpg",
+   "pages": [
+    "C:\\Users\\44374485880\\Desktop\\SPRINT\\FrontEnd-RF\\docs\\verification\\dashboard-motion\\before\\desktop-page-01.jpg"
+   ],
+   "film": []
+  },
+  {
+   "viewport": "tablet",
+   "width": 768,
+   "fold": "C:\\Users\\44374485880\\Desktop\\SPRINT\\FrontEnd-RF\\docs\\verification\\dashboard-motion\\before\\tablet-fold.jpg",
+   "pages": [
+    "C:\\Users\\44374485880\\Desktop\\SPRINT\\FrontEnd-RF\\docs\\verification\\dashboard-motion\\before\\tablet-page-01.jpg"
+   ],
+   "film": []
+  },
+  {
+   "viewport": "mobile",
+   "width": 390,
+   "fold": "C:\\Users\\44374485880\\Desktop\\SPRINT\\FrontEnd-RF\\docs\\verification\\dashboard-motion\\before\\mobile-fold.jpg",
+   "pages": [
+    "C:\\Users\\44374485880\\Desktop\\SPRINT\\FrontEnd-RF\\docs\\verification\\dashboard-motion\\before\\mobile-page-01.jpg"
+   ],
+   "film": []
+  }
+ ]
+}
