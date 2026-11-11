@@ -5,6 +5,7 @@ import { ArrowRight, Eye, EyeOff } from "lucide-react";
 import api, { type LoginResponse } from "../../api/services";
 import { apiError, apiStatus } from "../../axios/apiError";
 import { saveSession } from "../../auth/session";
+import { accountDestination } from "../../auth/accountDestination";
 import Brand from "../../components/Brand";
 
 
@@ -14,7 +15,7 @@ export default function Login() {
     const navigate = useNavigate();
     const location = useLocation();
     const origem = location.state?.from;
-    const voltarAoMarketplace = typeof origem === "string" && /^\/marketplace(?:\/[A-Za-z0-9_-]+){0,3}$/.test(origem);
+    const voltarAoMarketplace = accountDestination("user", origem).startsWith("/marketplace");
     const [tipoUsuario, setTipoUsuario] = useState<TipoUsuario>(() => voltarAoMarketplace || location.state?.tipoUsuario === "comprador" ? "comprador" : "empresa");
     const [email, setEmail] = useState("");
     const [senha, setSenha] = useState("");
@@ -47,8 +48,10 @@ export default function Login() {
         // Login social não informa mustChangePassword; firstLogin continua obrigatório nos dois fluxos.
         const trocarSenha = data.mustChangePassword === true || data.user.status === "firstLogin";
         saveSession(data.token, { ...data.user, mustChangePassword: trocarSenha }, remember);
-        navigate(trocarSenha ? "/primeiro-acesso" : data.user.role === "company" ? "/dashboardEmpresa" : voltarAoMarketplace ? origem : "/dashboardUsuario", { replace: true });
-    }, [navigate, tipoUsuario, voltarAoMarketplace, origem]);
+        const destination = accountDestination(data.user.role, origem);
+        if (trocarSenha) navigate("/primeiro-acesso", { replace: true, state: { from: destination } });
+        else navigate(destination, { replace: true });
+    }, [navigate, tipoUsuario, origem]);
 
     async function handleSubmit(event: FormEvent) {
         event.preventDefault();

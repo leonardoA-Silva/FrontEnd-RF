@@ -23,7 +23,7 @@ function MessageThread({ id, userId, socket }: { id: string; userId: string; soc
     await socketRequest(socket, "join_conversation", id);
     const response = await socketRequest<{ messages: BuyerMessage[] }>(socket, "load_messages", { conversationId: id, limit: 50 });
     if (!Array.isArray(response.messages)) throw new Error("Resposta inválida.");
-    await socketRequest(socket, "mark_read", { conversationId: id });
+    void socketRequest(socket, "mark_read", { conversationId: id }).catch(() => {});
     return { data: response.messages };
   }, [id, socket]);
   const resource = useApiResource(loader);
@@ -48,7 +48,7 @@ function MessageThread({ id, userId, socket }: { id: string; userId: string; soc
   }, [error]);
   useEffect(() => {
     const update = (payload?: unknown) => {
-      if (payload && typeof payload === "object" && "id_conversation" in payload && payload.id_conversation === id) { setOlder([]); reload(); }
+      if (payload && typeof payload === "object" && "id_conversation" in payload && payload.id_conversation === id) { setOlder([]); setHasOlder(true); reload(); }
     };
     ["new_message", "message_edited", "message_deleted"].forEach(event => socket.on(event, update));
     return () => { ["new_message", "message_edited", "message_deleted"].forEach(event => socket.off(event, update)); };
@@ -66,7 +66,7 @@ function MessageThread({ id, userId, socket }: { id: string; userId: string; soc
   async function remove() {
     if (!selected || busy) return;
     setBusy(true); setError("");
-    try { await socketRequest(socket, "delete_message", { messageId: selected.id }); setSelected(null); setOlder([]); resource.reload(); setSuccess("Mensagem excluída."); }
+    try { await socketRequest(socket, "delete_message", { messageId: selected.id }); setSelected(null); setOlder([]); setHasOlder(true); resource.reload(); setSuccess("Mensagem excluída."); }
     catch { setError("Não foi possível confirmar a exclusão da mensagem. Atualize a conversa."); }
     finally { setBusy(false); }
   }

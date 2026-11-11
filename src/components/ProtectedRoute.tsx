@@ -5,8 +5,9 @@ import { useLoggedUser } from "../hooks/useLoggedUser";
 export default function ProtectedRoute({ children, allowedRoles }: { children: ReactNode; allowedRoles?: string[] }) {
   const { token, user } = useLoggedUser();
   const location = useLocation();
-  if (!token || !user) return <Navigate to="/login" replace state={{ from: location.pathname, tipoUsuario: allowedRoles?.includes("user") ? "comprador" : undefined }} />;
+  const from = location.pathname + location.search + location.hash;
+  if (!token || !user) return <Navigate to="/login" replace state={{ from, tipoUsuario: allowedRoles?.includes("user") ? "comprador" : undefined }} />;
   if (allowedRoles?.length && !allowedRoles.includes(user.role) && user.role !== "admin") return <Navigate to={user.role === "company" ? "/dashboardEmpresa" : user.role === "user" ? "/dashboardUsuario" : "/login"} replace />;
-  if (user.mustChangePassword && location.pathname !== "/primeiro-acesso") return <Navigate to="/primeiro-acesso" replace />;
+  if (user.mustChangePassword && location.pathname !== "/primeiro-acesso") return <Navigate to="/primeiro-acesso" replace state={{ from }} />;
   return <>{children}</>;
 }

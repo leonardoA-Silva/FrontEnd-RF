@@ -8,8 +8,9 @@ import RequestState from "./RequestState";
 import ConfirmAction from "./ConfirmAction";
 import { buyerStyles as s } from "./buyerStyles";
 import { money } from "./buyerPresentation";
+import { newWebPaymentsEnabled, paymentFailureAction } from "./paymentFlow";
 
-export default function BuyerCardPayment({ shopping, onResult, onUncertain, onBusy }: { shopping: Shopping; onResult: (result: BuyerPaymentResult) => void; onUncertain: (id?: string) => void; onBusy: (busy: boolean) => void }) {
+export default function BuyerCardPayment({ shopping, onResult, onUncertain, onRefresh, onBusy, onDispatchChange }: { shopping: Shopping; onResult: (result: BuyerPaymentResult) => void; onUncertain: (id?: string) => void; onRefresh: (message: string) => void; onBusy: (busy: boolean) => void; onDispatchChange: (pending: boolean) => void }) {
   const loader = useCallback(async (signal: AbortSignal) => {
     const [config, cards] = await Promise.all([paymentConfiguration(signal), listarCartoes(signal)]);
     return { data: { config: config.data, cards: requireArray(cards.data) } };
@@ -40,7 +41,7 @@ export default function BuyerCardPayment({ shopping, onResult, onUncertain, onBu
     catch (cause) { setError(apiError(cause, "Não foi possível remover o cartão.")); } finally { setBusy(false); }
   }
   async function submit(event: FormEvent) {
-    event.preventDefault(); if (busy || !publicKey || shopping.status !== "pending") return;
+    event.preventDefault(); if (!newWebPaymentsEnabled || busy || !publicKey || shopping.status !== "accepted") return;
     setError(""); setNotice("");
     const month = Number(card.month), year = Number(card.year), now = new Date();
     if (!/^\d{13,19}$/.test(card.number) || !card.holder.trim() || !/^\d{3,4}$/.test(card.cvv) || !/^\d{11}$/.test(card.cpf) || !Number.isInteger(month) || month < 1 || month > 12 || !Number.isInteger(year) || year > 9999 || year < now.getFullYear() || (year === now.getFullYear() && month < now.getMonth() + 1)) { setError("Confira número, titular, validade, CVV e CPF do titular."); return; }
@@ -49,9 +50,10 @@ export default function BuyerCardPayment({ shopping, onResult, onUncertain, onBu
     setBusy(true); onBusy(true); let dispatched = false;
     try {
       const token = await tokenizeCard(publicKey, { number: card.number, holder: card.holder.trim(), month, year, cvv: card.cvv, cpf: card.cpf });
+      onDispatchChange(true);
       dispatched = true;
       const response = await payCard(shopping.id, token, method, card.cpf);
-      if (response.data.payment?.id_shopping !== shopping.id) throw new Error("Pagamento não confirmado.");
+      if (!response.data?.payment?.id || response.data.payment.id_shopping !== shopping.id) throw new Error("Pagamento não confirmado.");
       if (response.data.payment.status === "approved" && remember && !selected) {
         try {
           const cards = (await listarCartoes()).data;
@@ -63,9 +65,13 @@ export default function BuyerCardPayment({ shopping, onResult, onUncertain, onBu
       setCard(previous => ({ ...previous, number: "", cvv: "", cpf: "" }));
       onResult(response.data);
     } catch (cause) {
-      const status = apiStatus(cause);
-      const id: unknown = axios.isAxiosError(cause) ? cause.response?.data?.payment_id : undefined;
-      if (dispatched && (!status || status >= 500 || status === 409 || typeof id === "string")) onUncertain(typeof id === "string" && /^[a-f0-9-]{36}$/i.test(id) ? id : undefined);
+      const details = axios.isAxiosError(cause) ? cause.response?.data : undefined;
+      const action = paymentFailureAction(apiStatus(cause), details), id: unknown = details?.payment_id;
+      if (dispatched && action === "reconcile") onUncertain(typeof id === "string" && /^[a-f0-9-]{36}$/i.test(id) ? id : undefined);
+      else if (dispatched) {
+        onDispatchChange(false);
+        if (action === "reload") onRefresh("Não foi possível iniciar o pagamento. Confira a situação da reserva e as tentativas existentes antes de tentar novamente.");
+      }
       setError(dispatched ? apiError(cause, "Não recebemos confirmação da cobrança. Consulte a tentativa antes de pagar novamente.") : "Não foi possível tokenizar o cartão. Confira os dados ou tente Pix. Nenhuma cobrança foi enviada à API local.");
     } finally { setBusy(false); onBusy(false); }
   }
