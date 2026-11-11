@@ -1,15 +1,18 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { loadSocketClient, socketOrigin, type BuyerSocket } from "../realtime/buyerSocket";
+import { buyerPreview } from "../preview/buyerPreview.mjs";
 
 function tokenExpiry(token: string): number | null {
   try { const body = JSON.parse(atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/"))); return typeof body.exp === "number" ? body.exp * 1000 : null; }
   catch { return null; }
 }
 
-export function useBuyerSocket(token: string | null) {
+export function useBuyerSocket(token: string | null, previewUserId?: string) {
   const [attempt, setAttempt] = useState(0);
   const [state, setState] = useState<{ token: string | null; socket: BuyerSocket | null; connected: boolean; error: string }>({ token: null, socket: null, connected: false, error: "" });
+  const previewSocket = useMemo(() => previewUserId ? buyerPreview.createSocket(previewUserId) as BuyerSocket : null, [previewUserId]);
   useEffect(() => {
+    if (previewUserId) return;
     if (!token) return;
     let active = true;
     let socket: BuyerSocket | null = null;
@@ -28,7 +31,8 @@ export function useBuyerSocket(token: string | null) {
       current.connect();
     }).catch(() => { if (active) setState({ token, socket: null, connected: false, error: "Não foi possível carregar a conexão de mensagens. Tente novamente." }); });
     return () => { active = false; clearTimeout(expiryTimer); socket?.disconnect(); };
-  }, [token, attempt]);
-  const reconnect = useCallback(() => { setState(current => ({ ...current, connected: false, error: "" })); setAttempt(value => value + 1); }, []);
+  }, [token, previewUserId, attempt]);
+  const reconnect = useCallback(() => { if (previewUserId) return; setState(current => ({ ...current, connected: false, error: "" })); setAttempt(value => value + 1); }, [previewUserId]);
+  if (previewUserId) return { socket: previewSocket, connected: true, error: "", reconnect };
   return { socket: state.token === token ? state.socket : null, connected: state.token === token && state.connected, error: state.token === token ? state.error : "", reconnect };
 }

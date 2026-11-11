@@ -8,7 +8,7 @@ import RequestState from "./RequestState";
 import { buyerStyles as s } from "./buyerStyles";
 import { dateLabel, money, shoppingLabel } from "./buyerPresentation";
 
-export default function BuyerReservations({ history = false }: { history?: boolean }) {
+export default function BuyerReservations({ history = false, preview = false }: { history?: boolean; preview?: boolean }) {
   const [params, setParams] = useSearchParams();
   const selected = params.get("reserva");
   const [filter, setFilter] = useState("");
@@ -18,7 +18,7 @@ export default function BuyerReservations({ history = false }: { history?: boole
   }, []);
   const resource = useApiResource(loader);
   const rows = (resource.data ?? []).filter(item => (!history || ["completed", "refused", "cancelled"].includes(item.status)) && (!filter || item.status === filter));
-  if (selected) return <ReservationDetail key={selected} id={selected} />;
+  if (selected) return <ReservationDetail key={selected} id={selected} preview={preview} />;
   return <section className="space-y-6">
     <div className="flex flex-wrap items-center justify-between gap-4"><h1 className={s.title}>{history ? "Histórico de reservas" : "Minhas Reservas"}</h1><button onClick={resource.reload} disabled={resource.loading} className={s.secondary}>Atualizar reservas</button></div>
     <label className={s.label}>Filtrar por situação<select aria-label="Situação da reserva" value={filter} onChange={e => setFilter(e.target.value)} className={`${s.input} max-w-xs`}><option value="">Todas</option>{(history ? ["completed", "refused", "cancelled"] as const : ["pending", "accepted", "completed", "refused", "cancelled"] as const).map(value => <option key={value} value={value}>{shoppingLabel(value)}</option>)}</select></label>
@@ -27,7 +27,7 @@ export default function BuyerReservations({ history = false }: { history?: boole
   </section>;
 }
 
-function ReservationDetail({ id }: { id: string }) {
+function ReservationDetail({ id, preview }: { id: string; preview: boolean }) {
   const [, setParams] = useSearchParams();
   const loader = useCallback(async (signal: AbortSignal) => {
     const response = await obterReserva(id, signal);
@@ -56,10 +56,10 @@ function ReservationDetail({ id }: { id: string }) {
     {!resource.loading && !resource.error && resource.data && <div className={`${s.panel} space-y-6`}>
       <div className="flex flex-wrap justify-between gap-4"><h2 className={s.subtitle}>{shoppingLabel(resource.data.status)}</h2><p className="text-xl font-bold">{money(resource.data.value)}</p></div>
       <p className={s.copy}>{dateLabel(resource.data.datetime)}</p>
-      <ul className="divide-y divide-[#E7E4DA]">{resource.data.items?.map(item => <li key={item.id} className="flex flex-wrap justify-between gap-4 py-4"><div><Link className="font-semibold underline" to={`/marketplace/produto/${encodeURIComponent(item.id_product)}`}>{item.product_name}</Link><p className={`${s.copy} mt-1`}>{item.quantity} unidades</p></div><p>{money(item.subtotal)}</p></li>)}</ul>
+      <ul className="divide-y divide-[#E7E4DA]">{resource.data.items?.map(item => <li key={item.id} className="flex flex-wrap justify-between gap-4 py-4"><div>{preview ? <span className="font-semibold">{item.product_name}</span> : <Link className="font-semibold underline" to={`/marketplace/produto/${encodeURIComponent(item.id_product)}`}>{item.product_name}</Link>}<p className={`${s.copy} mt-1`}>{item.quantity} unidades</p></div><p>{money(item.subtotal)}</p></li>)}</ul>
       <p className={s.notice}>Esta solicitação não confirma pagamento. O aceite é feito pelo fornecedor; cobranças ainda não estão disponíveis.</p>
       <div className="flex flex-wrap gap-3"><button onClick={resource.reload} className={s.secondary}>Atualizar detalhes</button>{resource.data.status === "pending" && <button onClick={() => { setError(""); setConfirm(true); }} className={s.secondary}>Cancelar reserva</button>}</div>
     </div>}
-    {confirm && <ConfirmAction title="Cancelar reserva?" description="O cancelamento só é permitido enquanto a reserva aguarda aceite. A confirmação será feita pelo servidor." busy={busy} error={error} confirm={cancel} cancel={() => setConfirm(false)} />}
+      {confirm && <ConfirmAction title="Cancelar reserva?" description={preview ? "A reserva será cancelada apenas nesta prévia. Nenhuma solicitação real será alterada." : "O cancelamento só é permitido enquanto a reserva aguarda aceite. A confirmação será feita pelo servidor."} busy={busy} error={error} confirm={cancel} cancel={() => setConfirm(false)} />}
   </section>;
 }

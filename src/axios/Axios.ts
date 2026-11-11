@@ -1,5 +1,6 @@
-import axios from "axios";
+import axios, { AxiosHeaders, type AxiosAdapter } from "axios";
 import { clearSession, type SessionUser } from "../auth/session";
+import { buyerPreview, isBuyerPreviewPath } from "../preview/buyerPreview.mjs";
 
 // ─── Instância base ────────────────────────────────────────────────────────────
 // Base da API (hospedada localmente na porta 5000 ou configurada via VITE_API_URL)
@@ -12,8 +13,28 @@ const api = axios.create({
   timeout: 10000,
 });
 
+const buyerPreviewAdapter: AxiosAdapter = async config => {
+  const rawBody = config.data;
+  let body = rawBody;
+  if (typeof rawBody === "string") {
+    try { body = JSON.parse(rawBody) as unknown; } catch { body = rawBody; }
+  }
+  const data = await buyerPreview.request(
+    config.method ?? "GET",
+    config.url ?? "/",
+    (config.params ?? {}) as Record<string, string | undefined>,
+    body,
+  );
+  return { data, status: 200, statusText: "OK", headers: new AxiosHeaders(), config };
+};
+
 // Anexa o token JWT (se existir) em todas as requisições
 api.interceptors.request.use((config) => {
+  if (isBuyerPreviewPath(window.location.pathname)) {
+    config.headers.delete("Authorization");
+    config.adapter = buyerPreviewAdapter;
+    return config;
+  }
   const token =
     localStorage.getItem("token") ?? sessionStorage.getItem("token");
   if (token) {

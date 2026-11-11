@@ -8,7 +8,7 @@ import { loadProfilePhoto, saveProfilePhoto, useProfilePhotoError } from "../../
 import { useLoggedUser } from "../../../hooks/useLoggedUser";
 import { buyerStyles as s } from "./buyerStyles";
 
-export default function BuyerProfile({ userId }: { userId: string }) {
+export default function BuyerProfile({ userId, preview = false }: { userId: string; preview?: boolean }) {
   const [attempt, setAttempt] = useState(0);
   const [state, setState] = useState<{ profile: UsuarioPerfil | null; error: string; loading: boolean }>({ profile: null, error: "", loading: true });
   useEffect(() => {
@@ -19,13 +19,14 @@ export default function BuyerProfile({ userId }: { userId: string }) {
     }).catch(error => { if (!controller.signal.aborted) setState({ profile: null, loading: false, error: apiError(error, "Não foi possível consultar seu perfil.") }); });
     return () => controller.abort();
   }, [userId, attempt]);
-  return <section className="space-y-6"><h1 className={s.title}>Meu Perfil</h1>{state.loading ? <p role="status">Carregando perfil...</p> : state.error ? <div role="alert" className={s.error}><p>{state.error}</p><div className="mt-4 flex flex-wrap gap-3"><button className={s.secondary} onClick={() => { setState({ profile: null, loading: true, error: "" }); setAttempt(v => v + 1); }}>Tentar novamente</button><Link to="/login" className={s.secondary}>Entrar novamente</Link></div></div> : state.profile && <ProfileForm profile={state.profile} />}</section>;
+  return <section className="space-y-6"><h1 className={s.title}>Meu Perfil</h1>{preview && <p className={s.notice}>Perfil fictício. Alterações ficam somente nesta prévia.</p>}{state.loading ? <p role="status">Carregando perfil...</p> : state.error ? <div role="alert" className={s.error}><p>{state.error}</p><div className="mt-4 flex flex-wrap gap-3"><button className={s.secondary} onClick={() => { setState({ profile: null, loading: true, error: "" }); setAttempt(v => v + 1); }}>Tentar novamente</button>{!preview && <Link to="/login" className={s.secondary}>Entrar novamente</Link>}</div></div> : state.profile && <ProfileForm profile={state.profile} preview={preview} />}</section>;
 }
 
-function ProfileForm({ profile }: { profile: UsuarioPerfil }) {
-  const { photoSrc, token } = useLoggedUser();
+function ProfileForm({ profile, preview }: { profile: UsuarioPerfil; preview: boolean }) {
+  const { photoSrc, token } = useLoggedUser({ previewName: preview ? profile.name : undefined });
   const photoError = useProfilePhotoError(profile.id, token);
-  const savedPhoto = photoSrc ?? "";
+  const [localPhoto, setLocalPhoto] = useState("");
+  const savedPhoto = localPhoto || photoSrc || "";
   const photoInputId = useId();
   const savedBirthday = useRef(profile.birthday?.slice(0, 10) ?? "");
   const [name, setName] = useState(profile.name);
@@ -67,22 +68,26 @@ function ProfileForm({ profile }: { profile: UsuarioPerfil }) {
     const data = new FormData(); data.append("name", name.trim()); data.append("cellphone", digits);
     if (birthday) data.append("birthday", birthday);
     if (file) data.append("photo", file);
-    const session = readSession();
-    if (session.user?.id !== profile.id || !session.token) { setError("Sua sessão mudou. Entre novamente para atualizar o perfil."); return; }
+    const session = preview ? null : readSession();
+    if (!preview && (session?.user?.id !== profile.id || !session.token)) { setError("Sua sessão mudou. Entre novamente para atualizar o perfil."); return; }
     setBusy(true);
     try {
       const response = await atualizarPerfilUsuario(profile.id, data);
       if (!response.data.user || response.data.user.id !== profile.id) throw new Error("Resposta inválida.");
-      const current = readSession();
-      if (current.user?.id !== profile.id || current.token !== session.token) return;
+      const current = preview ? null : readSession();
+      if (!preview && (current?.user?.id !== profile.id || current.token !== session?.token)) return;
       const user = response.data.user;
       if (typeof user.name !== "string") throw new Error("Resposta inválida.");
-      if (file && pendingPhoto) { saveProfilePhoto(profile.id, session.token, file); releasePreview(pendingPhoto); setPendingPhoto(""); }
+      if (file && pendingPhoto) {
+        if (preview) setLocalPhoto(pendingPhoto);
+        else { if (session?.token) saveProfilePhoto(profile.id, session.token, file); releasePreview(pendingPhoto); }
+        setPendingPhoto("");
+      }
       savedBirthday.current = user.birthday?.slice(0, 10) ?? "";
       setName(user.name); setPhone(user.cellphone ?? ""); setBirthday(user.birthday?.slice(0,10) ?? ""); setFile(null);
       if (photoInput.current) photoInput.current.value = "";
-      updateSessionUser({ name: user.name });
-      setSuccess(file ? "Perfil e foto enviados com sucesso." : "Perfil atualizado com sucesso.");
+      if (!preview) updateSessionUser({ name: user.name });
+      setSuccess(preview ? "Perfil atualizado somente nesta prévia." : file ? "Perfil e foto enviados com sucesso." : "Perfil atualizado com sucesso.");
     } catch (cause) { setError(apiError(cause, "Não foi possível salvar seu perfil. Seus campos foram preservados.")); }
     finally { setBusy(false); }
   }
