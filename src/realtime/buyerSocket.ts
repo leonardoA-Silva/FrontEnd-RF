@@ -13,7 +13,12 @@ type SocketFactory = (origin: string, options: { auth: { token: string }; transp
 declare global { interface Window { io?: SocketFactory } }
 let sdk: Promise<SocketFactory> | null = null;
 
-export function socketOrigin() { return new URL(api.defaults.baseURL ?? "/api/reaproveitafranca", window.location.origin).origin; }
+export function socketOrigin() {
+  if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+    return window.location.origin;
+  }
+  return new URL(api.defaults.baseURL ?? "/api/reaproveitafranca", window.location.origin).origin;
+}
 
 export function loadSocketClient() {
   if (window.io) return Promise.resolve(window.io);

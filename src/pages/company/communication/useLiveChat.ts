@@ -41,8 +41,11 @@ export function useLiveChat(enabled: boolean, requestedId: string | null) {
     ownId.current = chatIdentity();
     const controller = new AbortController();
     let alive = true;
+    // Se estiver rodando no localhost com o Vite, conecta na mesma origem (http://localhost:5174)
+    // para que o proxy do Vite (/socket.io) repasse para o backend sem problema de CORS.
     const baseUrl = api.defaults.baseURL ?? "/api/reaproveitafranca";
-    const socketUrl = baseUrl.startsWith("http") ? new URL(baseUrl).origin : undefined;
+    const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+    const socketUrl = isLocal ? undefined : (baseUrl.startsWith("http") ? new URL(baseUrl).origin : undefined);
     const socket = io(socketUrl, {
       autoConnect: false,
       transports: ["polling", "websocket"],
