@@ -3,7 +3,7 @@ import { clearSession } from "../auth/session";
 
 // Cliente único para a API atual. Em desenvolvimento, HTTP e Socket.IO usam o proxy local.
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL?.trim() || "/api/reaproveitafranca",
+  baseURL: import.meta.env.DEV ? "/api/reaproveitafranca" : import.meta.env.VITE_API_URL?.trim() || "/api/reaproveitafranca",
   timeout: 15000,
 });
 

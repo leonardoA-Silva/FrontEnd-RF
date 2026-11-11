@@ -14,8 +14,13 @@ import BuyerImpact from "./comprador/BuyerImpact";
 import DashboardOverview from "./DashboardOverview";
 import CompanyMap from "./CompanyMap";
 import { buyerStyles as s } from "./comprador/buyerStyles";
+import AdminUsersPage from "../admin/AdminUsersPage";
+import AdminAdvertisementsPage from "../admin/AdminAdvertisementsPage";
+import RegisterAdminPage from "../admin/RegisterAdminPage";
 
-const tabs = [
+import { Shield, UserPlus, Users as UsersIcon } from "lucide-react";
+
+const baseTabs = [
   { id: "inicio", label: "Início", Icon: Home }, { id: "mapa", label: "Mapa de empresas", Icon: MapPin },
   { id: "explorar", label: "Marketplace", Icon: Search }, { id: "historico", label: "Histórico e reservas", Icon: History },
   { id: "impacto", label: "Impacto ambiental", Icon: Leaf }, { id: "notificacoes", label: "Notificações", Icon: Bell },
@@ -24,6 +29,17 @@ const tabs = [
 ];
 export default function DashboardUsuario() {
   const { user, token, displayName } = useLoggedUser();
+  const isAdmin = user?.role === "admin";
+  const tabs = isAdmin
+    ? [
+        { id: "inicio", label: "Painel Geral", Icon: Home },
+        { id: "admin-usuarios", label: "Gerenciar Usuários", Icon: UsersIcon },
+        { id: "admin-anuncios", label: "Gerenciar Anúncios", Icon: Shield },
+        { id: "admin-novo", label: "Novo Administrador", Icon: UserPlus },
+        { id: "perfil", label: "Meu Perfil", Icon: UserRound },
+        { id: "seguranca", label: "Segurança", Icon: ShieldCheck },
+      ]
+    : baseTabs;
   const [params, setParams] = useSearchParams(); const realtime = useBuyerSocket(params.get("aba") === "notificacoes" ? token : null);
   const requested = params.get("aba") === "reservas" ? "historico" : params.get("aba");
   const tab = tabs.some(item => item.id === requested) ? requested : "inicio";
@@ -37,5 +53,8 @@ export default function DashboardUsuario() {
       {tab === "historico" && <BuyerReservations key={user.id} history />}{tab === "impacto" && <BuyerImpact />}
       {tab === "notificacoes" && <AccountNotifications socket={realtime.socket} />}{tab === "mensagens" && <BuyerConversations key={user.id} />}
       {tab === "enderecos" && <BuyerAddresses userId={user.id} />}{tab === "perfil" && <BuyerProfile key={user.id} userId={user.id} />}{tab === "seguranca" && <BuyerSecurity />}
+      {tab === "admin-usuarios" && <AdminUsersPage />}
+      {tab === "admin-anuncios" && <AdminAdvertisementsPage />}
+      {tab === "admin-novo" && <RegisterAdminPage />}
     </div></WorkspaceFrame>;
 }

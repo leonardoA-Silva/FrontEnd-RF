@@ -284,3 +284,39 @@ export const listarImpactos = (signal?: AbortSignal) => api.get<BuyerImpact[]>("
 export interface BuyerCompany { id: string; companyId: string; name: string; neighborhood: string; city: string; state: string; latitude: number; longitude: number; categories: string[]; availableProducts: number }
 export const listarEmpresasMapa = (signal?: AbortSignal) => api.get<BuyerCompany[]>("/localization/companies", { signal });
 
+// ─── Serviços Administrativos (Admin) ─────────────────────────────────────────
+
+export interface AdminCreatePayload {
+  name: string;
+  email: string;
+  cpf: string;
+  cellphone: string;
+  birthday: string;
+  zip_code: string;
+  street: string;
+  number: string;
+  neighborhood: string;
+  state: string;
+  city: string;
+}
+
+export const listarUsuariosAdmin = (signal?: AbortSignal) =>
+  api.get<UsuarioPerfil[]>("/user/", { signal, timeout: 20000 });
+
+export const cadastrarAdmin = (payload: AdminCreatePayload) =>
+  api.post<{ message: string; id: string }>("/user/create/admin", payload);
+
+export const atualizarUsuarioAdmin = (id: string, payload: { name: string; cellphone: string }) =>
+  api.put<{ message: string }>(`/user/${encodeURIComponent(id)}`, payload);
+
+export const excluirUsuarioAdmin = (id: string) =>
+  api.delete<{ message: string }>(`/user/${encodeURIComponent(id)}`);
+
+export const excluirProdutoAdmin = (id: string) =>
+  api.delete<{ message: string }>(`/product/${encodeURIComponent(id)}`);
+
+export const atualizarFotoUsuario = (id: string, formData: FormData) =>
+  api.put<{ message: string }>(`/user/${encodeURIComponent(id)}`, formData, {
+    headers: { "Content-Type": "multipart/form-data" }
+  });
+

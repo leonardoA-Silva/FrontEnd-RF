@@ -24,6 +24,9 @@ const IndicadoresAmbientais = lazy(() => import("./pages/dashboard/IndicadoresAm
 const PerfilEmpresa = lazy(() => import("./pages/dashboard/PerfilEmpresa"));
 const SobreNos = lazy(() => import("./pages/home/SobreNos"));
 const LegalPage = lazy(() => import("./pages/legal/LegalPage"));
+const AdminUsersPage = lazy(() => import("./pages/admin/AdminUsersPage"));
+const AdminAdvertisementsPage = lazy(() => import("./pages/admin/AdminAdvertisementsPage"));
+const RegisterAdminPage = lazy(() => import("./pages/admin/RegisterAdminPage"));
 
 function App() {
   return (
@@ -111,6 +114,39 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          {/* Rotas administrativas */}
+          <Route
+            path="/admin/usuarios"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <Suspense fallback={<main role="status" className="p-8">Carregando usuários...</main>}>
+                  <AdminUsersPage />
+                </Suspense>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/anuncios"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <Suspense fallback={<main role="status" className="p-8">Carregando anúncios...</main>}>
+                  <AdminAdvertisementsPage />
+                </Suspense>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/novo-admin"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <Suspense fallback={<main role="status" className="p-8">Carregando formulário...</main>}>
+                  <RegisterAdminPage />
+                </Suspense>
+              </ProtectedRoute>
+            }
+          />
+
           <Route path="*" element={<main className="buyer-panel"><h1 className="buyer-title">Página não encontrada</h1><p>Confira o endereço ou volte ao início.</p><a href="/" className="home-button">Voltar ao início</a></main>} />
         </Routes>
       </BrowserRouter>

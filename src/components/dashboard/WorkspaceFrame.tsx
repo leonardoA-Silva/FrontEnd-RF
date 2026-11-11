@@ -3,7 +3,8 @@ import { Link, NavLink, useNavigate } from "react-router-dom";
 import { ArrowLeft, Bell, ChartNoAxesCombined, Compass, CreditCard, History, Layers3, LogOut, MapPin, MessageSquare, Plus, ShieldCheck, UserRound } from "lucide-react";
 import LegalLinks from "../LegalLinks";
 import { CommunicationContext } from "../../pages/company/communication/CommunicationContext";
-import { clearSession } from "../../auth/session";
+import { clearSession, readSession } from "../../auth/session";
+import { Shield, UserPlus, Users as UsersIcon } from "lucide-react";
 
 interface Props {
   children: ReactNode;
@@ -21,6 +22,8 @@ export default function WorkspaceFrame({ children, name, section, preview = fals
   const navigate = useNavigate();
   const navRef = useRef<HTMLElement>(null);
   const communication = useContext(CommunicationContext);
+  const session = readSession();
+  const isAdmin = session?.user?.role === "admin";
   const unreadNotifications = communication?.notifications.filter(item => item.read !== "sim").length ?? 0;
   const unreadMessages = communication?.conversations.reduce((count, item) => count + Number(item.unreadCount || 0), 0) ?? 0;
   useEffect(() => {
@@ -32,19 +35,27 @@ export default function WorkspaceFrame({ children, name, section, preview = fals
     if (!preview) clearSession();
     navigate("/login");
   }
-  const items = [
-    { to: base, label: "Anúncios", Icon: Layers3, end: true },
-    { to: `${base}/resumo`, label: "Resumo", Icon: Compass, end: true },
-    { to: `${base}/publicar`, label: "Publicar", Icon: Plus },
-    { to: `${base}/explorar`, label: "Explorar", Icon: MapPin },
-    { to: `${base}/indicadores`, label: "Impacto", Icon: ChartNoAxesCombined },
-    { to: `${base}/reservas`, label: "Reservas", Icon: History },
-    { to: `${base}/seguranca`, label: "Segurança", Icon: ShieldCheck },
-    { to: `${base}/pagamentos`, label: "Recebimentos", Icon: CreditCard },
-    { to: `${base}/mensagens`, label: "Mensagens", Icon: MessageSquare, count: unreadMessages },
-    { to: `${base}/notificacoes`, label: "Notificações", Icon: Bell, count: unreadNotifications },
-    { to: `${base}/perfil`, label: "Conta", Icon: UserRound },
-  ];
+  const items = isAdmin
+    ? [
+        { to: "/dashboardUsuario", label: "Painel Geral", Icon: Compass, end: true },
+        { to: "/admin/usuarios", label: "Gerenciar Usuários", Icon: UsersIcon },
+        { to: "/admin/anuncios", label: "Gerenciar Anúncios", Icon: Shield },
+        { to: "/admin/novo-admin", label: "Novo Administrador", Icon: UserPlus },
+        { to: `${base}/perfil`, label: "Conta", Icon: UserRound },
+      ]
+    : [
+        { to: base, label: "Anúncios", Icon: Layers3, end: true },
+        { to: `${base}/resumo`, label: "Resumo", Icon: Compass, end: true },
+        { to: `${base}/publicar`, label: "Publicar", Icon: Plus },
+        { to: `${base}/explorar`, label: "Explorar", Icon: MapPin },
+        { to: `${base}/indicadores`, label: "Impacto", Icon: ChartNoAxesCombined },
+        { to: `${base}/reservas`, label: "Reservas", Icon: History },
+        { to: `${base}/seguranca`, label: "Segurança", Icon: ShieldCheck },
+        { to: `${base}/pagamentos`, label: "Recebimentos", Icon: CreditCard },
+        { to: `${base}/mensagens`, label: "Mensagens", Icon: MessageSquare, count: unreadMessages },
+        { to: `${base}/notificacoes`, label: "Notificações", Icon: Bell, count: unreadNotifications },
+        { to: `${base}/perfil`, label: "Conta", Icon: UserRound },
+      ];
   return <div className={`company-app workspace-frame ${user ? "workspace-user" : ""}`}>
     <a href="#conteudo" className="rf-skip">Pular para o conteúdo</a>
     <aside className="company-rail">
