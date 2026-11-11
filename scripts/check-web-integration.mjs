@@ -52,6 +52,15 @@ try {
     await connection.query("INSERT INTO `user` (id, role, name, email, password, status) VALUES (?, ?, ?, ?, ?, 'active')", [uuid.toBin(id), role, `Conta sintética ${role}`, email, hash]);
     users[role] = { id, email };
   }
+  const identities = requireApi("./src/services/googleIdentityService");
+  const verifyIdentity = identities.verifyGoogleIdentity;
+  const buyerIdentity = { sub: crypto.randomUUID(), email: crypto.randomUUID() + "@example.invalid", name: "Perfil Google sintético", email_verified: true, hd: "example.invalid" };
+  const companyIdentity = { sub: crypto.randomUUID(), email: crypto.randomUUID() + "@example.invalid", name: "Empresa Google sintética", email_verified: true, hd: "example.invalid" };
+  identities.verifyGoogleIdentity = async token => {
+    if (token === "DISPOSABLE_GOOGLE_BUYER") return buyerIdentity;
+    if (token === "DISPOSABLE_GOOGLE_COMPANY") return companyIdentity;
+    const failure = new Error("Identidade inválida no teste"); failure.status = 401; throw failure;
+  };
   const app = requireApi("./src/index");
   pool = requireApi("./src/db/connect");
   server = http.createServer(app);
@@ -63,7 +72,7 @@ try {
   globalThis.window = new EventTarget();
   window.location = { origin, hostname: "127.0.0.1" };
   const uiPlugins = process.argv.includes("--browser") ? [(await import("@vitejs/plugin-react")).default(), (await import("@tailwindcss/vite")).default()] : [];
-  vite = await createServer({ root, plugins: uiPlugins, configFile: false, envDir: false, server: { middlewareMode: true }, appType: "custom" });
+  vite = await createServer({ root, cacheDir: path.join(root, "node_modules/.vite-integration"), plugins: uiPlugins, configFile: false, envDir: false, server: { middlewareMode: true }, appType: "custom" });
   const web = await vite.ssrLoadModule("/src/api/services.ts");
   const api = web.default; api.defaults.baseURL = `${origin}/api/reaproveitafranca`;
   const company = await vite.ssrLoadModule("/src/pages/company/companyApi.ts");
@@ -201,6 +210,26 @@ try {
   sessionStorage.setItem("token", "invalid-token");
   await assert.rejects(web.listarReservas());
   assert.equal(auth.readSession().token, null); passed("sessão inválida é encerrada pelo frontend");
+  // Google is stubbed only in this disposable API process; real OAuth consent is verified separately.
+  const { authLimiter } = requireApi("./src/middlewares/rateLimit");
+  // Reset only the disposable process limiter between independent authentication scenarios.
+  authLimiter.resetKey("127.0.0.1");
+
+  try {
+    await assert.rejects(web.loginGoogle("INVALID_GOOGLE", "user"), error => error.response?.status === 401);
+    const first = (await web.loginGoogle("DISPOSABLE_GOOGLE_BUYER", "user")).data;
+    assert.ok(first.token); assert.equal(first.user.role, "user");
+    assert.equal((await web.loginGoogle("DISPOSABLE_GOOGLE_BUYER", "user")).data.user.id, first.user.id);
+    await assert.rejects(web.loginGoogle("DISPOSABLE_GOOGLE_BUYER", "company"), error => error.response?.status === 403);
+    passed("Google comprador: erro recuperável, criação, reentrada e proteção do perfil (identidade simulada)");
+    authLimiter.resetKey("127.0.0.1");
+    await assert.rejects(web.loginGoogle("DISPOSABLE_GOOGLE_COMPANY", "company"), error => error.response?.status === 404);
+    await assert.rejects(web.cadastrarEmpresaGoogle({ idToken: "DISPOSABLE_GOOGLE_COMPANY" }), error => error.response?.status === 400);
+    const socialCompany = (await web.cadastrarEmpresaGoogle({ idToken: "DISPOSABLE_GOOGLE_COMPANY", name: "Empresa Google sintética", cpf: "00000000000", cnpj: "00000000000000", cellphone: "00000000000", zip_code: "00000000", street: "Rua de teste", neighborhood: "Bairro de teste", number: "1", city: "Cidade de teste", state: "SP" })).data;
+    assert.ok(socialCompany.token); assert.equal(socialCompany.user.role, "company");
+    assert.equal((await web.loginGoogle("DISPOSABLE_GOOGLE_COMPANY", "company")).data.user.id, socialCompany.user.id);
+    passed("Google empresa: cadastro completo sem senha, validação e login (identidade simulada)");
+  } catch (failure) { console.error("Etapa Google:", failure.code || "", failure.message?.replace(/DISPOSABLE_GOOGLE_\w+/g, "[identidade de teste]")); throw failure; } finally { identities.verifyGoogleIdentity = verifyIdentity; }
   console.log(`${checks} grupos de integração passaram com serviços reais do frontend e API/MySQL isolados.`);
   if (process.argv.includes("--browser")) {
     // UI de teste somente em loopback, com sessões sintéticas geradas em memória.

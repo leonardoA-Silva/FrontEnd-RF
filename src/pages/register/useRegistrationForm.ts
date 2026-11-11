@@ -1,12 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
-import { cadastrarEmpresa, cadastrarUsuario } from "../../api/services";
+import { cadastrarEmpresa, cadastrarEmpresaGoogle, cadastrarUsuario, loginGoogle, type LoginResponse } from "../../api/services";
+import { useNavigate } from "react-router-dom";
+import { saveSession } from "../../auth/session";
+import { googleProfile, type GoogleProfile } from "../../auth/googleIdentity";
 import { registrationError } from "./registrationError";
 import { emptyRegistration, validateRegistration } from "./registrationData";
 import type { RegistrationData, RegistrationErrors, RegistrationKind } from "./registrationData";
 import { useRegistrationAddress } from "./useRegistrationAddress";
 
 export function useRegistrationForm(kind: RegistrationKind) {
+  const navigate = useNavigate();
+  const [google, setGoogle] = useState<GoogleProfile | null>(null);
   const [data, setData] = useState({ ...emptyRegistration });
   const [errors, setErrors] = useState<RegistrationErrors>({});
   const [error, setError] = useState("");
@@ -19,6 +24,31 @@ export function useRegistrationForm(kind: RegistrationKind) {
   const [created, setCreated] = useState<{ id: string; emailSent: boolean } | null>(null);
   const [verificationOpen, setVerificationOpen] = useState(false);
   const address = useRegistrationAddress(data, setData);
+
+  function completeGoogle(response: LoginResponse) {
+    const expected = kind === "company" ? "company" : "user";
+    if (!response.token || !response.user?.id || response.user.role !== expected) throw new Error("Esta conta pertence a outro perfil. Abra o login e selecione o tipo de conta correto.");
+    const mustChangePassword = response.mustChangePassword === true || response.user.status === "firstLogin";
+    saveSession(response.token, { ...response.user, mustChangePassword }, false);
+    setGoogle(null);
+    navigate(mustChangePassword ? "/primeiro-acesso" : expected === "company" ? "/dashboardEmpresa" : "/dashboardUsuario?aba=perfil", { replace: true });
+  }
+
+  async function selectGoogle(credential: string) {
+    if (submitting.current || busy || created) return;
+    if (kind === "company") {
+      const profile = googleProfile(credential);
+      setGoogle(profile);
+      setData(previous => ({ ...previous, email: profile.email, name: previous.name || profile.name, password: "" }));
+      setErrors({}); setError(""); setConflict(false);
+      return;
+    }
+    submitting.current = true; setBusy(true);
+    try { completeGoogle((await loginGoogle(credential, "user")).data); }
+    finally { submitting.current = false; setBusy(false); }
+  }
+
+  function clearGoogle() { setGoogle(null); setErrors({}); setError(""); }
 
   useEffect(() => () => { if (photoUrl) URL.revokeObjectURL(photoUrl); }, [photoUrl]);
 
@@ -43,7 +73,8 @@ export function useRegistrationForm(kind: RegistrationKind) {
 
   async function send() {
     if (submitting.current || busy || created) return;
-    const nextErrors = validateRegistration(data, kind);
+    if (google && google.expiresAt <= Date.now()) { setGoogle(null); setError("Sua identificação do Google expirou. Escolha sua conta novamente; os dados preenchidos foram preservados."); return; }
+    const nextErrors = validateRegistration(data, kind, !!google);
     setErrors(nextErrors);
     setError("");
     setConflict(false);
@@ -60,6 +91,12 @@ export function useRegistrationForm(kind: RegistrationKind) {
       city: data.city.trim(), state: data.state.trim().toUpperCase(),
     };
     try {
+      if (google && kind === "company") {
+        const { password: _password, ...companyPayload } = { ...payload, cnpj: data.cnpj.replace(/\D/g, "") };
+        void _password;
+        completeGoogle((await cadastrarEmpresaGoogle({ ...companyPayload, idToken: google.credential }, photo)).data);
+        return;
+      }
       const response = kind === "company"
         ? await cadastrarEmpresa({ ...payload, cnpj: data.cnpj.replace(/\D/g, "") }, photo)
         : await cadastrarUsuario({ ...payload, birthday: data.birthday }, photo);
@@ -79,5 +116,5 @@ export function useRegistrationForm(kind: RegistrationKind) {
     } finally { submitting.current = false; setBusy(false); }
   }
 
-  return { data, errors, error, conflict, busy, photoUrl, photoError, created, verificationOpen, setVerificationOpen, setField, changePhoto, submit, address };
+  return { data, errors, error, conflict, busy, photoUrl, photoError, created, verificationOpen, setVerificationOpen, setField, changePhoto, submit, address, google, selectGoogle, clearGoogle };
 }

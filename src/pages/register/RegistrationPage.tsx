@@ -8,6 +8,7 @@ import EmailVerificationModal from "../../components/EmailVerificationModal";
 import RegistrationForm from "./components/RegistrationForm";
 import { useRegistrationForm } from "./useRegistrationForm";
 import type { RegistrationKind } from "./registrationData";
+import GoogleSignIn from "../../components/account/GoogleSignIn";
 
 export default function RegistrationPage({ kind }: { kind: RegistrationKind }) {
   const company = kind === "company";
@@ -30,6 +31,7 @@ export default function RegistrationPage({ kind }: { kind: RegistrationKind }) {
           <RegistrationSection>
             <div className="registration-mobile-progress"><AccountSteps current={form.created ? 3 : 2} /></div>
             <div className="registration-sheet-heading"><h2>Preencha seus dados</h2><span>* Campos obrigatórios</span></div>
+            {!form.created && <div className="google-access-section"><GoogleSignIn onCredential={form.selectGoogle} disabled={form.busy} accountType={company ? "company" : "user"} />{form.google ? <p className="account-alert account-alert-success" role="status">Conta Google selecionada. Complete os dados da empresa para criar sua conta. <button type="button" className="google-access-retry" disabled={form.busy} onClick={form.clearGoogle}>Usar e-mail e senha</button></p> : <p className="google-access-help">{company ? "Conecte seu Google e complete os dados da empresa, ou use o formulário com e-mail e senha." : "Com Google, seu perfil é criado e você pode completar os dados depois. Você também pode preencher o formulário abaixo."}</p>}</div>}
             <RegistrationForm kind={kind} form={form} />
             <AccountSignIn />
           </RegistrationSection>

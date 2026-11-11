@@ -2,10 +2,11 @@ import { useCallback, useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ArrowRight, Eye, EyeOff } from "lucide-react";
-import api, { type LoginResponse } from "../../api/services";
+import api, { loginGoogle, type LoginResponse } from "../../api/services";
 import { apiError, apiStatus } from "../../axios/apiError";
 import { saveSession } from "../../auth/session";
 import Brand from "../../components/Brand";
+import GoogleSignIn from "../../components/account/GoogleSignIn";
 
 
 type TipoUsuario = "empresa" | "comprador";
@@ -15,7 +16,7 @@ export default function Login() {
     const location = useLocation();
     const origem = location.state?.from;
     const voltarAoMarketplace = typeof origem === "string" && /^\/marketplace(?:\/[A-Za-z0-9_-]+){0,3}$/.test(origem);
-    const [tipoUsuario, setTipoUsuario] = useState<TipoUsuario>(() => voltarAoMarketplace || location.state?.tipoUsuario === "comprador" ? "comprador" : "empresa");
+    const [tipoUsuario, setTipoUsuario] = useState<TipoUsuario>(() => voltarAoMarketplace || location.state?.tipoUsuario === "comprador" || new URLSearchParams(location.search).get("perfil") === "comprador" ? "comprador" : "empresa");
     const [email, setEmail] = useState("");
     const [senha, setSenha] = useState("");
     const [lembrarDeMim, setLembrarDeMim] = useState(false);
@@ -63,6 +64,20 @@ export default function Login() {
         } finally { setCarregando(false); }
     }
 
+    async function handleGoogle(credential: string) {
+        setCarregando(true); setErro("");
+        try {
+            const response = await loginGoogle(credential, ehEmpresa ? "company" : "user");
+            handleLoginSuccess(response.data, lembrarDeMim);
+        } catch (cause) {
+            if (apiStatus(cause) === 404 && ehEmpresa) {
+                setErro("Sua empresa ainda não está cadastrada. Abra o cadastro de empresa e continue com Google para preencher os dados restantes.");
+                return;
+            }
+            throw cause;
+        } finally { setCarregando(false); }
+    }
+
     return <div className="login-page login-refined">
       <header className="login-header"><Brand /><Link to="/" className="login-home-link">Voltar ao site</Link></header>
       <main className="login-main"><div className="login-layout">
@@ -76,7 +91,7 @@ export default function Login() {
           <div className="account-login-options"><label className="account-remember"><input type="checkbox" checked={lembrarDeMim} onChange={e => setLembrarDeMim(e.target.checked)} disabled={carregando} />Lembrar de mim</label><Link to="/recuperar-senha">Esqueceu a senha?</Link></div>
           <button type="submit" className="home-button account-submit" disabled={carregando}>{carregando ? "Entrando…" : "Entrar na minha conta"}<ArrowRight size={18} aria-hidden="true" /></button>
           <p className="account-switch"><span>Ainda não tem conta?</span><Link to="/cadastro">Crie sua conta</Link></p>
-        </form></section>
+        </form><div className="google-access-section"><p className="google-access-divider">ou continue com</p><GoogleSignIn onCredential={handleGoogle} disabled={carregando} accountType={ehEmpresa ? "company" : "user"} />{ehEmpresa && <Link className="google-access-retry" to="/cadastro-empresa">Cadastrar empresa com Google</Link>}</div></section>
       </div></main><footer className="login-footer">© {new Date().getFullYear()} Reaproveita Franca.</footer>
     </div>;
 }

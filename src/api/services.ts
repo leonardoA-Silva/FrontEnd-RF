@@ -3,6 +3,10 @@ import type { SessionUser } from "../auth/session";
 
 export default api;
 
+export const loginGoogle = (idToken: string, accountType: "company" | "user") => api.post<LoginResponse>("/user/login/google", { idToken, accountType });
+export const cadastrarEmpresaGoogle = (payload: Omit<CadastroEmpresaPayload, "password"> & { idToken: string }, photoFile?: File | null) =>
+  api.post<LoginResponse>("/user/create/empresa/google", buildFormData(payload, photoFile));
+
 // ─── Tipos ─────────────────────────────────────────────────────────────────────
 
 export interface CadastroEmpresaPayload {

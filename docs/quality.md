@@ -27,7 +27,7 @@ The company receiving-account page is `/dashboardEmpresa/pagamentos`; it uses th
 
 The buyer/company flows use the current desktop `Mobile-RF/App.js`, `src/services/axios.js` and screen implementations as the reference. Web navigation/layout remains browser-native. Both profiles expose a real overview, company map/search/chat, profile/photo, main address, password security, notifications and conversations with message editing/deletion. Buyer history includes all/active/completed reservations, Pix/card checkout, saved-card selection/removal, approval confirmation and read-only impact. Companies publish/edit/delete their listings, answer received requests and manage Mercado Pago linkage.
 
-Features absent from the mobile implementation were removed from the web surface and their dedicated modules: reviews, disputes, active social login, self-account deletion, address deletion/manual coordinates, card editing, payment cancellation, manual impact generation, leaving conversations, OTP resend/login resumption and demo previews. Material publication sends one photo; editing preserves the original photos as the mobile editor does. No code or configuration was changed in the mobile/backend repositories.
+Features absent from the mobile implementation were removed from the web surface and their dedicated modules: reviews, disputes, self-account deletion, address deletion/manual coordinates, card editing, payment cancellation, manual impact generation, leaving conversations, OTP resend/login resumption and demo previews. Material publication sends one photo; editing preserves the original photos as the mobile editor does. No code or configuration was changed in the mobile/backend repositories.
 
 `npm run test:integration -- --browser` optionally keeps the disposable environment available for up to three minutes after the service tests. The loopback-only `/__test__/company` and `/__test__/buyer` pages install runtime-generated synthetic sessions in that test origin; no real account/session is reused or printed. `/__test__/done` ends this optional phase. The temporary database is then removed through the same cleanup path.
 
@@ -54,3 +54,5 @@ For a changed flow, verify as applicable:
 ## Change-specific evidence
 
 The completion note should name the route/flow exercised and exact commands run. If visual browser verification was unavailable, say so. If a change depends on API or mobile work that cannot be performed under the repository boundary, identify that dependency explicitly.
+
+Google login and registration use Google Identity Services. Buyers use `/user/login/google`; companies submit their required business data to `/user/create/empresa/google`. The disposable integration suite also covers Google buyer/company flows with identity verification simulated in that test process. See [Google setup](google-sign-in.md) for real-provider prerequisites and verification limits.
