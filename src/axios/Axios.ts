@@ -2,10 +2,10 @@ import axios from "axios";
 import { clearSession, type SessionUser } from "../auth/session";
 
 // ─── Instância base ────────────────────────────────────────────────────────────
-// Base da API (hospedada localmente na porta 5000 ou configurada via VITE_API_URL)
+// Base da API (Cloudflare Tunnel ou configurada via VITE_API_URL)
 const BASE_URL =
   import.meta.env.VITE_API_URL ??
-  "/api/reaproveitafranca";
+  "https://bikini-sheet-surrey-recovery.trycloudflare.com/api/reaproveitafranca";
 
 const api = axios.create({
   baseURL: BASE_URL,
