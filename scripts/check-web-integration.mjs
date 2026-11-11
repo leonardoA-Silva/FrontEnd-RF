@@ -74,6 +74,12 @@ try {
   const uiPlugins = process.argv.includes("--browser") ? [(await import("@vitejs/plugin-react")).default(), (await import("@tailwindcss/vite")).default()] : [];
   vite = await createServer({ root, cacheDir: path.join(root, "node_modules/.vite-integration"), plugins: uiPlugins, configFile: false, envDir: false, server: { middlewareMode: true }, appType: "custom" });
   const web = await vite.ssrLoadModule("/src/api/services.ts");
+  const { googleAccessError } = await vite.ssrLoadModule("/src/auth/googleError.ts");
+  const authenticationFailure = (status, error) => ({ isAxiosError: true, response: { status, data: { error } } });
+  assert.match(googleAccessError(authenticationFailure(503, "Login Google não configurado.")), /não está habilitado no servidor/);
+  assert.match(googleAccessError(authenticationFailure(503, "Google temporariamente indisponível.")), /temporariamente indisponível/);
+  assert.match(googleAccessError(authenticationFailure(429, "Muitas tentativas.")), /Aguarde/);
+  assert.equal(googleAccessError(authenticationFailure(409, "Documento já registrado"), "Documento já cadastrado."), "Documento já cadastrado.");
   const api = web.default; api.defaults.baseURL = `${origin}/api/reaproveitafranca`;
   const company = await vite.ssrLoadModule("/src/pages/company/companyApi.ts");
   const resources = await vite.ssrLoadModule("/src/pages/company/companyResourceApi.ts");

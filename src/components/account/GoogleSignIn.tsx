@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { apiError } from "../../axios/apiError";
+import { googleAccessError } from "../../auth/googleError";
 import { googleAuthTarget } from "../../auth/googleOrigin";
 
 interface CredentialResponse { credential?: string }
@@ -54,7 +54,7 @@ export default function GoogleSignIn({ onCredential, disabled = false, accountTy
       if (!response.credential) { setError("O Google não confirmou sua identificação. Tente novamente."); return; }
       working.current = true; setBusy(true); setError("");
       try { await handler.current(response.credential); }
-      catch (cause) { if (active.current) setError(apiError(cause, "Não foi possível continuar com Google. Tente novamente ou use e-mail e senha.")); }
+      catch (cause) { if (active.current) setError(googleAccessError(cause)); }
       finally { working.current = false; if (active.current) setBusy(false); }
     };
     async function prepare() {
@@ -84,7 +84,6 @@ export default function GoogleSignIn({ onCredential, disabled = false, accountTy
     {!ready && <button type="button" className="buyer-secondary" disabled={busy || disabled} onClick={() => setAttempt(value => value + 1)}>Continuar com Google</button>}
     {busy && <p role="status">Confirmando seu acesso…</p>}
     {error && <p role="alert" className="account-field-error">{error}</p>}
-    {ready && !busy && <button type="button" className="google-access-retry" onClick={() => setAttempt(value => value + 1)}>Recarregar botão do Google</button>}
     <p className="google-access-help">Se a janela fechar ou ocorrer uma falha, tente novamente ou continue com e-mail.</p>
   </div>;
 }

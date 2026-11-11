@@ -4,6 +4,7 @@ import { cadastrarEmpresa, cadastrarEmpresaGoogle, cadastrarUsuario, loginGoogle
 import { useNavigate } from "react-router-dom";
 import { saveSession } from "../../auth/session";
 import { googleProfile, type GoogleProfile } from "../../auth/googleIdentity";
+import { googleAccessError } from "../../auth/googleError";
 import { registrationError } from "./registrationError";
 import { emptyRegistration, validateRegistration } from "./registrationData";
 import type { RegistrationData, RegistrationErrors, RegistrationKind } from "./registrationData";
@@ -109,7 +110,7 @@ export function useRegistrationForm(kind: RegistrationKind) {
       setVerificationOpen(true);
     } catch (failure) {
       const result = registrationError(failure, kind);
-      setError(result.message);
+      setError(google ? googleAccessError(failure, result.message) : result.message);
       setErrors(result.fields);
       setConflict(result.conflict);
       window.requestAnimationFrame(() => document.getElementById("registration-error")?.focus());

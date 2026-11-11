@@ -24,3 +24,9 @@ Os contratos verificam expiração e preenchimento de claims, além dos campos o
 ## Erro 400 origin_mismatch
 
 Esse erro é uma recusa do Google antes da autenticação da API: a origem do navegador não foi autorizada no Client ID utilizado. No cliente OAuth correto, salve as três origens acima, sem caminhos e sem barra final. Não coloque `/login`, o endereço do backend nem curingas. As alterações podem demorar para propagar. O responsável precisa ter acesso ao projeto Google Cloud; se houver exigência de MFA, deve concluí-la. A aplicação não pode ignorar essa verificação do Google.
+
+## Erro 503 da API
+
+`Login Google não configurado.` indica falta de `GOOGLE_CLIENT_ID` ou da configuração de assinatura no processo da API. A variável `VITE_GOOGLE_CLIENT_ID` do frontend não configura o backend. O responsável deve definir o mesmo Client ID público em `GOOGLE_CLIENT_ID` na API e reiniciá-la, preservando os demais valores da `.env`. `Google temporariamente indisponível.` é outra resposta 503, relacionada à comunicação da API com o Google.
+
+O frontend distingue essas respostas e o limite de tentativas 429, libera o formulário após a falha e não exibe botão adicional de recarregar o Google. O botão oficial continua disponível para uma nova tentativa. Bloqueios de chamadas de log do Google pelo navegador são distintos dessas respostas da API.
