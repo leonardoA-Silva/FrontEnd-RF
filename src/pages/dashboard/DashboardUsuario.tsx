@@ -97,7 +97,7 @@ export default function DashboardUsuario() {
         {tab === "impacto" && <BuyerImpact key={`${user.id}:${params.get("reserva") ?? ""}`} />}
         {tab === "empresas" && <BuyerCompanies key={user.id} />}
         {tab === "notificacoes" && <BuyerNotifications key={user.id} socket={realtime.socket} />}
-        {tab === "mensagens" && <BuyerConversations key={user.id} userId={user.id} socket={realtime.socket} connected={realtime.connected} />}
+        {tab === "mensagens" && <BuyerConversations key={user.id} />}
         {tab === "enderecos" && <BuyerAddresses key={user.id} userId={user.id} />}
         {tab === "cartoes" && <BuyerCards key={user.id} />}
         {tab === "perfil" && <BuyerProfile key={user.id} userId={user.id} />}
