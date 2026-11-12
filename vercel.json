@@ -2,19 +2,19 @@
   "rewrites": [
     {
       "source": "/api/:path*/",
-      "destination": "https://albums-hosting-promoting-organizer.trycloudflare.com/api/:path*/"
+      "destination": "https://downloads-prospect-anticipated-aqua.trycloudflare.com/api/:path*/"
     },
     {
       "source": "/socket.io/",
-      "destination": "https://albums-hosting-promoting-organizer.trycloudflare.com/socket.io/"
+      "destination": "https://downloads-prospect-anticipated-aqua.trycloudflare.com/socket.io/"
     },
     {
       "source": "/api/:path*",
-      "destination": "https://albums-hosting-promoting-organizer.trycloudflare.com/api/:path*"
+      "destination": "https://downloads-prospect-anticipated-aqua.trycloudflare.com/api/:path*"
     },
     {
       "source": "/socket.io/:path*",
-      "destination": "https://albums-hosting-promoting-organizer.trycloudflare.com/socket.io/:path*"
+      "destination": "https://downloads-prospect-anticipated-aqua.trycloudflare.com/socket.io/:path*"
     },
     {
       "source": "/(.*)",
