@@ -74,7 +74,7 @@ export default function Login() {
             handleLoginSuccess(response.data, lembrarDeMim);
         } catch (cause) {
             if (apiStatus(cause) === 404 && ehEmpresa) {
-                setErro("Sua empresa ainda não está cadastrada. Abra o cadastro de empresa e continue com Google para preencher os dados restantes.");
+                navigate("/cadastro-empresa", { state: { googleCredential: credential } });
                 return;
             }
             throw cause;

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { cadastrarEmpresa, cadastrarEmpresaGoogle, cadastrarUsuario, loginGoogle, type LoginResponse } from "../../api/services";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { saveSession } from "../../auth/session";
 import { googleProfile, type GoogleProfile } from "../../auth/googleIdentity";
 import { googleAccessError } from "../../auth/googleError";
@@ -12,8 +12,28 @@ import { useRegistrationAddress } from "./useRegistrationAddress";
 
 export function useRegistrationForm(kind: RegistrationKind) {
   const navigate = useNavigate();
-  const [google, setGoogle] = useState<GoogleProfile | null>(null);
-  const [data, setData] = useState({ ...emptyRegistration });
+  const location = useLocation();
+  const [google, setGoogle] = useState<GoogleProfile | null>(() => {
+    if (kind === "company" && location.state?.googleCredential) {
+      try {
+        return googleProfile(location.state.googleCredential);
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  });
+  const [data, setData] = useState(() => {
+    if (kind === "company" && location.state?.googleCredential) {
+      try {
+        const prof = googleProfile(location.state.googleCredential);
+        return { ...emptyRegistration, email: prof.email, name: prof.name, password: "" };
+      } catch {
+        return { ...emptyRegistration };
+      }
+    }
+    return { ...emptyRegistration };
+  });
   const [errors, setErrors] = useState<RegistrationErrors>({});
   const [error, setError] = useState("");
   const [conflict, setConflict] = useState(false);
