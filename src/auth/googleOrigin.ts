@@ -1,5 +1,11 @@
 const officialOrigin = "https://reaproveitafranca.vercel.app";
-const authorizedOrigins = new Set([officialOrigin, "http://localhost:5174", "http://127.0.0.1:5174"]);
+const authorizedOrigins = new Set([
+  officialOrigin,
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+  "http://localhost:5174",
+  "http://127.0.0.1:5174"
+]);
 
 // Keep OAuth on stable origins. Preview hosts change on every deployment.
 export function googleAuthTarget(origin: string, pathname: string, accountType: "company" | "user") {
