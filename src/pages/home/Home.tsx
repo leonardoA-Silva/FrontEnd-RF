@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowDown, ArrowRight, ArrowUpRight, Leaf, Pause, PencilLine, Play, UserRound } from "lucide-react";
+import { ArrowDown, ArrowRight, ArrowUpRight, Download, Leaf, Pause, PencilLine, Play, UserRound } from "lucide-react";
 import { Link } from "react-router-dom";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
@@ -16,6 +16,8 @@ const steps = [
   { icon: PencilLine, title: "Crie sua conta", description: "Preencha seus dados e confirme seu e-mail para começar." },
   { icon: Leaf, title: "Faça parte da rede", description: "Aproxime sua empresa ou suas ideias de novas possibilidades." },
 ];
+// APK do app mobile gerado pelo EAS (Expo). Por enquanto só existe a versão Android.
+const ANDROID_APK_URL = "https://expo.dev/artifacts/eas/E319fPiNlOsnz9vtmW5_qQS8_AOqjgZd-eoWf03NIzw.apk";
 
 export default function Home() {
   const [paused, setPaused] = useState(false);
@@ -66,6 +68,36 @@ export default function Home() {
         <section className="home-container home-steps" aria-labelledby="steps-title">
           <div data-reveal><p className="home-eyebrow">Como fazer parte</p><h2 id="steps-title">Seu próximo ciclo<br />começa aqui.</h2></div>
           <ol>{steps.map(({ icon: Icon, title, description }, index) => <li key={title} data-reveal><div className="home-step-icon"><Icon size={26} strokeWidth={1.3} />{index < steps.length - 1 && <ArrowRight size={21} className="home-step-arrow" strokeWidth={1} />}</div><span className="home-step-number">0{index + 1}</span><h3 className="home-serif">{title}</h3><p>{description}</p></li>)}</ol>
+        </section>
+
+        <section id="aplicativo" className="home-app" aria-labelledby="app-title">
+          <div className="home-container home-app-inner">
+            <div className="home-app-phones" data-reveal>
+              <figure className="home-phone home-phone-android">
+                <div className="home-phone-frame">
+                  <span className="home-phone-camera" aria-hidden="true" />
+                  <img src="/images/home/app-painel.png" alt="Tela inicial do aplicativo no Android: painel do comprador com reservas e materiais recomendados" width="824" height="1834" loading="lazy" />
+                </div>
+                <figcaption>Android</figcaption>
+              </figure>
+              <figure className="home-phone home-phone-iphone">
+                <div className="home-phone-frame">
+                  <span className="home-phone-island" aria-hidden="true" />
+                  <img src="/images/home/app-marketplace.png" alt="Tela do aplicativo no iPhone: marketplace com retalhos de couro, placas de EVA e borracha disponíveis" width="824" height="1834" loading="lazy" />
+                </div>
+                <figcaption>iPhone</figcaption>
+              </figure>
+            </div>
+            <div className="home-app-copy" data-reveal>
+              <p className="home-eyebrow">Aplicativo Reaproveita Franca</p>
+              <h2 id="app-title">Experimente já nosso{" "}<br /><em>aplicativo</em> para celular!</h2>
+              <p className="home-app-subtitle">Reaproveitando retalhos e sobras da indústria direto do seu celular.</p>
+              <a href={ANDROID_APK_URL} className="home-button home-app-button" download>
+                Baixar para Android <Download size={17} aria-hidden="true" />
+              </a>
+              <p className="home-app-note">Disponível somente para Android momentaneamente.</p>
+            </div>
+          </div>
         </section>
 
         <section className="home-closing" aria-labelledby="closing-title"><div className="home-container home-closing-inner"><div className="home-closing-copy" data-reveal><p className="home-eyebrow">Economia circular em ação</p><h2 id="closing-title">O futuro não<br />se descarta.<br /><em>Se transforma.</em></h2><Link to="/cadastro" className="home-button">Criar minha conta <ArrowUpRight size={17} /></Link></div><img className="home-closing-art" src="/images/home/hero.webp" alt="" width="1600" height="1067" loading="lazy" /></div></section>

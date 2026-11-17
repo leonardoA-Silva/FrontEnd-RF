@@ -149,6 +149,26 @@ button:not(:disabled), label:has(input[type="radio"]) { cursor: pointer; }
 .home-closing h2 em { font-size: 1.1em; }
 .home-closing .home-button { margin-top: 30px; }
 .home-closing-art { position: absolute; width: 78%; max-width: none; right: -22%; top: 0; height: 110%; object-fit: cover; mix-blend-mode: multiply; pointer-events: none; }
+.home-app { background: #eef1e8; padding-block: 80px; overflow: clip; }
+.home-app-inner { display: grid; grid-template-columns: 1.05fr 1fr; align-items: center; gap: 70px; }
+.home-app-phones { display: flex; justify-content: center; align-items: flex-end; gap: 0; }
+.home-phone { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 14px; }
+.home-phone figcaption { font-size: 10px; font-weight: 650; text-transform: uppercase; letter-spacing: .25em; color: #52564e; }
+.home-phone-frame { position: relative; width: 236px; aspect-ratio: 412 / 917; padding: 9px; background: #161a18; box-shadow: 0 30px 60px #0f3d2e33, inset 0 0 0 2px #2c3330; }
+.home-phone-frame img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top; background: #faf9f5; }
+.home-phone-android .home-phone-frame { border-radius: 34px; transform: rotate(-4deg) translateX(18px); }
+.home-phone-android .home-phone-frame img { border-radius: 26px; }
+.home-phone-iphone { position: relative; z-index: 1; margin-bottom: 34px; }
+.home-phone-iphone .home-phone-frame { width: 250px; border-radius: 46px; padding: 10px; transform: rotate(3deg); background: #1d1f1e; }
+.home-phone-iphone .home-phone-frame img { border-radius: 37px; }
+.home-phone-android figcaption { transform: translateX(18px); }
+.home-phone-camera { position: absolute; top: 19px; left: 50%; width: 11px; height: 11px; border-radius: 50%; background: #161a18; transform: translateX(-50%); box-shadow: 0 0 0 2px #2c3330; }
+.home-phone-island { position: absolute; top: 18px; left: 50%; width: 76px; height: 22px; border-radius: 999px; background: #0b0c0c; transform: translateX(-50%); }
+.home-app-copy h2 { margin-top: 20px; }
+.home-app-copy h2 em { font-size: 1.08em; }
+.home-app .home-app-subtitle { margin-top: 22px; max-width: 420px; font-size: 17px; line-height: 1.6; color: #52564e; }
+.home-app-button { margin-top: 30px; }
+.home-app .home-app-note { margin-top: 14px; font-size: 11px; line-height: 1.5; color: #687264; }
 .home-footer { position: relative; background: #faf9f5; color: #0f3d2e; padding-block: 32px 23px; border-top: 1px solid #dedfd5; }
 .home-footer-top { display: flex; justify-content: space-between; align-items: center; gap: 30px; padding-bottom: 26px; }
 .home-brand-footer svg { width: 35px; height: 35px; }
@@ -249,6 +269,41 @@ button:not(:disabled), label:has(input[type="radio"]) { cursor: pointer; }
   .home-step-icon { grid-row: span 3; }
   .home-step-arrow { display: none; }
   .home-steps li p { margin-top: 5px; font-size: 13px; }
+}
+@media (max-width: 1050px) {
+  .home-app-inner { gap: 40px; }
+  .home-phone-frame { width: 200px; }
+  .home-phone-iphone .home-phone-frame { width: 212px; }
+}
+@media (max-width: 767px) {
+  .home-app { padding-block: 54px 48px; }
+  .home-app-inner { grid-template-columns: 1fr; gap: 38px; }
+  .home-app-copy { order: -1; }
+  .home-app-copy h2 br { display: none; }
+  .home-app .home-app-subtitle { font-size: 15px; }
+  .home-app-button { width: 100%; }
+  .home-phone-frame { width: 150px; padding: 6px; }
+  .home-phone-android .home-phone-frame { border-radius: 24px; transform: rotate(-4deg) translateX(10px); }
+  .home-phone-android .home-phone-frame img { border-radius: 19px; }
+  .home-phone-android figcaption { transform: translateX(10px); }
+  .home-phone-iphone { margin-bottom: 22px; }
+  .home-phone-iphone .home-phone-frame { width: 160px; padding: 7px; border-radius: 32px; }
+  .home-phone-iphone .home-phone-frame img { border-radius: 26px; }
+  .home-phone-camera { top: 12px; width: 8px; height: 8px; }
+  .home-phone-island { top: 12px; width: 50px; height: 15px; }
+}
+@media (max-width: 560px) {
+  .home-story-stages, .home-material-descriptions { grid-template-columns: 1fr; gap: 22px; }
+  .home-story-stages p, .home-material-descriptions p { max-width: none; font-size: 14px; }
+  .home-steps ol { grid-template-columns: 1fr; gap: 22px; }
+  .home-steps li { display: grid; grid-template-columns: 48px 1fr; column-gap: 16px; }
+  .home-step-icon { grid-row: span 3; }
+  .home-step-arrow { display: none; }
+  .home-steps li p { margin-top: 5px; font-size: 14px; }
+}
+@media (max-width: 370px) {
+  .home-phone-frame { width: 128px; }
+  .home-phone-iphone .home-phone-frame { width: 136px; }
 }
 @media (prefers-reduced-motion: reduce) { .home-motion-control { display: none; } }
 

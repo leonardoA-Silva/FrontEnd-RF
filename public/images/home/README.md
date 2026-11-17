@@ -7,3 +7,5 @@ These original assets were generated with the built-in image generation tool for
 - `materials.webp`: wide studio composition of sculptural cognac leather, natural woven linen and stacked olive/charcoal EVA against dark forest green. No text or logos.
 
 Images illustrate reuse possibilities, not real listings, measured impact or available inventory. The interactive scene uses locally generated geometry and procedural grain/weave bump maps, rather than claiming the generated illustration is a true 3D model. UI logo is a local SVG in `Brand.tsx`; no social accounts are invented.
+
+- `app-painel.png` and `app-marketplace.png`: 2x exports of the mobile app screens "Painel / comprador" and "Marketplace / Explorar materiais" from the project Figma (Mobile page). Used inside the CSS phone frames of the app download section; the names and listings shown are design samples, not real users or inventory.
