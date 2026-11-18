@@ -325,3 +325,92 @@ export const atualizarFotoUsuario = (id: string, formData: FormData) =>
     headers: { "Content-Type": "multipart/form-data" }
   });
 
+// ─── Avaliações (Reviews) ──────────────────────────────────────────────────────
+
+export interface ReviewBackend {
+  id: string;
+  rating: number;
+  comment: string | null;
+  created_in: string;
+  id_shopping: string;
+  id_reviewer: string;
+  id_reviewed: string;
+}
+
+export interface CreateReviewPayload {
+  rating: number;
+  comment?: string | null;
+  id_shopping: string;
+  id_reviewed: string;
+}
+
+export interface UpdateReviewPayload {
+  rating?: number;
+  comment?: string | null;
+}
+
+export const listarAvaliacoes = (signal?: AbortSignal) =>
+  api.get<ReviewBackend[]>("/review/", { signal });
+
+export const obterAvaliacaoPorId = (id: string, signal?: AbortSignal) =>
+  api.get<ReviewBackend>(`/review/${encodeURIComponent(id)}`, { signal });
+
+export const criarAvaliacao = (payload: CreateReviewPayload) =>
+  api.post<{ message: string; id: string }>("/review/create", payload);
+
+export const atualizarAvaliacao = (id: string, payload: UpdateReviewPayload) =>
+  api.put<{ message: string; review: ReviewBackend }>(`/review/${encodeURIComponent(id)}`, payload);
+
+export const excluirAvaliacao = (id: string) =>
+  api.delete<{ message: string }>(`/review/${encodeURIComponent(id)}`);
+
+// ─── Disputas e Denúncias (Disputes) ──────────────────────────────────────────
+
+export type DisputeType =
+  | "material_incompativel"
+  | "nao_retirado"
+  | "nao_comparecimento"
+  | "comportamento_inadequado"
+  | "item_danificado"
+  | "outro";
+
+export type DisputeStatus = "aberta" | "em_analise" | "resolvida" | "rejeitada";
+
+export interface DisputeBackend {
+  id: string;
+  type: DisputeType;
+  description: string;
+  status: DisputeStatus;
+  resolution: string | null;
+  created_in: string;
+  updated_in: string | null;
+  resolved_in: string | null;
+  id_shopping: string;
+  id_opened_by: string;
+  id_resolved_by: string | null;
+}
+
+export interface CreateDisputePayload {
+  type: DisputeType;
+  description: string;
+  id_shopping: string;
+}
+
+export interface UpdateDisputePayload {
+  type?: DisputeType;
+  description?: string;
+}
+
+export const listarDisputas = (signal?: AbortSignal) =>
+  api.get<DisputeBackend[]>("/dispute/", { signal });
+
+export const obterDisputaPorId = (id: string, signal?: AbortSignal) =>
+  api.get<DisputeBackend>(`/dispute/${encodeURIComponent(id)}`, { signal });
+
+export const criarDisputa = (payload: CreateDisputePayload) =>
+  api.post<{ message: string; id: string }>("/dispute/create", payload);
+
+export const atualizarDisputa = (id: string, payload: UpdateDisputePayload) =>
+  api.put<{ message: string; dispute: DisputeBackend }>(`/dispute/${encodeURIComponent(id)}`, payload);
+
+

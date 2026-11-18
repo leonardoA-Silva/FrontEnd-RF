@@ -1,6 +1,16 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { cancelarReserva, listarReservas, obterReserva, iniciarConversa } from "../../../api/services";
+import { Star, AlertTriangle } from "lucide-react";
+import {
+  cancelarReserva,
+  listarReservas,
+  obterReserva,
+  iniciarConversa,
+  listarAvaliacoes,
+  listarDisputas,
+  type ReviewBackend,
+  type DisputeBackend,
+} from "../../../api/services";
 import { apiError, apiStatus } from "../../../axios/apiError";
 import { requireArray, useApiResource } from "../../../hooks/useApiResource";
 import ConfirmAction from "./ConfirmAction";
@@ -9,6 +19,8 @@ import { buyerStyles as s } from "./buyerStyles";
 import { dateLabel, money, shoppingLabel } from "./buyerPresentation";
 import BuyerPayment from "./BuyerPayment";
 import type { PaymentActivity } from "./paymentFlow";
+import ReviewDialog, { ReviewCard } from "./ReviewDialog";
+import DisputeDialog, { DisputeCard } from "./DisputeDialog";
 
 export default function BuyerReservations({ history = false }: { history?: boolean }) {
   const [params, setParams] = useSearchParams();
@@ -33,12 +45,41 @@ export default function BuyerReservations({ history = false }: { history?: boole
 function ReservationDetail({ id, paymentFirst }: { id: string; paymentFirst: boolean }) {
   const [, setParams] = useSearchParams();
   const loader = useCallback(async (signal: AbortSignal) => {
-    const response = await obterReserva(id, signal);
+    const [resResponse, revResponse, dispResponse] = await Promise.allSettled([
+      obterReserva(id, signal),
+      listarAvaliacoes(signal),
+      listarDisputas(signal),
+    ]);
+
+    if (resResponse.status === "rejected") {
+      throw resResponse.reason;
+    }
+
+    const response = resResponse.value;
     if (response.data.id !== id || !Array.isArray(response.data.items)) throw new Error("Reserva inválida.");
-    return response;
+
+    const allReviews = revResponse.status === "fulfilled" && Array.isArray(revResponse.value.data) ? revResponse.value.data : [];
+    const shoppingReviews = allReviews.filter(
+      (r: ReviewBackend) => r.id_shopping?.toLowerCase() === id.toLowerCase()
+    );
+
+    const allDisputes = dispResponse.status === "fulfilled" && Array.isArray(dispResponse.value.data) ? dispResponse.value.data : [];
+    const shoppingDisputes = allDisputes.filter(
+      (d: DisputeBackend) => d.id_shopping?.toLowerCase() === id.toLowerCase()
+    );
+
+    return {
+      data: {
+        ...response.data,
+        reviews: shoppingReviews,
+        disputes: shoppingDisputes,
+      },
+    };
   }, [id]);
   const resource = useApiResource(loader);
   const [confirm, setConfirm] = useState(false);
+  const [reviewOpen, setReviewOpen] = useState(false);
+  const [disputeOpen, setDisputeOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [paymentActivity, setPaymentActivity] = useState<PaymentActivity>({ busy: false, cancelBlocked: true });
   const { reload } = resource;
@@ -69,22 +110,121 @@ function ReservationDetail({ id, paymentFirst }: { id: string; paymentFirst: boo
     }
     finally { setBusy(false); }
   }
+
+  const shopping = resource.data;
+  const sellerId = shopping?.items?.[0]?.seller_id;
+  const reviews: ReviewBackend[] = (shopping as any)?.reviews ?? [];
+  const disputes: DisputeBackend[] = (shopping as any)?.disputes ?? [];
+  const hasReview = reviews.length > 0;
+  const hasActiveDispute = disputes.some(d => ["aberta", "em_analise"].includes(d.status));
+
   return <section className="space-y-6">
     <button disabled={busy || paymentActivity.busy} onClick={() => setParams({ aba: "reservas" })} className={s.secondary}>Voltar às reservas</button><h1 className={s.title}>{paymentFirst ? "Finalizar reserva" : "Detalhes da reserva"}</h1>
     {success && <p role="status" className={s.success}>{success}</p>}
     {error && !confirm && <p role="alert" className={s.error}>{error}</p>}
     <RequestState {...resource} retry={resource.reload} />
-    {paymentFirst && !resource.loading && !resource.error && resource.data && <BuyerPayment key={id} shopping={resource.data} blocked={busy || confirm} onActivityChange={setPaymentActivity} onReservationChange={reloadAfterPayment} />}
-    {!resource.loading && !resource.error && resource.data && <div className={`${s.panel} space-y-6`}>
-      <div className="flex flex-wrap justify-between gap-4"><h2 className={s.subtitle}>{shoppingLabel(resource.data.status)}</h2><p className="text-xl font-bold">{money(resource.data.value)}</p></div>
-      <p className={s.copy}>{dateLabel(resource.data.datetime)}</p>
-      <ul className="divide-y divide-[#E7E4DA]">{resource.data.items?.map(item => <li key={item.id} className="flex flex-wrap justify-between gap-4 py-4"><div><Link className="font-semibold underline" to={`/marketplace/produto/${encodeURIComponent(item.id_product)}`}>{item.product_name}</Link><p className={`${s.copy} mt-1`}>{item.quantity} unidades</p></div><p>{money(item.subtotal)}</p></li>)}</ul>
+    {paymentFirst && !resource.loading && !resource.error && shopping && <BuyerPayment key={id} shopping={shopping} blocked={busy || confirm} onActivityChange={setPaymentActivity} onReservationChange={reloadAfterPayment} />}
+    {!resource.loading && !resource.error && shopping && <div className={`${s.panel} space-y-6`}>
+      <div className="flex flex-wrap justify-between gap-4"><h2 className={s.subtitle}>{shoppingLabel(shopping.status)}</h2><p className="text-xl font-bold">{money(shopping.value)}</p></div>
+      <p className={s.copy}>{dateLabel(shopping.datetime)}</p>
+      <ul className="divide-y divide-[#E7E4DA]">{shopping.items?.map(item => <li key={item.id} className="flex flex-wrap justify-between gap-4 py-4"><div><Link className="font-semibold underline" to={`/marketplace/produto/${encodeURIComponent(item.id_product)}`}>{item.product_name}</Link><p className={`${s.copy} mt-1`}>{item.quantity} unidades</p></div><p>{money(item.subtotal)}</p></li>)}</ul>
       <p className={s.notice}>Reserva e pagamento têm situações próprias. Consulte a confirmação antes da retirada.</p>
-      <div className="flex flex-wrap gap-3">{resource.data.items?.[0]?.seller_id && <button type="button" className={s.secondary} disabled={busy || paymentActivity.busy} onClick={async () => { setBusy(true); setError(""); try { const response = await iniciarConversa(resource.data!.items![0].seller_id!); if (!response.data.conversationId) throw new Error(); setParams({ aba: "mensagens", conversa: response.data.conversationId }); } catch { setError("Não foi possível abrir a conversa com a empresa."); } finally { setBusy(false); } }}>Conversar com a empresa</button>}</div>
-      <div className="flex flex-wrap gap-3"><button disabled={busy || paymentActivity.busy} onClick={resource.reload} className={s.secondary}>Atualizar detalhes</button>{resource.data.status === "pending" && <button disabled={busy || paymentActivity.cancelBlocked} onClick={() => { setError(""); setConfirm(true); }} className={s.secondary}>Cancelar reserva</button>}</div>
-      {resource.data.status === "pending" && paymentActivity.cancelBlocked && <p className={s.notice}>O cancelamento da reserva fica bloqueado enquanto consultamos o pagamento, durante processamento ou quando há uma cobrança ativa ou sem confirmação. Para encerrar um Pix pendente, use a opção no painel de pagamento.</p>}
+      
+      {/* Botões de Ação da Reserva */}
+      <div className="flex flex-wrap gap-3">
+        {sellerId && <button type="button" className={s.secondary} disabled={busy || paymentActivity.busy} onClick={async () => { setBusy(true); setError(""); try { const response = await iniciarConversa(sellerId); if (!response.data.conversationId) throw new Error(); setParams({ aba: "mensagens", conversa: response.data.conversationId }); } catch { setError("Não foi possível abrir a conversa com a empresa."); } finally { setBusy(false); } }}>Conversar com a empresa</button>}
+        
+        {/* Avaliação de Pedido Concluído */}
+        {shopping.status === "completed" && sellerId && !hasReview && (
+          <button
+            type="button"
+            className={`${s.button} flex items-center gap-2`}
+            disabled={busy || paymentActivity.busy}
+            onClick={() => setReviewOpen(true)}
+          >
+            <Star size={18} className="fill-current" aria-hidden="true" />
+            <span>Avaliar fornecedor</span>
+          </button>
+        )}
+
+        {/* Denúncia / Abertura de Disputa */}
+        {!hasActiveDispute && (
+          <button
+            type="button"
+            className="buyer-secondary flex items-center gap-2 text-rose-700 hover:text-rose-800 hover:border-rose-300"
+            disabled={busy || paymentActivity.busy}
+            onClick={() => setDisputeOpen(true)}
+          >
+            <AlertTriangle size={18} aria-hidden="true" />
+            <span>Denunciar pedido / problema</span>
+          </button>
+        )}
+      </div>
+
+      <div className="flex flex-wrap gap-3">
+        <button disabled={busy || paymentActivity.busy} onClick={resource.reload} className={s.secondary}>Atualizar detalhes</button>
+        {shopping.status === "pending" && <button disabled={busy || paymentActivity.cancelBlocked} onClick={() => { setError(""); setConfirm(true); }} className={s.secondary}>Cancelar reserva</button>}
+      </div>
+
+      {shopping.status === "pending" && paymentActivity.cancelBlocked && <p className={s.notice}>O cancelamento da reserva fica bloqueado enquanto consultamos o pagamento, durante processamento ou quando há uma cobrança ativa ou sem confirmação. Para encerrar um Pix pendente, use a opção no painel de pagamento.</p>}
+
+      {/* Seção de Avaliação Registrada */}
+      {reviews.length > 0 && (
+        <div className="border-t border-[#E7E4DA] pt-5 space-y-3">
+          <h3 className="text-base font-semibold text-gray-900 flex items-center gap-2">
+            <Star size={18} className="text-amber-500 fill-amber-500" aria-hidden="true" />
+            <span>Avaliação enviada</span>
+          </h3>
+          <div className="space-y-3">
+            {reviews.map((rev) => (
+              <ReviewCard key={rev.id} review={rev} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Seção de Denúncias / Disputas Registradas */}
+      {disputes.length > 0 && (
+        <div className="border-t border-[#E7E4DA] pt-5 space-y-3">
+          <h3 className="text-base font-semibold text-gray-900 flex items-center gap-2">
+            <AlertTriangle size={18} className="text-rose-600" aria-hidden="true" />
+            <span>Ocorrências e denúncias</span>
+          </h3>
+          <div className="space-y-3">
+            {disputes.map((disp) => (
+              <DisputeCard key={disp.id} dispute={disp} />
+            ))}
+          </div>
+        </div>
+      )}
     </div>}
-    {!paymentFirst && !resource.loading && !resource.error && resource.data && <BuyerPayment key={id} shopping={resource.data} blocked={busy || confirm} onActivityChange={setPaymentActivity} onReservationChange={reloadAfterPayment} />}
+    {!paymentFirst && !resource.loading && !resource.error && shopping && <BuyerPayment key={id} shopping={shopping} blocked={busy || confirm} onActivityChange={setPaymentActivity} onReservationChange={reloadAfterPayment} />}
+    
     {confirm && <ConfirmAction title="Cancelar reserva?" description="O cancelamento só é permitido enquanto a reserva está pendente e não identificamos cobrança ativa ou sem confirmação. A confirmação será feita pelo servidor." busy={busy} error={error} confirm={cancel} cancel={() => { if (!busy) setConfirm(false); }} />}
+    
+    {reviewOpen && sellerId && (
+      <ReviewDialog
+        shoppingId={id}
+        sellerId={sellerId}
+        onSuccess={() => {
+          setReviewOpen(false);
+          setSuccess("Avaliação enviada com sucesso! Obrigado pela colaboração.");
+          resource.reload();
+        }}
+        onClose={() => setReviewOpen(false)}
+      />
+    )}
+
+    {disputeOpen && (
+      <DisputeDialog
+        shoppingId={id}
+        onSuccess={() => {
+          setDisputeOpen(false);
+          setSuccess("Denúncia/disputa aberta com sucesso. Nossa equipe administrativa analisará o caso.");
+          resource.reload();
+        }}
+        onClose={() => setDisputeOpen(false)}
+      />
+    )}
   </section>;
 }
