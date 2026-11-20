@@ -112,7 +112,7 @@ function ProductDetails({ productId }: { productId: string }) {
         <div className="rounded-xl border border-[#DCE1D5] bg-[#FCFAF1] p-4 text-xs text-gray-600 flex items-start gap-3">
           <ShieldCheck size={20} className="text-[#0F3D2E] shrink-0 mt-0.5" aria-hidden="true" />
           <p>
-            Negociações seguras: Caso ocorra qualquer irregularidade ou material em desconformidade após a solicitação, você poderá <strong>abrir uma contestação/denúncia</strong> diretamente nos detalhes da sua reserva no painel do usuário.
+            Após a conclusão da compra, você pode <strong>registrar uma denúncia</strong> nos detalhes da reserva no painel do usuário.
           </p>
         </div>
       </section>

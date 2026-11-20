@@ -14,9 +14,21 @@ import {
   UserCheck, 
   Shield 
 } from "lucide-react";
-import { listarUsuariosAdmin, atualizarUsuarioAdmin, excluirUsuarioAdmin, type UsuarioPerfil } from "../../api/services";
+import { listarUsuariosAdmin, listarDisputas, atualizarUsuarioAdmin, excluirUsuarioAdmin, type UsuarioPerfil } from "../../api/services";
 import { useLoggedUser } from "../../hooks/useLoggedUser";
+import { requireArray, useApiResource } from "../../hooks/useApiResource";
+import RequestState from "../dashboard/comprador/RequestState";
 import { buyerStyles as s } from "../dashboard/comprador/buyerStyles";
+
+async function loadDisputeCounts(signal: AbortSignal) {
+  const { data } = await listarDisputas(signal);
+  const counts = new Map<string, number>();
+  for (const dispute of requireArray(data)) {
+    const authorId = dispute.id_opened_by.toLowerCase();
+    counts.set(authorId, (counts.get(authorId) ?? 0) + 1);
+  }
+  return { data: counts };
+}
 
 const filters = [
   { id: "all", label: "Todos" },
@@ -33,6 +45,7 @@ export default function AdminUsersPage() {
   const [error, setError] = useState("");
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
+  const disputeCounts = useApiResource(loadDisputeCounts);
 
   // Edição
   const [editing, setEditing] = useState<{ id: string; name: string; cellphone: string } | null>(null);
@@ -176,6 +189,12 @@ export default function AdminUsersPage() {
         </div>
       )}
 
+      <RequestState
+        loading={disputeCounts.loading}
+        error={disputeCounts.error && "Não foi possível carregar os totais de denúncias."}
+        retry={disputeCounts.reload}
+      />
+
       {/* Filtros e Busca */}
       <div className={`${s.panel} space-y-4`}>
         <div className="flex flex-col md:flex-row gap-3 justify-between items-stretch md:items-center">
@@ -268,6 +287,14 @@ export default function AdminUsersPage() {
                       <p className="flex justify-between">
                         <span>CNPJ:</span>
                         <strong className="text-tinta font-mono">{item.cnpj}</strong>
+                      </p>
+                    )}
+                    {item.role === "user" && (
+                      <p className="flex justify-between gap-2">
+                        <span>Denúncias abertas pelo comprador</span>
+                        <strong className="text-tinta">
+                          {disputeCounts.loading ? "Carregando…" : disputeCounts.data?.get(item.id.toLowerCase()) ?? (disputeCounts.error ? "Indisponível" : 0)}
+                        </strong>
                       </p>
                     )}
                   </div>

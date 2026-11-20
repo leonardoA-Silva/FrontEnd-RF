@@ -113,10 +113,11 @@ function ReservationDetail({ id, paymentFirst }: { id: string; paymentFirst: boo
 
   const shopping = resource.data;
   const sellerId = shopping?.items?.[0]?.seller_id;
-  const reviews: ReviewBackend[] = (shopping as any)?.reviews ?? [];
-  const disputes: DisputeBackend[] = (shopping as any)?.disputes ?? [];
+  const reviews = shopping?.reviews ?? [];
+  const disputes = shopping?.disputes ?? [];
   const hasReview = reviews.length > 0;
   const hasActiveDispute = disputes.some(d => ["aberta", "em_analise"].includes(d.status));
+  const canOpenDispute = shopping?.status === "completed" && !hasActiveDispute;
 
   return <section className="space-y-6">
     <button disabled={busy || paymentActivity.busy} onClick={() => setParams({ aba: "reservas" })} className={s.secondary}>Voltar às reservas</button><h1 className={s.title}>{paymentFirst ? "Finalizar reserva" : "Detalhes da reserva"}</h1>
@@ -148,7 +149,7 @@ function ReservationDetail({ id, paymentFirst }: { id: string; paymentFirst: boo
         )}
 
         {/* Denúncia / Abertura de Disputa */}
-        {!hasActiveDispute && (
+        {canOpenDispute && (
           <button
             type="button"
             className="buyer-secondary flex items-center gap-2 text-rose-700 hover:text-rose-800 hover:border-rose-300"
@@ -215,7 +216,7 @@ function ReservationDetail({ id, paymentFirst }: { id: string; paymentFirst: boo
       />
     )}
 
-    {disputeOpen && (
+    {disputeOpen && canOpenDispute && !resource.loading && !resource.error && (
       <DisputeDialog
         shoppingId={id}
         onSuccess={() => {
