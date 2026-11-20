@@ -16,8 +16,8 @@ const steps = [
   { icon: PencilLine, title: "Crie sua conta", description: "Preencha seus dados e confirme seu e-mail para começar." },
   { icon: Leaf, title: "Faça parte da rede", description: "Aproxime sua empresa ou suas ideias de novas possibilidades." },
 ];
-// APK do app mobile gerado pelo EAS (Expo). Por enquanto só existe a versão Android.
-const ANDROID_APK_URL = "https://expo.dev/artifacts/eas/E319fPiNlOsnz9vtmW5_qQS8_AOqjgZd-eoWf03NIzw.apk";
+// APK do app mobile publicado nas Releases do GitHub (sempre a versão mais nova). Por enquanto só existe a versão Android.
+const ANDROID_APK_URL = "https://github.com/BryanMoreira0717/Mobile-RF/releases/latest/download/ReaproveitaFranca.apk";
 
 export default function Home() {
   const [paused, setPaused] = useState(false);
