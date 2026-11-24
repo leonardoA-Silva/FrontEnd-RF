@@ -1124,6 +1124,106 @@ button:not(:disabled), label:has(input[type="radio"]) { cursor: pointer; }
   background: #f7dcd3 !important;
   color: #a12a2a !important;
 }
+
+/* Regras da Home e Header para tema Escuro */
+[data-theme="escuro"] .home-page {
+  --home-green: #e6eee9;
+  --home-paper: #0e1512;
+  background: #0e1512 !important;
+  color: #e6eee9 !important;
+}
+[data-theme="escuro"] .home-header {
+  background: rgba(14, 21, 18, 0.94) !important;
+  color: #e6eee9 !important;
+  border-bottom: 1px solid #26332c;
+}
+[data-theme="escuro"] .home-brand {
+  color: #e6eee9 !important;
+}
+[data-theme="escuro"] .home-desktop-nav a {
+  color: #aebdb5;
+}
+[data-theme="escuro"] .home-desktop-nav a:hover,
+[data-theme="escuro"] .home-desktop-nav a.is-active {
+  color: #7fc7a0;
+}
+[data-theme="escuro"] .home-login {
+  color: #e6eee9 !important;
+}
+[data-theme="escuro"] .home-button {
+  background: #7fc7a0 !important;
+  border-color: #7fc7a0 !important;
+  color: #0e1512 !important;
+  font-weight: 700 !important;
+}
+[data-theme="escuro"] .home-button:hover {
+  background: #9ed6b6 !important;
+  border-color: #9ed6b6 !important;
+}
+[data-theme="escuro"] .home-hero .home-hero-description {
+  color: #aebdb5 !important;
+}
+[data-theme="escuro"] .home-menu-toggle {
+  border-color: #33443b !important;
+  color: #e6eee9 !important;
+}
+[data-theme="escuro"] .home-mobile-nav {
+  background: #17211c !important;
+  border-color: #26332c !important;
+}
+[data-theme="escuro"] .home-mobile-nav a {
+  color: #e6eee9 !important;
+}
+
+/* Regras da Home e Header para tema Retrô */
+[data-theme="retro"] .home-page {
+  --home-green: #3e2412;
+  --home-paper: #f3e7cf;
+  background: #f3e7cf !important;
+  color: #3e2412 !important;
+}
+[data-theme="retro"] .home-header {
+  background: rgba(243, 231, 207, 0.94) !important;
+  color: #3e2412 !important;
+  border-bottom: 1px solid #e2cfac;
+}
+[data-theme="retro"] .home-brand {
+  color: #3e2412 !important;
+}
+[data-theme="retro"] .home-desktop-nav a {
+  color: #6b4a32;
+}
+[data-theme="retro"] .home-desktop-nav a:hover,
+[data-theme="retro"] .home-desktop-nav a.is-active {
+  color: #8a4b1f;
+}
+[data-theme="retro"] .home-login {
+  color: #3e2412 !important;
+}
+[data-theme="retro"] .home-button {
+  background: #8a4b1f !important;
+  border-color: #8a4b1f !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+}
+[data-theme="retro"] .home-button:hover {
+  background: #5a2e14 !important;
+  border-color: #5a2e14 !important;
+}
+[data-theme="retro"] .home-hero .home-hero-description {
+  color: #6b4a32 !important;
+}
+[data-theme="retro"] .home-menu-toggle {
+  border-color: #cdb48c !important;
+  color: #3e2412 !important;
+}
+[data-theme="retro"] .home-mobile-nav {
+  background: #fbf4e4 !important;
+  border-color: #e2cfac !important;
+}
+[data-theme="retro"] .home-mobile-nav a {
+  color: #3e2412 !important;
+}
 .buyer-public-page { min-height: 100svh; display: flex; flex-direction: column; background: var(--buyer-paper); color: var(--buyer-forest); }
 .buyer-title { overflow-wrap: anywhere; font-family: Georgia, 'Times New Roman', serif; font-size: clamp(34px, 3.5vw, 52px); font-weight: 400; line-height: 1.12; letter-spacing: -.045em; color: var(--buyer-forest); }
 .buyer-title em { font-weight: 400; }
