@@ -5,7 +5,7 @@
 }
 :root { font-synthesis: none; text-rendering: optimizeLegibility; }
 html { scroll-behavior: smooth; scroll-padding-top: 110px; }
-body { margin: 0; min-width: 320px; background: #FAF9F5; }
+body { margin: 0; min-width: 320px; background: var(--buyer-paper, #FAF9F5); color: var(--buyer-forest, #0F3D2E); }
 button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
 button:not(:disabled), label:has(input[type="radio"]) { cursor: pointer; }
 :where(a, button, input, select, textarea):focus-visible { outline: 3px solid #D97706; outline-offset: 4px; }
@@ -898,10 +898,231 @@ button:not(:disabled), label:has(input[type="radio"]) { cursor: pointer; }
 }
 
 /* Buyer extension of new-ui: shared paper, forest rail and editorial headings. */
-:root {
-  --buyer-paper: #faf9f5; --buyer-forest: #0f3d2e; --buyer-green: #1b4b3a;
-  --buyer-surface: #fff; --buyer-line: #e7e4da; --buyer-muted: #4b5a55;
-  --buyer-soft: #eef1e8; --buyer-accent: #d97706; --buyer-radius: 24px;
+:root, [data-theme="claro"] {
+  --buyer-paper: #faf9f5;
+  --buyer-forest: #0f3d2e;
+  --buyer-green: #1b4b3a;
+  --buyer-surface: #ffffff;
+  --buyer-line: #e7e4da;
+  --buyer-muted: #4b5a55;
+  --buyer-soft: #eef1e8;
+  --buyer-accent: #d97706;
+  --buyer-border: #c9cec3;
+  --buyer-radius: 24px;
+}
+
+[data-theme="escuro"] {
+  --buyer-paper: #0e1512;
+  --buyer-forest: #e6eee9;
+  --buyer-green: #7fc7a0;
+  --buyer-surface: #17211c;
+  --buyer-line: #26332c;
+  --buyer-muted: #aebdb5;
+  --buyer-soft: #1f3329;
+  --buyer-accent: #f59e0b;
+  --buyer-border: #33443b;
+  --buyer-radius: 24px;
+}
+
+[data-theme="retro"] {
+  --buyer-paper: #f3e7cf;
+  --buyer-forest: #3e2412;
+  --buyer-green: #8a4b1f;
+  --buyer-surface: #fbf4e4;
+  --buyer-line: #e2cfac;
+  --buyer-muted: #6b4a32;
+  --buyer-soft: #f0ddb8;
+  --buyer-accent: #d9622b;
+  --buyer-border: #cdb48c;
+  --buyer-radius: 24px;
+}
+
+/* Tema Escuro - Regras de Superfície e Contraste */
+[data-theme="escuro"] body {
+  background: var(--buyer-paper);
+  color: var(--buyer-forest);
+}
+[data-theme="escuro"] .company-app.workspace-frame,
+[data-theme="escuro"] .company-workspace {
+  background: var(--buyer-paper) !important;
+  color: var(--buyer-forest) !important;
+}
+[data-theme="escuro"] .company-rail {
+  background: #111a15 !important;
+  border-color: #26332c !important;
+}
+[data-theme="escuro"] .company-rail nav :is(a, button)[aria-current="page"] {
+  background: #1f3329 !important;
+  color: #7fc7a0 !important;
+}
+[data-theme="escuro"] .company-rail nav :is(a, button):hover {
+  background: #172820 !important;
+}
+[data-theme="escuro"] .company-topbar {
+  background: #17211c !important;
+  border-color: #26332c !important;
+  color: #e6eee9 !important;
+}
+[data-theme="escuro"] .company-wordmark {
+  color: #e6eee9 !important;
+}
+[data-theme="escuro"] .company-breadcrumb {
+  border-color: #26332c !important;
+  color: #aebdb5 !important;
+}
+[data-theme="escuro"] .company-breadcrumb span:last-child {
+  color: #7fc7a0 !important;
+}
+[data-theme="escuro"] .company-footer {
+  border-color: #26332c !important;
+  color: #aebdb5 !important;
+}
+[data-theme="escuro"] .company-user {
+  color: #e6eee9 !important;
+}
+[data-theme="escuro"] .company-user > span:first-child {
+  background: #1f3329 !important;
+  color: #7fc7a0 !important;
+}
+[data-theme="escuro"] .buyer-panel,
+[data-theme="escuro"] .rf-dashboard-card,
+[data-theme="escuro"] .user-material,
+[data-theme="escuro"] .user-reservations {
+  background: #17211c !important;
+  color: #e6eee9 !important;
+  border-color: #26332c !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35) !important;
+}
+[data-theme="escuro"] .buyer-input {
+  background: #1e2a24 !important;
+  color: #e6eee9 !important;
+  border-color: #33443b !important;
+}
+[data-theme="escuro"] .buyer-button {
+  background: #7fc7a0 !important;
+  color: #0e1512 !important;
+  font-weight: 700 !important;
+}
+[data-theme="escuro"] .buyer-button:hover {
+  background: #9ed6b6 !important;
+}
+[data-theme="escuro"] .buyer-secondary {
+  background: #17211c !important;
+  color: #e6eee9 !important;
+  border-color: #33443b !important;
+}
+[data-theme="escuro"] .buyer-secondary:hover {
+  background: #1f3329 !important;
+}
+[data-theme="escuro"] .buyer-badge {
+  background: #1f3329 !important;
+  color: #7fc7a0 !important;
+}
+[data-theme="escuro"] .buyer-label {
+  color: #7fc7a0 !important;
+}
+[data-theme="escuro"] .buyer-feedback-notice,
+[data-theme="escuro"] .buyer-feedback-success {
+  background: #1f3329 !important;
+  color: #9ed6b6 !important;
+}
+[data-theme="escuro"] .buyer-feedback-error {
+  background: #3b1219 !important;
+  color: #fb7185 !important;
+}
+
+/* Tema Retrô - Papel envelhecido, marrom café e laranja anos 70 */
+[data-theme="retro"] body {
+  background: var(--buyer-paper);
+  color: var(--buyer-forest);
+}
+[data-theme="retro"] .company-app.workspace-frame,
+[data-theme="retro"] .company-workspace {
+  background: var(--buyer-paper) !important;
+  color: var(--buyer-forest) !important;
+}
+[data-theme="retro"] .company-rail {
+  background: #5a2e14 !important;
+  border-color: #8a4b1f !important;
+}
+[data-theme="retro"] .company-rail nav :is(a, button)[aria-current="page"] {
+  background: #fbf4e4 !important;
+  color: #5a2e14 !important;
+}
+[data-theme="retro"] .company-rail nav :is(a, button):hover {
+  background: #7a3e17 !important;
+}
+[data-theme="retro"] .company-topbar {
+  background: #fbf4e4 !important;
+  border-color: #e2cfac !important;
+  color: #3e2412 !important;
+}
+[data-theme="retro"] .company-wordmark {
+  color: #5a2e14 !important;
+}
+[data-theme="retro"] .company-breadcrumb {
+  border-color: #cdb48c !important;
+  color: #6b4a32 !important;
+}
+[data-theme="retro"] .company-breadcrumb span:last-child {
+  color: #8a4b1f !important;
+}
+[data-theme="retro"] .company-footer {
+  border-color: #e2cfac !important;
+  color: #6b4a32 !important;
+}
+[data-theme="retro"] .company-user {
+  color: #3e2412 !important;
+}
+[data-theme="retro"] .company-user > span:first-child {
+  background: #f0ddb8 !important;
+  color: #8a4b1f !important;
+}
+[data-theme="retro"] .buyer-panel,
+[data-theme="retro"] .rf-dashboard-card,
+[data-theme="retro"] .user-material,
+[data-theme="retro"] .user-reservations {
+  background: #fbf4e4 !important;
+  color: #3e2412 !important;
+  border-color: #e2cfac !important;
+  box-shadow: 0 4px 18px rgba(90, 46, 20, 0.08) !important;
+}
+[data-theme="retro"] .buyer-input {
+  background: #fffdf9 !important;
+  color: #3e2412 !important;
+  border-color: #cdb48c !important;
+}
+[data-theme="retro"] .buyer-button {
+  background: #8a4b1f !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+}
+[data-theme="retro"] .buyer-button:hover {
+  background: #5a2e14 !important;
+}
+[data-theme="retro"] .buyer-secondary {
+  background: #fbf4e4 !important;
+  color: #3e2412 !important;
+  border-color: #cdb48c !important;
+}
+[data-theme="retro"] .buyer-secondary:hover {
+  background: #f0ddb8 !important;
+}
+[data-theme="retro"] .buyer-badge {
+  background: #f0ddb8 !important;
+  color: #8a4b1f !important;
+}
+[data-theme="retro"] .buyer-label {
+  color: #8a4b1f !important;
+}
+[data-theme="retro"] .buyer-feedback-notice,
+[data-theme="retro"] .buyer-feedback-success {
+  background: #f0ddb8 !important;
+  color: #5a2e14 !important;
+}
+[data-theme="retro"] .buyer-feedback-error {
+  background: #f7dcd3 !important;
+  color: #a12a2a !important;
 }
 .buyer-public-page { min-height: 100svh; display: flex; flex-direction: column; background: var(--buyer-paper); color: var(--buyer-forest); }
 .buyer-title { overflow-wrap: anywhere; font-family: Georgia, 'Times New Roman', serif; font-size: clamp(34px, 3.5vw, 52px); font-weight: 400; line-height: 1.12; letter-spacing: -.045em; color: var(--buyer-forest); }

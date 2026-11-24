@@ -7,6 +7,7 @@ import { readSession, updateSessionUser } from "../../../auth/session";
 import { loadProfilePhoto, saveProfilePhoto, useProfilePhotoError } from "../../../auth/profilePhoto";
 import { useLoggedUser } from "../../../hooks/useLoggedUser";
 import { buyerStyles as s } from "./buyerStyles";
+import ThemeSelector from "../../../components/theme/ThemeSelector";
 
 export default function BuyerProfile({ userId }: { userId: string }) {
   const [attempt, setAttempt] = useState(0);
@@ -19,7 +20,41 @@ export default function BuyerProfile({ userId }: { userId: string }) {
     }).catch(error => { if (!controller.signal.aborted) setState({ profile: null, loading: false, error: apiError(error, "Não foi possível consultar seu perfil.") }); });
     return () => controller.abort();
   }, [userId, attempt]);
-  return <section className="space-y-6"><h1 className={s.title}>Meu Perfil</h1>{state.loading ? <p role="status">Carregando perfil...</p> : state.error ? <div role="alert" className={s.error}><p>{state.error}</p><div className="mt-4 flex flex-wrap gap-3"><button className={s.secondary} onClick={() => { setState({ profile: null, loading: true, error: "" }); setAttempt(v => v + 1); }}>Tentar novamente</button><Link to="/login" className={s.secondary}>Entrar novamente</Link></div></div> : state.profile && <ProfileForm profile={state.profile} />}</section>;
+  return (
+    <section className="space-y-6">
+      <h1 className={s.title}>Meu Perfil</h1>
+      {state.loading ? (
+        <p role="status">Carregando perfil...</p>
+      ) : state.error ? (
+        <div role="alert" className={s.error}>
+          <p>{state.error}</p>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <button
+              className={s.secondary}
+              onClick={() => {
+                setState({ profile: null, loading: true, error: "" });
+                setAttempt(v => v + 1);
+              }}
+            >
+              Tentar novamente
+            </button>
+            <Link to="/login" className={s.secondary}>
+              Entrar novamente
+            </Link>
+          </div>
+        </div>
+      ) : (
+        state.profile && (
+          <>
+            <ProfileForm profile={state.profile} />
+            <div className={`${s.panel} max-w-3xl mt-6`}>
+              <ThemeSelector />
+            </div>
+          </>
+        )
+      )}
+    </section>
+  );
 }
 
 function ProfileForm({ profile }: { profile: UsuarioPerfil }) {

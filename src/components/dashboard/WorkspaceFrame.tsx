@@ -57,7 +57,6 @@ export default function WorkspaceFrame({ children, name, section, preview = fals
         { to: `${base}/perfil`, label: "Conta", Icon: UserRound },
       ];
   return <div className={`company-app workspace-frame ${user ? "workspace-user" : ""}`}>
-    <a href="#conteudo" className="rf-skip">Pular para o conteúdo</a>
     <aside className="company-rail">
       <Link to={user ? "/dashboardUsuario" : base} className="company-monogram" aria-label="Reaproveita Franca — painel">r<span>.</span></Link>
       <nav ref={navRef} aria-label={user ? "Área do usuário" : "Área da empresa"}>{navigation ?? items.map(({ to, label, Icon, end, count }) => <NavLink key={to} to={to} end={end} aria-label={count ? `${label}, ${count} não lidas` : undefined}><Icon size={23} strokeWidth={1.5} aria-hidden="true" /><span>{label}</span>{!!count && <span className="workspace-nav-count" aria-hidden="true">{count > 99 ? "99+" : count}</span>}</NavLink>)}</nav>

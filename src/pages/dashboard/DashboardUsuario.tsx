@@ -1,5 +1,5 @@
 import { useSearchParams } from "react-router-dom";
-import { Bell, History, MapPin, MessagesSquare, Search, ShieldCheck, UserRound, Home, Leaf, Star, Shield, UserPlus, Users as UsersIcon } from "lucide-react";
+import { Bell, History, MapPin, MessagesSquare, Search, ShieldCheck, UserRound, Home, Leaf, Star, Shield, UserPlus, Users as UsersIcon, Palette } from "lucide-react";
 import WorkspaceFrame from "../../components/dashboard/WorkspaceFrame";
 import { useLoggedUser } from "../../hooks/useLoggedUser";
 import { useBuyerSocket } from "../../hooks/useBuyerSocket";
@@ -18,6 +18,7 @@ import { buyerStyles as s } from "./comprador/buyerStyles";
 import AdminUsersPage from "../admin/AdminUsersPage";
 import AdminAdvertisementsPage from "../admin/AdminAdvertisementsPage";
 import RegisterAdminPage from "../admin/RegisterAdminPage";
+import ThemeSelector from "../../components/theme/ThemeSelector";
 
 const baseTabs = [
   { id: "inicio", label: "Início", Icon: Home },
@@ -29,6 +30,7 @@ const baseTabs = [
   { id: "notificacoes", label: "Notificações", Icon: Bell },
   { id: "mensagens", label: "Mensagens", Icon: MessagesSquare },
   { id: "enderecos", label: "Endereço", Icon: MapPin },
+  { id: "aparencia", label: "Aparência", Icon: Palette },
   { id: "perfil", label: "Perfil", Icon: UserRound },
   { id: "seguranca", label: "Segurança", Icon: ShieldCheck },
 ];
@@ -42,6 +44,7 @@ export default function DashboardUsuario() {
         { id: "admin-usuarios", label: "Gerenciar Usuários", Icon: UsersIcon },
         { id: "admin-anuncios", label: "Gerenciar Anúncios", Icon: Shield },
         { id: "admin-novo", label: "Novo Administrador", Icon: UserPlus },
+        { id: "aparencia", label: "Aparência", Icon: Palette },
         { id: "perfil", label: "Meu Perfil", Icon: UserRound },
         { id: "seguranca", label: "Segurança", Icon: ShieldCheck },
       ]
@@ -100,6 +103,11 @@ export default function DashboardUsuario() {
         {tab === "notificacoes" && <AccountNotifications socket={realtime.socket} />}
         {tab === "mensagens" && <BuyerConversations key={user.id} />}
         {tab === "enderecos" && <BuyerAddresses userId={user.id} />}
+        {tab === "aparencia" && (
+          <div className={`${s.panel} max-w-3xl space-y-6`}>
+            <ThemeSelector />
+          </div>
+        )}
         {tab === "perfil" && <BuyerProfile key={user.id} userId={user.id} />}
         {tab === "seguranca" && <BuyerSecurity />}
         {tab === "admin-usuarios" && <AdminUsersPage />}

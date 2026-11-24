@@ -24,9 +24,6 @@ export default function About() {
 
   return (
     <div className={styles.page}>
-      <a href="#sobre-nos" className="sr-only z-50 bg-white p-3 focus:not-sr-only focus:absolute">
-        Pular para o conteúdo
-      </a>
       <Header variant="about" />
       <main id="sobre-nos" className="flex-1">
         <section aria-labelledby="missao-titulo" className={styles.hero}>

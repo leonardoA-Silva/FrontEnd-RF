@@ -24,5 +24,5 @@ function Story() {
 
 export default function SobreNos() {
   if (isCompanySession()) return <CompanyPage><Story /></CompanyPage>;
-  return <div className="about-page"><a href="#sobre-conteudo" className="rf-skip">Pular para o conteúdo</a><Header /><main id="sobre-conteudo"><Story /></main><Footer /></div>;
+  return <div className="about-page"><Header /><main id="sobre-conteudo"><Story /></main><Footer /></div>;
 }

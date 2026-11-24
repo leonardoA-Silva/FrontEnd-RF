@@ -17,6 +17,7 @@ import { FlowUnavailable } from "./pages/marketplace/FlowNotice";
 import DashboardUsuario from "./pages/dashboard/DashboardUsuario";
 import DashboardEmpresa from "./pages/dashboard/DashboardEmpresa";
 import ProtectedRoute from "./components/ProtectedRoute";
+import { ThemeProvider } from "./context/ThemeContext";
 
 const MapaEmpresas = lazy(() => import("./pages/dashboard/CompanyMap"));
 const MeusMateriais = lazy(() => import("./pages/dashboard/MeusMateriais"));
@@ -30,7 +31,7 @@ const RegisterAdminPage = lazy(() => import("./pages/admin/RegisterAdminPage"));
 
 function App() {
   return (
-    <div>
+    <ThemeProvider>
       <BrowserRouter>
         <Routes>
           {/* rotas publicas */}
@@ -150,7 +151,7 @@ function App() {
           <Route path="*" element={<main className="buyer-panel"><h1 className="buyer-title">Página não encontrada</h1><p>Confira o endereço ou volte ao início.</p><a href="/" className="home-button">Voltar ao início</a></main>} />
         </Routes>
       </BrowserRouter>
-    </div>
+    </ThemeProvider>
   );
 }
 
