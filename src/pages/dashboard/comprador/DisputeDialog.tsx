@@ -4,7 +4,7 @@ import { criarDisputa, type DisputeType, type DisputeBackend } from "../../../ap
 import { apiError } from "../../../axios/apiError";
 import { buyerStyles as s } from "./buyerStyles";
 
-export const DISPUTE_TYPES: { value: DisputeType; label: string }[] = [
+const DISPUTE_TYPES: { value: DisputeType; label: string }[] = [
   { value: "material_incompativel", label: "Material diferente ou incompatível com o anúncio" },
   { value: "item_danificado", label: "Item danificado ou com avarias graves" },
   { value: "nao_comparecimento", label: "Fornecedor ou responsável não compareceu ao local" },
@@ -13,7 +13,7 @@ export const DISPUTE_TYPES: { value: DisputeType; label: string }[] = [
   { value: "outro", label: "Outro problema com o produto ou negociação" },
 ];
 
-export const DISPUTE_STATUS_MAP: Record<string, { label: string; color: string }> = {
+const DISPUTE_STATUS_MAP: Record<string, { label: string; color: string }> = {
   aberta: { label: "Aberta", color: "bg-amber-100 text-amber-800 border-amber-300" },
   em_analise: { label: "Em análise", color: "bg-blue-100 text-blue-800 border-blue-300" },
   resolvida: { label: "Resolvida", color: "bg-emerald-100 text-emerald-800 border-emerald-300" },

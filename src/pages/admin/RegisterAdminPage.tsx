@@ -52,20 +52,32 @@ export default function RegisterAdminPage() {
   }, []);
 
   useEffect(() => {
-    if (!formData.state) {
-      setCities([]);
-      return;
-    }
-    setLoadingCities(true);
+    if (!formData.state) return;
+    let active = true;
     fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${formData.state}/municipios?orderBy=nome`)
       .then((res) => res.json())
-      .then((data) => setCities(data))
+      .then((data) => {
+        if (active) setCities(data);
+      })
       .catch((err) => console.error("Erro ao carregar cidades:", err))
-      .finally(() => setLoadingCities(false));
+      .finally(() => {
+        if (active) setLoadingCities(false);
+      });
+    return () => {
+      active = false;
+    };
   }, [formData.state]);
 
   function handleChange(field: keyof AdminCreatePayload, value: string) {
     setFormData((prev) => ({ ...prev, [field]: value }));
+    if (field === "state") {
+      if (!value) {
+        setCities([]);
+        setLoadingCities(false);
+      } else {
+        setLoadingCities(true);
+      }
+    }
     setError("");
   }
 

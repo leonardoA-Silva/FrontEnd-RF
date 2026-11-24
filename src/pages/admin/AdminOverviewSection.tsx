@@ -8,25 +8,35 @@ export default function AdminOverviewSection() {
   const [users, setUsers] = useState<UsuarioPerfil[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [umMesAtras] = useState(() => Date.now() - 30 * 24 * 60 * 60 * 1000);
 
-  async function loadData() {
-    try {
-      setLoading(true);
-      setError("");
-      const response = await listarUsuariosAdmin();
-      setUsers(Array.isArray(response.data) ? response.data : []);
-    } catch {
-      setError("Não foi possível carregar os dados administrativos.");
-    } finally {
-      setLoading(false);
-    }
-  }
+  const loadData = () => {
+    setLoading(true);
+    setError("");
+    listarUsuariosAdmin()
+      .then((response) => {
+        setUsers(Array.isArray(response.data) ? response.data : []);
+      })
+      .catch(() => {
+        setError("Não foi possível carregar os dados administrativos.");
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  };
 
   useEffect(() => {
-    loadData();
+    listarUsuariosAdmin()
+      .then((response) => {
+        setUsers(Array.isArray(response.data) ? response.data : []);
+      })
+      .catch(() => {
+        setError("Não foi possível carregar os dados administrativos.");
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, []);
-
-  const umMesAtras = Date.now() - 30 * 24 * 60 * 60 * 1000;
 
   function contar(role: string) {
     const lista = users.filter((u) => u.role === role);

@@ -35,21 +35,17 @@ export default function AdminAdvertisementsPage() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    loadProducts();
+    listarProdutos()
+      .then((response) => {
+        setProducts(Array.isArray(response.data) ? response.data : []);
+      })
+      .catch(() => {
+        setError("Não foi possível carregar os anúncios da plataforma.");
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, []);
-
-  async function loadProducts() {
-    try {
-      setLoading(true);
-      setError("");
-      const response = await listarProdutos();
-      setProducts(Array.isArray(response.data) ? response.data : []);
-    } catch {
-      setError("Não foi possível carregar os anúncios da plataforma.");
-    } finally {
-      setLoading(false);
-    }
-  }
 
   async function handleDeleteConfirm() {
     if (!deletingProduct || saving) return;

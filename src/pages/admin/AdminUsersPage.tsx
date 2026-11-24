@@ -54,21 +54,17 @@ export default function AdminUsersPage() {
   const [deletingUser, setDeletingUser] = useState<UsuarioPerfil | null>(null);
 
   useEffect(() => {
-    loadUsers();
+    listarUsuariosAdmin()
+      .then((response) => {
+        setUsers(Array.isArray(response.data) ? response.data : []);
+      })
+      .catch(() => {
+        setError("Não foi possível carregar a lista de usuários.");
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, []);
-
-  async function loadUsers() {
-    try {
-      setLoading(true);
-      setError("");
-      const response = await listarUsuariosAdmin();
-      setUsers(Array.isArray(response.data) ? response.data : []);
-    } catch {
-      setError("Não foi possível carregar a lista de usuários.");
-    } finally {
-      setLoading(false);
-    }
-  }
 
   function getInitials(name: string) {
     const parts = (name || "").trim().split(" ");
