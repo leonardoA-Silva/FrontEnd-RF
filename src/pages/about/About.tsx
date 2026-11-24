@@ -6,16 +6,16 @@ import Footer from "../../components/Footer";
 import { useLoggedUser } from "../../hooks/useLoggedUser";
 
 const styles = {
-  page: "flex min-h-screen flex-col bg-[#FAF9F5] text-[#0F3D2E] font-sans [&_:is(a,button):focus-visible]:outline-2 [&_:is(a,button):focus-visible]:outline-offset-4 [&_:is(a,button):focus-visible]:outline-[#0F3D2E]",
+  page: "flex min-h-screen flex-col bg-[var(--buyer-paper)] text-[var(--buyer-forest)] font-sans [&_:is(a,button):focus-visible]:outline-2 [&_:is(a,button):focus-visible]:outline-offset-4 [&_:is(a,button):focus-visible]:outline-[var(--buyer-forest)]",
   hero: "grid items-center gap-10 px-5 py-12 sm:px-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.8333fr)] lg:gap-16 lg:px-16 lg:py-20",
   title: "font-serif text-5xl leading-[1.1] font-normal sm:text-[64px]",
-  description: "text-base leading-[1.6] text-[#4B5A55] sm:text-lg",
-  primary: "inline-flex min-h-12 items-center justify-center rounded-full bg-[#1B4B3A] px-7 py-3.5 text-center text-[15px] font-bold text-white transition-colors hover:bg-[#0F3D2E] active:bg-[#0F3D2E]",
-  secondary: "inline-flex min-h-12 cursor-pointer items-center justify-center rounded-full border border-[#0F3D2E] px-7 py-3.5 text-center text-[15px] font-bold text-[#0F3D2E] transition-colors hover:bg-[#ecfdf5] active:bg-emerald-100",
-  cta: "relative isolate flex min-h-[379px] flex-col items-center justify-center gap-8 overflow-hidden bg-[#0F3D2E] px-5 py-12 text-center sm:px-8 lg:px-16 lg:py-6",
+  description: "text-base leading-[1.6] text-[var(--buyer-muted)] sm:text-lg",
+  primary: "inline-flex min-h-12 items-center justify-center rounded-full bg-[var(--buyer-green)] px-7 py-3.5 text-center text-[15px] font-bold text-white transition-colors hover:bg-[var(--buyer-forest)] active:bg-[var(--buyer-forest)]",
+  secondary: "inline-flex min-h-12 cursor-pointer items-center justify-center rounded-full border border-[var(--buyer-forest)] px-7 py-3.5 text-center text-[15px] font-bold text-[var(--buyer-forest)] transition-colors hover:bg-[var(--buyer-soft)]",
+  cta: "relative isolate flex min-h-[379px] flex-col items-center justify-center gap-8 overflow-hidden bg-[var(--buyer-green-dark)] px-5 py-12 text-center text-[var(--buyer-paper)] sm:px-8 lg:px-16 lg:py-6",
   ctaTitle: "max-w-[800px] font-serif text-[40px] leading-[1.2] font-normal text-white sm:text-[56px]",
-  signup: "inline-flex min-h-14 items-center justify-center rounded-lg bg-[#d97706] px-9 py-4 text-base font-bold text-white transition-colors hover:bg-amber-700 active:bg-amber-800 focus-visible:outline-white!",
-  dialog: "fixed inset-0 m-auto max-h-[90svh] w-[calc(100%_-_32px)] max-w-xl overflow-y-auto rounded-2xl border border-[#e5e7eb] bg-[#FAF9F5] p-6 text-[#0F3D2E] shadow-xl backdrop:bg-black/40 sm:p-8",
+  signup: "inline-flex min-h-14 items-center justify-center rounded-lg bg-[var(--buyer-accent)] px-9 py-4 text-base font-bold text-white transition-colors hover:opacity-90 active:opacity-80 focus-visible:outline-white!",
+  dialog: "fixed inset-0 m-auto max-h-[90svh] w-[calc(100%_-_32px)] max-w-xl overflow-y-auto rounded-2xl border border-[var(--buyer-line)] bg-[var(--buyer-surface)] p-6 text-[var(--buyer-forest)] shadow-xl backdrop:bg-black/40 sm:p-8",
 };
 
 export default function About() {
