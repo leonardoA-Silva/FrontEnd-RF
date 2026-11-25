@@ -44,7 +44,7 @@ export default function BuyerPayment({ shopping, blocked = false, onActivityChan
   const current = result ?? resource.data;
   const checkout = current?.checkout;
   const ended = isEndedPix(current);
-  const canPay = !blocked && !ended && Number(shopping.value) > 0 && shopping.status === "pending" && !resource.loading && !resource.error && !uncertain && !current?.checkout?.needs_review && (!current || current.payment.status === "refused");
+  const canPay = !blocked && !ended && Number(shopping.value) > 0 && ["pending", "accepted"].includes(shopping.status) && !resource.loading && !resource.error && !uncertain && !current?.checkout?.needs_review && (!current || current.payment.status === "refused");
   const canEndPix = !blocked && !uncertain && !resource.loading && !resource.error && !checkout?.needs_review && current?.payment.method === "pix" && current.payment.status === "pending";
   const qrVisible = !busy && !blocked && !uncertain && current?.payment.method === "pix" && current.payment.status === "pending" && checkout?.status === "pending" && !checkout.needs_review && ["pending", "accepted"].includes(shopping.status);
   const cancelBlocked = busy || confirm || endConfirm || resource.loading || !!resource.error || uncertain || !!checkout?.needs_review || ended || (!!current && current.payment.status !== "refused");

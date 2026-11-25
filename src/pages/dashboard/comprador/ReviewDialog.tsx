@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Star } from "lucide-react";
 import { criarAvaliacao, type ReviewBackend } from "../../../api/services";
-import { apiError } from "../../../axios/apiError";
+import { apiError, apiStatus } from "../../../axios/apiError";
 import { buyerStyles as s } from "./buyerStyles";
 
 interface ReviewDialogProps {
@@ -41,7 +41,14 @@ export default function ReviewDialog({ shoppingId, sellerId, onSuccess, onClose 
       });
       onSuccess(response.data.id);
     } catch (err) {
-      setError(apiError(err, "Não foi possível enviar a avaliação. Verifique se o pedido está concluído."));
+      const status = apiStatus(err);
+      if (status === 403) {
+        setError("Esta reserva ainda não atende aos requisitos para avaliação. Apenas reservas concluídas e confirmadas entre os participantes podem ser avaliadas.");
+      } else if (status === 409) {
+        setError("Você já enviou uma avaliação para esta reserva.");
+      } else {
+        setError(apiError(err, "Não foi possível enviar a avaliação. Verifique se o pedido está concluído."));
+      }
     } finally {
       setBusy(false);
     }
