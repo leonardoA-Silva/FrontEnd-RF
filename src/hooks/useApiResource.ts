@@ -19,6 +19,11 @@ export function useApiResource<T>(loader: (signal: AbortSignal) => Promise<{ dat
     setState(current => ({ ...current, loading: true, error: "" }));
     setRevision(value => value + 1);
   }, []);
+  useEffect(() => {
+    const onFocus = () => setRevision(value => value + 1);
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
+  }, []);
   return { data: state.loader === loader ? state.data : null, loading: state.loader !== loader || state.loading, error: state.loader === loader ? state.error : "", reload };
 }
 
