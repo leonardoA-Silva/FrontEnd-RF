@@ -49,6 +49,17 @@ export default function BuyerPayment({ shopping, blocked = false, onActivityChan
   const qrVisible = !busy && !blocked && !uncertain && current?.payment.method === "pix" && current.payment.status === "pending" && checkout?.status === "pending" && !checkout.needs_review && ["pending", "accepted"].includes(shopping.status);
   const cancelBlocked = busy || confirm || endConfirm || resource.loading || !!resource.error || uncertain || !!checkout?.needs_review || ended || (!!current && current.payment.status !== "refused");
   useEffect(() => { onActivityChange?.({ busy, cancelBlocked }); }, [busy, cancelBlocked, onActivityChange]);
+  useEffect(() => {
+    if (blocked || uncertain || busy || current?.payment.method !== "pix" || current.payment.status !== "pending") return;
+    const timer = window.setInterval(() => {
+      sincronizarPagamento(current.payment.id).then((res) => {
+        if (res.data?.payment?.id === current.payment.id && res.data.payment.status !== "pending") {
+          received(res.data);
+        }
+      }).catch(() => { /* Ignora falha transitória no polling automático. */ });
+    }, 5000);
+    return () => window.clearInterval(timer);
+  });
   function persistReconciliation(id: string | null) {
     try {
       if (id === null) sessionStorage.removeItem(reconciliationKey);
