@@ -11,5 +11,10 @@ export function useCompanyResource<T>(load: (signal: AbortSignal) => Promise<T[]
     load(controller.signal).then(data => { if (!controller.signal.aborted) { setRows(data); setLoading(false); } }).catch(cause => { if (!controller.signal.aborted) { setError(resourceError(cause)); setLoading(false); } });
     return () => controller.abort();
   }, [load, attempt]);
+  useEffect(() => {
+    const onFocus = () => setAttempt(value => value + 1);
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
+  }, []);
   return { rows, loading, error, reload: () => { setError(""); setLoading(true); setAttempt(value => value + 1); } };
 }

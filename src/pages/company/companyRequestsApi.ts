@@ -8,7 +8,7 @@ export async function loadCompanyRequests(signal?: AbortSignal) {
   return [...new Map(data.filter(item => item.type === "reserva_solicitada" && item.reference_id).map(item => [item.reference_id!, item])).values()];
 }
 
-export async function answerCompanyRequest(id: string, status: "accepted" | "refused") {
+export async function answerCompanyRequest(id: string, status: "accepted" | "refused" | "completed") {
   const { data } = await api.patch<{ shopping: Shopping }>(`/shopping/${encodeURIComponent(id)}/status`, { status });
   if (data.shopping?.id.toLowerCase() !== id.toLowerCase() || data.shopping.status !== status) throw new Error("Resposta da reserva não confirmada.");
   return data.shopping;
