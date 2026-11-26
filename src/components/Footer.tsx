@@ -7,7 +7,7 @@ export default function Footer({ variant = "default" }: { variant?: "default" | 
   const { isLoggedIn, role } = useLoggedUser();
   return (
     <footer className="home-footer" data-variant={variant}>
-      <div className="home-container">
+      <div className="home-footer-inner">
         <div className="home-footer-top">
           <div><Brand footer /><p className="home-serif">Da indústria para a criatividade.</p></div>
           <nav aria-label="Links do rodapé">
