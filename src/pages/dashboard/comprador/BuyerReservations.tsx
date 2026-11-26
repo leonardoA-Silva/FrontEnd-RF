@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { Star, AlertTriangle, RefreshCw } from "lucide-react";
+import { Star, AlertTriangle } from "lucide-react";
 import {
   cancelarReserva,
   listarReservas,
@@ -87,10 +87,6 @@ export default function BuyerReservations({
   return <section className="space-y-6">
     <div className="flex flex-wrap items-center justify-between gap-4">
       <h1 className={s.title}>{history ? "Histórico de reservas" : "Minhas Reservas"}</h1>
-      <button onClick={resource.reload} disabled={resource.loading} className={s.secondary}>
-        <RefreshCw size={15} className="inline mr-1" aria-hidden="true" />
-        Atualizar reservas
-      </button>
     </div>
     <label className={s.label}>Filtrar por situação
       <select aria-label="Situação da reserva" value={filter} onChange={e => setFilter(e.target.value)} className={`${s.input} max-w-xs`}>
@@ -280,7 +276,6 @@ function ReservationDetail({
       {shopping.status === "pending" && (
         <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-900 flex items-center justify-between gap-3">
           <span>Aguardando a resposta da empresa fornecedora. Esta tela atualiza automaticamente assim que a reserva for aceita ou recusada.</span>
-          <button type="button" onClick={resource.reload} className="shrink-0 underline font-semibold">Atualizar agora</button>
         </div>
       )}
 
@@ -332,10 +327,6 @@ function ReservationDetail({
       </div>
 
       <div className="flex flex-wrap gap-3">
-        <button disabled={busy || paymentActivity.busy} onClick={resource.reload} className={s.secondary}>
-          <RefreshCw size={15} className="inline mr-1" aria-hidden="true" />
-          Atualizar detalhes
-        </button>
         {shopping.status === "pending" && <button disabled={busy || paymentActivity.cancelBlocked} onClick={() => { setError(""); setConfirm(true); }} className={s.secondary}>Cancelar reserva</button>}
       </div>
 
