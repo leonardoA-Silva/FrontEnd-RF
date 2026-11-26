@@ -68,7 +68,8 @@ button:not(:disabled), label:has(input[type="radio"]) { cursor: pointer; }
 }
 
 /* Shared public shell and the approved cinematic home. */
-.home-page { --home-green: #0f3d2e; --home-paper: #faf9f5; background: var(--home-paper); color: var(--home-green); overflow: clip; }
+.home-page { --home-green: #0f3d2e; --home-paper: #faf9f5; background: var(--home-paper); color: var(--home-green); overflow-x: clip; }
+.home-page > main { overflow: clip; }
 .home-container { width: min(1280px, calc(100% - 112px)); margin-inline: auto; }
 .home-header { position: sticky; top: 0; z-index: 40; background: #faf9f5ed; backdrop-filter: blur(16px); color: #0f3d2e; }
 .home-header-inner { display: flex; align-items: center; justify-content: space-between; gap: 32px; min-height: 98px; }
