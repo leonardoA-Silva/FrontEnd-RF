@@ -183,7 +183,7 @@ button:not(:disabled), label:has(input[type="radio"]) { cursor: pointer; }
 .home-app .home-app-note { margin-top: 14px; font-size: 11px; line-height: 1.5; color: #687264; }
 .home-footer { position: relative; width: 100%; background: #faf9f5; color: #0f3d2e; padding-block: 32px 23px; border-top: 1px solid #dedfd5; }
 .home-footer .home-container { max-width: 100%; width: 100%; padding-inline: clamp(20px, 4vw, 48px); }
-.home-footer-inner { width: 100%; padding-inline: clamp(16px, 4vw, 56px); box-sizing: border-box; }
+.home-footer-inner { width: 100%; padding-inline: 0; box-sizing: border-box; }
 .home-footer-top { display: flex; justify-content: space-between; align-items: center; gap: 30px; padding-bottom: 26px; }
 .home-brand-footer svg { width: 35px; height: 35px; }
 .home-brand-footer strong { font-size: 22px; }
@@ -191,7 +191,6 @@ button:not(:disabled), label:has(input[type="radio"]) { cursor: pointer; }
 .home-footer-top p { margin-top: 12px; font-size: 17px; color: #74796e; }
 .home-footer nav { display: flex; gap: 25px; font-size: 12px; }
 .home-footer a:not(.home-brand):hover { text-decoration: underline; text-underline-offset: 4px; }
-.home-back-top { font-size: 11px; }
 .home-footer-bottom { display: flex; justify-content: space-between; gap: 20px; border-top: 1px solid #bfc5b8; padding-top: 18px; font-size: 10px; color: #687264; }
 .home-motion-control { position: fixed; z-index: 35; bottom: 14px; left: 15px; display: flex; align-items: center; justify-content: center; gap: 7px; min-height: 34px; padding: 8px 11px; border-radius: 30px; border: 1px solid #0f3d2e25; background: #faf9f5eb; color: #0f3d2e; font-size: 10px; box-shadow: 0 3px 15px #0f3d2e0d; }
 @media (min-width: 1500px) { .home-hero { min-height: 780px; } }
@@ -267,7 +266,6 @@ button:not(:disabled), label:has(input[type="radio"]) { cursor: pointer; }
   .home-footer-top { flex-wrap: wrap; align-items: flex-start; gap: 27px; }
   .home-footer nav { flex-wrap: wrap; gap: 20px; }
   .home-footer-bottom { flex-direction: column; gap: 10px; padding-bottom: 20px; }
-  .home-back-top { display: none; }
   .home-motion-control { bottom: 10px; left: 10px; }
 }
 @media (max-width: 370px) {
