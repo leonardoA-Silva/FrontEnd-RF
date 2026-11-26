@@ -206,6 +206,7 @@ export const criarReserva = (id: string, quantity: number) => api.post<{ shoppin
 export const listarReservas = (signal?: AbortSignal) => api.get<Shopping[]>("/shopping/", { signal });
 export const obterReserva = (id: string, signal?: AbortSignal) => api.get<Shopping>(`/shopping/${encodeURIComponent(id)}`, { signal });
 export const cancelarReserva = (id: string) => api.patch<{ shopping: Shopping }>(`/shopping/${encodeURIComponent(id)}/cancel`);
+export const confirmarEntregaReserva = (id: string) => api.patch<{ shopping: Shopping }>(`/shopping/${encodeURIComponent(id)}/status`, { status: "completed" });
 
 export interface BuyerNotification { id: string; title: string; content: string | null; type: string; read: "sim" | "nao"; created_in: string; reference_table: string | null; reference_id: string | null }
 export const listarNotificacoes = (read: string, type: string, signal?: AbortSignal) => api.get<BuyerNotification[]>("/notification/", { signal, params: { read: read || undefined, type: type || undefined } });

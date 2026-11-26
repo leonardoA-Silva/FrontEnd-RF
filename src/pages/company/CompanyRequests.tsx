@@ -23,7 +23,7 @@ export default function CompanyRequests() {
   const loader = useCallback(async (signal: AbortSignal) => ({ data: await loadCompanyRequests(signal) }), []);
   const resource = useApiResource(loader);
   const [answers, setAnswers] = useState<Record<string, string>>(readStoredAnswers);
-  const [selection, setSelection] = useState<{ item: BuyerNotification; status: "accepted" | "refused" | "completed" } | null>(null);
+  const [selection, setSelection] = useState<{ item: BuyerNotification; status: "accepted" | "refused" } | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -123,25 +123,13 @@ export default function CompanyRequests() {
               <p className="whitespace-pre-wrap break-words">{item.content}</p>
               <p className={s.copy}>{dateLabel(item.created_in)}</p>
               {currentStatus ? (
-                <div className="space-y-3">
-                  <p role="status" className="text-xs text-gray-500">
-                    {currentStatus === "completed"
-                      ? "Entrega confirmada. O comprador já pode avaliar o pedido."
-                      : currentStatus === "accepted"
-                        ? "Reserva aceita. Aguardando pagamento ou retirada pelo comprador."
-                        : "Reserva recusada. O material foi retornado à disponibilidade."}
-                  </p>
-                  {currentStatus === "accepted" && (
-                    <button
-                      type="button"
-                      disabled={busy}
-                      className={s.button}
-                      onClick={() => { setError(""); setSelection({ item, status: "completed" }); }}
-                    >
-                      Confirmar entrega
-                    </button>
-                  )}
-                </div>
+                <p role="status" className="text-xs text-gray-500">
+                  {currentStatus === "completed"
+                    ? "Entrega confirmada pelo comprador. O pedido foi concluído."
+                    : currentStatus === "accepted"
+                      ? "Reserva aceita. Aguardando pagamento, retirada ou confirmação de entrega pelo comprador."
+                      : "Reserva recusada. O material foi retornado à disponibilidade."}
+                </p>
               ) : (
                 <div className="flex flex-wrap gap-3">
                   <button
@@ -169,12 +157,10 @@ export default function CompanyRequests() {
     ))}
     {selection && (
       <ConfirmAction
-        title={selection.status === "accepted" ? "Aceitar reserva?" : selection.status === "completed" ? "Confirmar entrega do material?" : "Recusar reserva?"}
+        title={selection.status === "accepted" ? "Aceitar reserva?" : "Recusar reserva?"}
         description={selection.status === "accepted"
           ? "Confirme que o material ficará reservado para este comprador. Ele receberá a atualização imediatamente."
-          : selection.status === "completed"
-            ? "Confirme que o material foi entregue ou retirado. Isso concluirá a reserva e liberará a avaliação para o comprador."
-            : "Ao recusar, o estoque retorna ao anúncio e o comprador é avisado."}
+          : "Ao recusar, o estoque retorna ao anúncio e o comprador é avisado."}
         busy={busy}
         error={error}
         confirm={answer}

@@ -64,7 +64,7 @@ function App() {
             path="/dashboardUsuario"
             element={
               <ProtectedRoute allowedRoles={["user"]}>
-                <DashboardUsuario/>
+                <DashboardUsuario />
               </ProtectedRoute>
             }
           />
@@ -72,7 +72,7 @@ function App() {
             path="/dashboardEmpresa/*"
             element={
               <ProtectedRoute allowedRoles={["company"]}>
-                <DashboardEmpresa/>
+                <DashboardEmpresa />
               </ProtectedRoute>
             }
           />
@@ -148,7 +148,7 @@ function App() {
             }
           />
 
-          <Route path="*" element={<main className="buyer-panel"><h1 className="buyer-title">Página não encontrada</h1><p>Confira o endereço ou volte ao início.</p><a href="/" className="home-button">Voltar ao início</a></main>} />
+          <Route path="*" element={<main className="buyer-panel"><h1 className="buyer-title">Página não encontrada</h1><p>Confira o endereço ou volte ao início.</p></main>} />
         </Routes>
       </BrowserRouter>
     </ThemeProvider>

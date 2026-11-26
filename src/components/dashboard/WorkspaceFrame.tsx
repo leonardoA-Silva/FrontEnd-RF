@@ -1,6 +1,6 @@
 import { useContext, useEffect, useRef, type ReactNode } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { ArrowLeft, Bell, ChartNoAxesCombined, Compass, CreditCard, History, Layers3, LogOut, MapPin, MessageSquare, Plus, ShieldCheck, UserRound } from "lucide-react";
+import { Bell, ChartNoAxesCombined, Compass, CreditCard, History, Layers3, LogOut, MapPin, MessageSquare, Plus, ShieldCheck, UserRound } from "lucide-react";
 import LegalLinks from "../LegalLinks";
 import { CommunicationContext } from "../../pages/company/communication/CommunicationContext";
 import { clearSession, readSession } from "../../auth/session";
@@ -38,25 +38,25 @@ export default function WorkspaceFrame({ children, name, section, preview = fals
   }
   const items = isAdmin
     ? [
-        { to: "/dashboardUsuario", label: "Painel Geral", Icon: Compass, end: true },
-        { to: "/admin/usuarios", label: "Gerenciar Usuários", Icon: UsersIcon },
-        { to: "/admin/anuncios", label: "Gerenciar Anúncios", Icon: Shield },
-        { to: "/admin/novo-admin", label: "Novo Administrador", Icon: UserPlus },
-        { to: `${base}/perfil`, label: "Conta", Icon: UserRound },
-      ]
+      { to: "/dashboardUsuario", label: "Painel Geral", Icon: Compass, end: true },
+      { to: "/admin/usuarios", label: "Gerenciar Usuários", Icon: UsersIcon },
+      { to: "/admin/anuncios", label: "Gerenciar Anúncios", Icon: Shield },
+      { to: "/admin/novo-admin", label: "Novo Administrador", Icon: UserPlus },
+      { to: `${base}/perfil`, label: "Conta", Icon: UserRound },
+    ]
     : [
-        { to: base, label: "Anúncios", Icon: Layers3, end: true },
-        { to: `${base}/resumo`, label: "Resumo", Icon: Compass, end: true },
-        { to: `${base}/publicar`, label: "Publicar", Icon: Plus },
-        { to: `${base}/explorar`, label: "Explorar", Icon: MapPin },
-        { to: `${base}/indicadores`, label: "Impacto", Icon: ChartNoAxesCombined },
-        { to: `${base}/reservas`, label: "Reservas", Icon: History },
-        { to: `${base}/seguranca`, label: "Segurança", Icon: ShieldCheck },
-        { to: `${base}/pagamentos`, label: "Recebimentos", Icon: CreditCard },
-        { to: `${base}/mensagens`, label: "Mensagens", Icon: MessageSquare, count: unreadMessages },
-        { to: `${base}/notificacoes`, label: "Notificações", Icon: Bell, count: unreadNotifications },
-        { to: `${base}/perfil`, label: "Conta", Icon: UserRound },
-      ];
+      { to: base, label: "Anúncios", Icon: Layers3, end: true },
+      { to: `${base}/resumo`, label: "Resumo", Icon: Compass, end: true },
+      { to: `${base}/publicar`, label: "Publicar", Icon: Plus },
+      { to: `${base}/explorar`, label: "Explorar", Icon: MapPin },
+      { to: `${base}/indicadores`, label: "Impacto", Icon: ChartNoAxesCombined },
+      { to: `${base}/reservas`, label: "Reservas", Icon: History },
+      { to: `${base}/seguranca`, label: "Segurança", Icon: ShieldCheck },
+      { to: `${base}/pagamentos`, label: "Recebimentos", Icon: CreditCard },
+      { to: `${base}/mensagens`, label: "Mensagens", Icon: MessageSquare, count: unreadMessages },
+      { to: `${base}/notificacoes`, label: "Notificações", Icon: Bell, count: unreadNotifications },
+      { to: `${base}/perfil`, label: "Conta", Icon: UserRound },
+    ];
   return <div className={`company-app workspace-frame ${user ? "workspace-user" : ""}`}>
     <aside className="company-rail">
       <Link to={user ? "/dashboardUsuario" : base} className="company-monogram" aria-label="Reaproveita Franca — painel">r<span>.</span></Link>
@@ -66,7 +66,7 @@ export default function WorkspaceFrame({ children, name, section, preview = fals
     <div className="company-workspace">
       <header className="company-topbar"><Link to="/" className="company-wordmark">reaproveita<span>.</span><small>FRANCA</small></Link><div className="company-breadcrumb"><span>{user ? "Meu espaço" : "Minha empresa"}</span><span>/</span><span>{section}</span></div><div className="workspace-account"><ThemeToggle /><Link to="/sobre" className="workspace-about">Sobre o projeto</Link>{!user && <Link to={`${base}/notificacoes`} className="workspace-notification-link" aria-label={`Notificações${unreadNotifications ? `, ${unreadNotifications} não lidas` : ""}`}><Bell size={20} strokeWidth={1.5} aria-hidden="true" />{unreadNotifications > 0 && <span aria-hidden="true">{unreadNotifications > 99 ? "99+" : unreadNotifications}</span>}</Link>}{accountTo ? <Link to={accountTo} className="company-user" aria-label={`Conta de ${name}`}><span><UserRound size={17} aria-hidden="true" /></span><span>{name}</span></Link> : <span className="company-user"><span><Compass size={17} aria-hidden="true" /></span><span>{name}</span></span>}<button type="button" className="workspace-mobile-exit" onClick={exit} aria-label={preview ? "Sair da prévia" : "Sair"}><LogOut size={20} strokeWidth={1.5} aria-hidden="true" /></button></div></header>
       <main id="conteudo" tabIndex={-1} className={sidePanel ? "workspace-map-layout" : "company-main"}>{sidePanel ? <><aside className="workspace-map-panel">{sidePanel}</aside><div className="workspace-map-canvas">{children}</div></> : children}</main>
-      <footer className="company-footer"><span>© {new Date().getFullYear()} Reaproveita Franca.</span><Link to="/" className="company-inline-link"><ArrowLeft size={12} aria-hidden="true" /> Voltar ao site</Link><LegalLinks /></footer>
+      <footer className="company-footer"><span>© {new Date().getFullYear()} Reaproveita Franca.</span><LegalLinks /></footer>
     </div>
   </div>;
 }

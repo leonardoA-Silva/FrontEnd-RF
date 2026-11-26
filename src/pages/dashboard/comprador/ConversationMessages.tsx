@@ -1,24 +1,25 @@
-import { Send, Pencil, Trash2 } from "lucide-react";
+import { CheckCircle2, Send, Pencil, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
-import { obterConversa, type BuyerMessage } from "../../../api/services";
-import { useApiResource } from "../../../hooks/useApiResource";
+import { apiError } from "../../../axios/apiError";
+import { confirmarEntregaReserva, listarReservas, obterConversa, obterReserva, type BuyerMessage, type Shopping } from "../../../api/services";
+import { useApiResource, requireArray } from "../../../hooks/useApiResource";
 import { socketRequest, type BuyerSocket } from "../../../realtime/buyerSocket";
 import ConfirmAction from "./ConfirmAction";
 import RequestState from "./RequestState";
 import { buyerStyles as s } from "./buyerStyles";
 import { dateLabel } from "./buyerPresentation";
 
-export default function ConversationMessages({ id, userId, socket, connected }: { id: string; userId: string; socket: BuyerSocket | null; connected: boolean }) {
+export default function ConversationMessages({ id, userId, socket, connected, company = false }: { id: string; userId: string; socket: BuyerSocket | null; connected: boolean; company?: boolean }) {
   const loader = useCallback(async (signal: AbortSignal) => {
     const response = await obterConversa(id, signal);
     if (response.data.conversationId !== id || !response.data.participants.some(item => item.toLowerCase() === userId.toLowerCase())) throw new Error("Conversa inválida.");
     return response;
   }, [id, userId]);
   const access = useApiResource(loader);
-  return <><RequestState {...access} retry={access.reload} />{!access.loading && !access.error && access.data && (socket && connected ? <MessageThread key={id} id={id} userId={userId} socket={socket} /> : <p role="status" className={s.notice}>As mensagens aguardam conexão em tempo real. Use Reconectar para tentar novamente.</p>)}</>;
+  return <><RequestState {...access} retry={access.reload} />{!access.loading && !access.error && access.data && (socket && connected ? <MessageThread key={id} id={id} userId={userId} socket={socket} participants={access.data.participants} company={company} /> : <p role="status" className={s.notice}>As mensagens aguardam conexão em tempo real. Use Reconectar para tentar novamente.</p>)}</>;
 }
 
-function MessageThread({ id, userId, socket }: { id: string; userId: string; socket: BuyerSocket }) {
+function MessageThread({ id, userId, socket, participants, company }: { id: string; userId: string; socket: BuyerSocket; participants: string[]; company: boolean }) {
   const loader = useCallback(async () => {
     await socketRequest(socket, "join_conversation", id);
     const response = await socketRequest<{ messages: BuyerMessage[] }>(socket, "load_messages", { conversationId: id, limit: 50 });
@@ -33,9 +34,49 @@ function MessageThread({ id, userId, socket }: { id: string; userId: string; soc
   const [text, setText] = useState("");
   const [editing, setEditing] = useState<string | null>(null);
   const [selected, setSelected] = useState<BuyerMessage | null>(null);
+  const [confirmDelivery, setConfirmDelivery] = useState<Shopping | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+
+  const reservationsLoader = useCallback(async (signal: AbortSignal) => {
+    if (company) return { data: [] as Shopping[] };
+    const response = await listarReservas(signal);
+    const accepted = requireArray(response.data).filter(item => item.status === "accepted");
+    if (!accepted.length) return { data: [] as Shopping[] };
+    const detailed = await Promise.all(
+      accepted.map(item =>
+        obterReserva(item.id, signal)
+          .then(res => res.data)
+          .catch(() => item)
+      )
+    );
+    return { data: detailed };
+  }, [company]);
+  const reservations = useApiResource(reservationsLoader);
+
+  const pendingDeliveries = !company
+    ? (reservations.data ?? []).filter(
+        item =>
+          item.status === "accepted" &&
+          item.items?.some(it => it.seller_id && participants.some(p => p.toLowerCase() === it.seller_id?.toLowerCase()))
+      )
+    : [];
+
+  async function handleConfirmDelivery() {
+    if (!confirmDelivery || busy) return;
+    setBusy(true); setError("");
+    try {
+      await confirmarEntregaReserva(confirmDelivery.id);
+      setConfirmDelivery(null);
+      setSuccess("Entrega confirmada! A reserva foi concluída e você já pode avaliar o pedido.");
+      reservations.reload();
+    } catch (cause) {
+      setError(apiError(cause, "Não foi possível confirmar a entrega. Tente novamente."));
+    } finally {
+      setBusy(false);
+    }
+  }
   useEffect(() => {
     if (!success) return;
     const t = setTimeout(() => setSuccess(""), 4000);
@@ -83,11 +124,36 @@ function MessageThread({ id, userId, socket }: { id: string; userId: string; soc
   }
   const messages = [...new Map([...older, ...(resource.data ?? [])].map(item => [item.id, item])).values()];
   return <section className="chat-messages" aria-label="Mensagens da conversa">
+    {pendingDeliveries.length > 0 && (
+      <div className="mb-3 space-y-2">
+        {pendingDeliveries.map(item => (
+          <div key={item.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-emerald-200 bg-emerald-50/70 p-3 text-sm">
+            <div>
+              <p className="font-semibold text-emerald-950">
+                Reserva aceita: {item.items?.[0]?.product_name || "Material reservado"}
+              </p>
+              <p className="text-xs text-emerald-800">
+                Já recebeu ou retirou este material? Confirme a entrega para concluir e liberar a avaliação.
+              </p>
+            </div>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => { setError(""); setConfirmDelivery(item); }}
+              className={s.button}
+            >
+              <CheckCircle2 size={16} aria-hidden="true" /> Confirmar entrega
+            </button>
+          </div>
+        ))}
+      </div>
+    )}
     <div className="chat-history-actions"><button disabled={busy || resource.loading} onClick={() => { setOlder([]); setHasOlder(true); resource.reload(); }} className={s.secondary}>Atualizar mensagens</button>{hasOlder && (resource.data?.length ?? 0) >= 50 && <button disabled={busy} onClick={loadOlder} className={s.secondary}>Mensagens anteriores</button>}</div>
     <RequestState {...resource} retry={resource.reload} />
     {!resource.loading && !resource.error && (!messages.length ? <p className={s.copy}>Esta conversa ainda não tem mensagens.</p> : <ol className="chat-message-list" aria-label="Histórico da conversa">{messages.map(item => <li key={item.id} className={"chat-bubble " + (item.id_user.toLowerCase() === userId.toLowerCase() ? "chat-bubble-mine" : "")}><p className="chat-message-meta">{item.id_user.toLowerCase() === userId.toLowerCase() ? "Você" : "Participante"} · {dateLabel(item.created_in)}</p><p className={`${s.copy} whitespace-pre-wrap break-words`}>{item.deleted_in ? "Mensagem excluída" : item.type === "texto" ? item.content : "Anexo indisponível nesta versão"}</p>{item.edited_in && !item.deleted_in && <p className="text-xs text-gray-600">Editada</p>}{item.id_user.toLowerCase() === userId.toLowerCase() && !item.deleted_in && item.type === "texto" && <div className="chat-message-actions"><button aria-label="Editar mensagem" title="Editar mensagem" disabled={busy} onClick={() => { setEditing(item.id); setText(item.content ?? ""); }} ><Pencil size={14} /></button><button aria-label="Excluir mensagem" title="Excluir mensagem" disabled={busy} onClick={() => { setError(""); setSelected(item); }}><Trash2 size={14} /></button></div>}</li>)}</ol>)}
     {error && !selected && <p role="alert" className={s.error}>{error}</p>}{success && <p role="status" className={s.success}>{success}</p>}
     <form onSubmit={send} className="chat-composer"><label><span className="sr-only">{editing ? "Editar mensagem" : "Nova mensagem"}</span><textarea rows={1} placeholder={editing ? "Editar mensagem…" : "Digite uma mensagem"} required maxLength={4000} disabled={busy || resource.loading || Boolean(resource.error)} value={text} onChange={e => setText(e.target.value)} /></label><button aria-label={editing ? "Salvar mensagem" : "Enviar mensagem"} title={editing ? "Salvar mensagem" : "Enviar mensagem"} disabled={busy || resource.loading || Boolean(resource.error) || !text.trim()} className="chat-send"><Send size={20} aria-hidden="true" /></button>{editing && <button type="button" disabled={busy} onClick={() => { setEditing(null); setText(""); }} className={s.secondary}>Cancelar edição</button>}<span className="sr-only" role="status">{busy ? "Enviando…" : ""}</span></form>
     {selected && <ConfirmAction title="Excluir mensagem?" description="O conteúdo será removido da conversa após a confirmação do servidor." busy={busy} error={error} confirm={remove} cancel={() => setSelected(null)} />}
+    {confirmDelivery && <ConfirmAction title="Confirmar entrega do material?" description="Confirme que você recebeu ou retirou o material. Isso concluirá a reserva e liberará a avaliação do pedido." busy={busy} error={error} confirm={handleConfirmDelivery} cancel={() => { if (!busy) setConfirmDelivery(null); }} />}
   </section>;
 }
