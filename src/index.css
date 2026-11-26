@@ -181,6 +181,7 @@ button:not(:disabled), label:has(input[type="radio"]) { cursor: pointer; }
 .home-app-button { margin-top: 30px; }
 .home-app .home-app-note { margin-top: 14px; font-size: 11px; line-height: 1.5; color: #687264; }
 .home-footer { position: relative; width: 100%; background: #faf9f5; color: #0f3d2e; padding-block: 32px 23px; border-top: 1px solid #dedfd5; }
+.home-footer .home-container { max-width: 100%; width: 100%; padding-inline: clamp(20px, 4vw, 48px); }
 .home-footer-top { display: flex; justify-content: space-between; align-items: center; gap: 30px; padding-bottom: 26px; }
 .home-brand-footer svg { width: 35px; height: 35px; }
 .home-brand-footer strong { font-size: 22px; }

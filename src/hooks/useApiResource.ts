@@ -22,7 +22,11 @@ export function useApiResource<T>(loader: (signal: AbortSignal) => Promise<{ dat
   useEffect(() => {
     const onFocus = () => setRevision(value => value + 1);
     window.addEventListener("focus", onFocus);
-    return () => window.removeEventListener("focus", onFocus);
+    const timer = window.setInterval(() => setRevision(value => value + 1), 10000);
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      window.clearInterval(timer);
+    };
   }, []);
   return { data: state.loader === loader ? state.data : null, loading: state.loader !== loader || state.loading, error: state.loader === loader ? state.error : "", reload };
 }

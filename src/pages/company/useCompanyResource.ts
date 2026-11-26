@@ -14,7 +14,11 @@ export function useCompanyResource<T>(load: (signal: AbortSignal) => Promise<T[]
   useEffect(() => {
     const onFocus = () => setAttempt(value => value + 1);
     window.addEventListener("focus", onFocus);
-    return () => window.removeEventListener("focus", onFocus);
+    const timer = window.setInterval(() => setAttempt(value => value + 1), 10000);
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      window.clearInterval(timer);
+    };
   }, []);
   return { rows, loading, error, reload: () => { setError(""); setLoading(true); setAttempt(value => value + 1); } };
 }

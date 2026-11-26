@@ -7,7 +7,6 @@ import RequestState from "../dashboard/comprador/RequestState";
 import { buyerStyles as s } from "../dashboard/comprador/buyerStyles";
 import { dateLabel } from "../dashboard/comprador/buyerPresentation";
 import { apiError, apiStatus } from "../../axios/apiError";
-import { RefreshCw } from "lucide-react";
 
 const STORAGE_KEY = "rf_company_answered_requests";
 
@@ -101,10 +100,6 @@ export default function CompanyRequests() {
     <p className={s.notice}>
       Ao aceitar uma reserva, a resposta é sincronizada em tempo real para o painel do comprador.
     </p>
-    <button type="button" className={s.secondary} disabled={resource.loading || busy} onClick={resource.reload}>
-      <RefreshCw size={15} className="inline mr-1" aria-hidden="true" />
-      Atualizar solicitações
-    </button>
     <RequestState {...resource} retry={resource.reload} />
     {notice && <p role="status" className={s.success}>{notice}</p>}
     {!resource.loading && !resource.error && (!resource.data?.length ? (

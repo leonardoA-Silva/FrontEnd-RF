@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Search, RefreshCw } from "lucide-react";
+import { Search } from "lucide-react";
 import { useProducts } from "../../hooks/useProducts";
 import { productCondition, productPhotos, productPrice, productStatus } from "./productPresentation";
 import MaterialImage from "./MaterialImage";
@@ -31,7 +31,7 @@ export default function ProductCatalog({ embedded = false, companyId }: { embedd
       <button type="button" onClick={reset} className={styles.secundario}>Limpar filtros</button>
     </div></aside>
     <div className="buyer-catalog-results min-w-0 space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4"><h2 id="catalog-title" className="buyer-subtitle">Materiais do marketplace</h2><button type="button" disabled={loading} onClick={reload} className={styles.secundario}><RefreshCw size={16} />Atualizar</button></div>
+      <div className="flex flex-wrap items-center justify-between gap-4"><h2 id="catalog-title" className="buyer-subtitle">Materiais do marketplace</h2></div>
       <div className="flex flex-wrap items-center gap-4"><label className="buyer-search"><Search size={18} /><span className="sr-only">Buscar materiais</span><input type="search" value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} placeholder="Buscar materiais..." className="min-h-12 w-full min-w-0 bg-transparent text-base" /></label><label className="text-sm">Ordenar por<select value={sort} onChange={e => { setSort(e.target.value); setPage(1); }} className="ml-2 rounded-lg bg-white p-2"><option value="api">Ordem do catálogo</option><option value="name">Nome</option><option value="quantity">Maior quantidade</option></select></label></div>
       {loading ? <p role="status" className={styles.texto}>Carregando materiais...</p> : error ? <div role="alert" className={styles.aviso}><p>{error}</p><button onClick={reload} className={`${styles.secundario} mt-4`}>Tentar novamente</button></div> : !filtered.length ? <div className={`${styles.painel} text-center`}><h2 className={styles.subtitulo}>{products.length ? "Nenhum material encontrado" : "Nenhum material publicado"}</h2><p className={`${styles.texto} my-4`}>{products.length ? "Altere os filtros para encontrar outros materiais." : "Quando houver materiais publicados, eles aparecerão aqui."}</p>{products.length > 0 && <button onClick={reset} className={styles.secundario}>Restaurar filtros</button>}</div> : <>
         <p role="status" className={styles.texto}>{filtered.length} {filtered.length === 1 ? "material encontrado" : "materiais encontrados"}</p>

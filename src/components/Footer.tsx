@@ -15,7 +15,6 @@ export default function Footer({ variant = "default" }: { variant?: "default" | 
             <Link to="/marketplace">Materiais</Link>
             <Link to={isLoggedIn ? (role === "company" ? "/dashboardEmpresa" : "/dashboardUsuario") : "/cadastro"}>{isLoggedIn ? "Minha conta" : "Criar conta"}</Link>
           </nav>
-          <a href="/#conteudo" className="home-back-top">Voltar ao topo ↑</a>
         </div>
         <LegalLinks />
         <div className="home-footer-bottom"><span>© {new Date().getFullYear()} Reaproveita Franca.</span><span>Feito para transformar. Pensado para circular.</span></div>
